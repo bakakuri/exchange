@@ -15,7 +15,7 @@ function toast(message) {
   const el = $("#toast");
   el.textContent = message;
   el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 2400);
+  setTimeout(() => el.classList.remove("show"), 3200);
 }
 
 function showView(id) {
@@ -36,14 +36,7 @@ function setCredits(value) {
 
 function taskCard(task) {
   const done = state.completed.has(task.id);
-  return `<article class="task-card">
-    <div><div class="task-top"><span class="platform">${escapeHtml(task.platform)}</span><span class="reward">+${task.reward} credits</span></div>
-    <h3>${escapeHtml(task.title)}</h3><small>${escapeHtml(task.category)} · ${escapeHtml(task.action)}</small></div>
-    <div class="task-actions">
-      <a class="task-action secondary" href="${safeUrl(task.target_url)}" target="_blank" rel="noopener noreferrer">Open →</a>
-      <button class="task-action ${done ? "done" : ""}" data-task="${task.id}" ${done ? "disabled" : ""}>${done ? "✓ Completed" : "Confirm & earn"}</button>
-    </div>
-  </article>`;
+  return `<article class="task-card"><div><div class="task-top"><span class="platform">${escapeHtml(task.platform)}</span><span class="reward">+${task.reward} credits</span></div><h3>${escapeHtml(task.title)}</h3><small>${escapeHtml(task.category)} · ${escapeHtml(task.action)}</small></div><div class="task-actions"><a class="task-action secondary" href="${safeUrl(task.target_url)}" target="_blank" rel="noopener noreferrer">Open →</a><button class="task-action ${done ? "done" : ""}" data-task="${task.id}" ${done ? "disabled" : ""}>${done ? "✓ Completed" : "Confirm & earn"}</button></div></article>`;
 }
 
 function renderTasks(list = state.tasks) {
@@ -59,23 +52,30 @@ async function loadData() {
   }
 
   const uid = state.user.id;
-  const [{data: profile}, {data: tasks}, {data: socials}, {data: completions}] = await Promise.all([
+  const results = await Promise.all([
     state.supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
     state.supabase.from("tasks").select("*").eq("status","active").order("created_at",{ascending:false}),
     state.supabase.from("social_profiles").select("*").eq("user_id",uid).order("created_at",{ascending:false}),
     state.supabase.from("task_completions").select("task_id").eq("user_id",uid)
   ]);
 
-  state.profile = profile;
-  state.tasks = tasks || [];
-  state.socialProfiles = socials || [];
-  state.completed = new Set((completions || []).map(x => x.task_id));
+  const [profileResult, tasksResult, socialsResult, completionsResult] = results;
+  const firstError = results.find(r => r.error)?.error;
+  if (firstError) {
+    console.error("Exchange data error:", firstError);
+    toast(`Supabase error: ${firstError.message}`);
+  }
 
-  setCredits(profile?.credits || 0);
+  state.profile = profileResult.data;
+  state.tasks = tasksResult.data || [];
+  state.socialProfiles = socialsResult.data || [];
+  state.completed = new Set((completionsResult.data || []).map(x => x.task_id));
+
+  setCredits(profileResult.data?.credits || 0);
   $("#completedCount").textContent = state.completed.size;
   $("#profileCount").textContent = state.socialProfiles.length;
 
-  const name = profile?.display_name || state.user.email?.split("@")[0] || "User";
+  const name = profileResult.data?.display_name || state.user.email?.split("@")[0] || "User";
   $("#userName").textContent = name;
   $("#userPlan").textContent = "Free plan";
   $("#avatar").textContent = name[0]?.toUpperCase() || "U";
@@ -134,10 +134,7 @@ $("#authForm").addEventListener("submit", async (e) => {
   try {
     let result;
     if (state.signUpMode) {
-      result = await state.supabase.auth.signUp({
-        email, password,
-        options: { data: { display_name: displayName || email.split("@")[0] } }
-      });
+      result = await state.supabase.auth.signUp({email, password, options: { data: { display_name: displayName || email.split("@")[0] } }});
     } else {
       result = await state.supabase.auth.signInWithPassword({email,password});
     }
@@ -173,7 +170,8 @@ $("#addProfile").addEventListener("click", async () => {
 
 async function initSession() {
   if (!state.supabase) return;
-  const {data:{session}} = await state.supabase.auth.getSession();
+  const {data:{session}, error} = await state.supabase.auth.getSession();
+  if (error) throw error;
   state.user = session?.user || null;
   $("#authBtn").querySelector("span").textContent = state.user ? "Account" : "Sign in";
   await loadData();
@@ -183,23 +181,32 @@ function escapeHtml(v) {
   return String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
 }
 function safeUrl(v) {
-  try {
-    const u = new URL(v);
-    return ["http:","https:"].includes(u.protocol) ? u.href : "#";
-  } catch { return "#"; }
+  try { const u = new URL(v); return ["http:","https:"].includes(u.protocol) ? u.href : "#"; } catch { return "#"; }
 }
 
 (async function boot() {
   try {
-    const cfg = await fetch("/api/config").then(r => r.json());
-    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey || !window.supabase) {
-      toast("Supabase configuration is missing.");
+    const response = await fetch(`/api/config?ts=${Date.now()}`, {cache:"no-store"});
+    if (!response.ok) throw new Error(`Config endpoint returned ${response.status}`);
+    const cfg = await response.json();
+
+    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
+      console.error("Exchange config is missing:", {configured: cfg.configured, hasUrl: !!cfg.supabaseUrl, hasAnonKey: !!cfg.supabaseAnonKey});
+      toast("Supabase environment variables are not available to this deployment.");
       return;
     }
+
+    if (!window.supabase || typeof window.supabase.createClient !== "function") {
+      console.error("Supabase browser SDK failed to load.");
+      toast("Supabase browser SDK failed to load.");
+      return;
+    }
+
     state.supabase = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-    state.supabase.auth.onAuthStateChange(() => initSession());
+    state.supabase.auth.onAuthStateChange(() => initSession().catch(err => console.error("Auth state error:", err)));
     await initSession();
-  } catch {
-    toast("Could not initialize Exchange.");
+  } catch (err) {
+    console.error("Exchange initialization failed:", err);
+    toast(err.message || "Could not initialize Exchange.");
   }
 })();
