@@ -1,0 +1,106 @@
+/* Exchange UI polish: readability, theme consistency, responsive controls */
+:root{
+  color-scheme:light;
+  --ui-bg:#f5f7fb;
+  --ui-surface:#ffffff;
+  --ui-surface-2:#f8faff;
+  --ui-text:#172033;
+  --ui-muted:#6f7b90;
+  --ui-soft:#8d98aa;
+  --ui-line:#e2e7ef;
+  --ui-primary:#5865e8;
+  --ui-primary-soft:#eef1ff;
+  --ui-success:#139560;
+  --ui-danger:#d35570;
+  --ui-shadow:0 14px 38px rgba(23,32,51,.08);
+}
+body{background:var(--ui-bg);color:var(--ui-text);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,input,select{font-size:inherit}
+.main{background:transparent}
+.page-head h2,.section-head h2{font-size:clamp(21px,2.2vw,28px);line-height:1.15}
+.page-head p,.hero p{font-size:13px;line-height:1.7}
+.eyebrow{font-size:10px;letter-spacing:.12em}
+.task-card h3{font-size:14px;line-height:1.35}
+.task-card small,.profile-card small,.promotion-row small,.transaction small{font-size:11px;line-height:1.45}
+.task-action,.primary,.ghost,.secondary-btn,.danger-btn{font-size:12px}
+.pill,.page-head select,.stage2-task-controls input,.stage2-task-controls select,.stage2-wallet-filter{font-size:13px}
+.panel,.form-card,.preview-card,.profile-card,.task-card,.analytics-hero,.analytics-grid article,.wallet-card,.transactions,.list-card,.settings-card{box-shadow:var(--ui-shadow)}
+
+/* Notification bell: always visible, including mobile. */
+.top-actions .notification{display:grid!important;place-items:center;position:relative}
+.notification{font-size:19px;line-height:1}
+.notification.has-unread{border-color:#cfd5ff;box-shadow:0 0 0 4px rgba(88,101,232,.08)}
+.notification .notification-count{position:absolute;right:-4px;top:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:#ef5b78;color:#fff;font:800 9px/17px Inter,sans-serif;text-align:center;border:2px solid var(--ui-bg)}
+.notification i{display:none!important}
+.ui-notification-panel{position:fixed;right:24px;top:70px;width:min(390px,calc(100vw - 28px));max-height:min(560px,calc(100vh - 90px));overflow:auto;background:var(--ui-surface);border:1px solid var(--ui-line);border-radius:20px;box-shadow:0 24px 70px rgba(10,17,32,.18);z-index:1001;padding:10px;animation:uiPop .16s ease}
+@keyframes uiPop{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
+.ui-notification-head{display:flex;align-items:center;gap:10px;padding:7px 8px 12px;border-bottom:1px solid var(--ui-line)}
+.ui-notification-head strong{font-size:15px;flex:1}
+.ui-notification-head button{border:0;background:transparent;color:var(--ui-primary);font-size:11px;font-weight:800;padding:7px;border-radius:8px}
+.ui-notification-head button:hover{background:var(--ui-primary-soft)}
+.ui-notification-item{display:flex;gap:10px;padding:13px 9px;border-radius:13px;border-bottom:1px solid var(--ui-line);cursor:pointer}
+.ui-notification-item:last-child{border-bottom:0}
+.ui-notification-item:hover{background:var(--ui-surface-2)}
+.ui-notification-item.unread{background:var(--ui-primary-soft)}
+.ui-notification-mark{width:9px;height:9px;border-radius:50%;background:var(--ui-primary);margin-top:7px;flex:0 0 9px}
+.ui-notification-item.read .ui-notification-mark{background:transparent}
+.ui-notification-item b{display:block;font-size:13px;line-height:1.35}
+.ui-notification-item p{margin:3px 0 0;color:var(--ui-muted);font-size:12px;line-height:1.45}
+.ui-notification-item time{display:block;color:var(--ui-soft);font-size:10px;margin-top:5px}
+.ui-notification-empty{padding:42px 18px;text-align:center;color:var(--ui-muted);font-size:13px}
+.ui-notification-empty strong{display:block;color:var(--ui-text);font-size:15px;margin-bottom:5px}
+
+/* Light theme readability */
+body:not(.dark) .stage2-balance-card{box-shadow:0 16px 36px rgba(18,27,45,.13)}
+body:not(.dark) .stage2-bottom-nav{background:rgba(255,255,255,.96);border-color:var(--ui-line)}
+
+/* Dark theme: make every major surface readable instead of merely changing the wallpaper. */
+body.dark{
+  color-scheme:dark;
+  --ui-bg:#0c1320;
+  --ui-surface:#121b2b;
+  --ui-surface-2:#182236;
+  --ui-text:#f1f5fb;
+  --ui-muted:#aab6c9;
+  --ui-soft:#8190a7;
+  --ui-line:#2a3850;
+  --ui-primary:#8d96ff;
+  --ui-primary-soft:#20294a;
+  --ui-shadow:0 18px 48px rgba(0,0,0,.22);
+}
+body.dark .topbar,body.dark .breadcrumb strong{color:var(--ui-text)}
+body.dark .icon-btn{background:#121b2b;border-color:#2a3850;color:#dce4f1}
+body.dark .metric-grid article,body.dark .panel,body.dark .form-card,body.dark .profile-card,body.dark .task-card,body.dark .list-card,body.dark .transactions,body.dark .settings-card,body.dark .analytics-grid article{background:var(--ui-surface);border-color:var(--ui-line);color:var(--ui-text)}
+body.dark .page-head p,body.dark .task-card small,body.dark .profile-card small,body.dark .promotion-row small,body.dark .transaction small{color:var(--ui-muted)}
+body.dark .page-head select,body.dark .pill,body.dark .stage2-task-controls input,body.dark .stage2-task-controls select,body.dark .stage2-wallet-filter{background:#101827;border-color:var(--ui-line);color:var(--ui-text)}
+body.dark .pill.active{background:var(--ui-primary-soft);border-color:#414d83;color:#b7beff}
+body.dark .shortcut{background:#101827;border-color:var(--ui-line);color:var(--ui-text)}
+body.dark .shortcut:hover{background:#182236}
+body.dark .empty{border-color:#34435c;color:var(--ui-muted)}
+body.dark .transaction{border-color:var(--ui-line)}
+body.dark .ui-notification-panel{background:var(--ui-surface);border-color:var(--ui-line);box-shadow:0 24px 70px rgba(0,0,0,.45)}
+body.dark .ui-notification-head,body.dark .ui-notification-item{border-color:var(--ui-line)}
+body.dark .ui-notification-item:hover{background:var(--ui-surface-2)}
+body.dark .ui-notification-item.unread{background:var(--ui-primary-soft)}
+body.dark .ui-notification-item p{color:var(--ui-muted)}
+body.dark .ui-notification-item time{color:var(--ui-soft)}
+body.dark .notification .notification-count{border-color:var(--ui-bg)}
+
+/* Mobile */
+@media(max-width:760px){
+  body{font-size:14px}
+  .main{padding-left:14px;padding-right:14px}
+  .top-actions{gap:6px}
+  .top-actions .notification{display:grid!important}
+  .top-actions .icon-btn{width:38px;height:38px}
+  .top-actions .avatar{width:38px;height:38px}
+  .ui-notification-panel{right:10px;top:64px;width:calc(100vw - 20px);max-height:70vh;border-radius:18px}
+  .hero h1{font-size:clamp(32px,9vw,42px);line-height:1.02}
+  .metric-grid strong{font-size:20px}
+  .task-card{padding:14px}
+  .stage2-task-controls{gap:8px}
+}
+
+/* Accessibility / interaction polish */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid rgba(88,101,232,.25);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;transition-duration:.001ms!important}}
