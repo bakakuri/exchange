@@ -33,7 +33,7 @@ function renderIndex() {
   );
   html = html.replace(
     "</body>",
-    '<script src="/profile-enhancements.js?v=1"></script></body>'
+    '<script src="/profile-enhancements.js?v=1"></script><script src="/campaign-enhancements.js?v=1"></script></body>'
   );
   return html;
 }
