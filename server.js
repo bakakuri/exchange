@@ -20,8 +20,8 @@ const link=(href)=>'<link rel="stylesheet" href="'+href+'">';
 function renderIndex() {
   let html = fs.readFileSync(indexPath, "utf8");
   html = html.replace("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js");
-  html = html.replace("</head>", link("/typography.css?v=1") + link("/ui-polish.css?v=1") + "</head>");
-  html = html.replace("</body>", tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=1") + tag("/stage2-enhancements.js?v=1") + tag("/ui-polish.js?v=1") + "</body>");
+  html = html.replace("</head>", link("/typography.css?v=2") + link("/ui-polish.css?v=2") + link("/stage4-product.css?v=1") + "</head>");
+  html = html.replace("</body>", tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=1") + tag("/stage2-enhancements.js?v=1") + tag("/ui-polish.js?v=2") + tag("/stage4-product.js?v=1") + "</body>");
   return html;
 }
 
