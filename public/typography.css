@@ -3,68 +3,24 @@
 /* Readability pass: keep the premium look, remove tiny hard-to-read text. */
 :root{--text-sm:13px;--text-xs:12px;--text-label:12px}
 body{font-size:15px}
-.sidebar .nav-item{font-size:14px}
-.sidebar .nav-item b{font-size:11px}
-.brand small{font-size:11px}
-.mini-user strong{font-size:12px}
-.mini-user small{font-size:11px}
-.breadcrumb small,.eyebrow{font-size:11px}
-.breadcrumb strong{font-size:17px}
-.hero p{font-size:15px;line-height:1.7}
-.primary,.ghost,.secondary-btn,.danger-btn{font-size:13px}
-.metric-grid small,.metric-grid em{font-size:12px}
-.metric-grid strong{font-size:26px}
-.section-head h2,.page-head h2{font-size:26px}
-.link-btn{font-size:12px}
-.page-head p{font-size:13px;line-height:1.7}
-.page-head select,.balance-chip{font-size:12px}
-.pill{font-size:12px;padding:9px 13px}
-.platform,.reward{font-size:11px}
-.task-card h3{font-size:15px}
-.task-card small{font-size:12px}
-.task-action{font-size:12px;padding:10px 12px}
-.shortcut strong{font-size:13px}
-.shortcut small{font-size:11px}
-.tip span{font-size:11px}
-.profile-summary strong{font-size:17px}
-.profile-summary small{font-size:11px}
-.summary-credit b{font-size:24px}
-.profile-card strong{font-size:13px}
-.profile-card small,.profile-card a,.profile-card button{font-size:11px}
-.form-card label,.settings-form label,.modal label{font-size:12px}
-.form-card input,.form-card select,.settings-form input,.modal input,.modal select{font-size:14px;padding:12px 13px}
-.form-title strong{font-size:13px}
-.form-title small{font-size:11px}
-.budget-input span{font-size:11px}
-.budget-presets button{font-size:12px;padding:8px 12px}
-.form-note{font-size:11px}
-.preview-task>div{font-size:11px}
-.preview-task>strong{font-size:15px}
-.preview-task>small{font-size:11px}
-.preview-task footer,.formula{font-size:11px}
-.promotion-row b{font-size:13px}
-.promotion-row small{font-size:11px}
-.analytics-hero small,.analytics-hero p{font-size:12px}
-.analytics-grid article small,.analytics-grid article span{font-size:12px}
-.settings-card>p{font-size:13px}
-.admin-badge,.admin-tab{font-size:12px}
-.admin-row small{font-size:12px}
+.sidebar .nav-item{font-size:14px}.sidebar .nav-item b{font-size:11px}.brand small{font-size:11px}.mini-user strong{font-size:12px}.mini-user small{font-size:11px}.breadcrumb small,.eyebrow{font-size:11px}.breadcrumb strong{font-size:17px}.hero p{font-size:15px;line-height:1.7}.primary,.ghost,.secondary-btn,.danger-btn{font-size:13px}.metric-grid small,.metric-grid em{font-size:12px}.metric-grid strong{font-size:26px}.section-head h2,.page-head h2{font-size:26px}.link-btn{font-size:12px}.page-head p{font-size:13px;line-height:1.7}.page-head select,.balance-chip{font-size:12px}.pill{font-size:12px;padding:9px 13px}.platform,.reward{font-size:11px}.task-card h3{font-size:15px}.task-card small{font-size:12px}.task-action{font-size:12px;padding:10px 12px}.shortcut strong{font-size:13px}.shortcut small{font-size:11px}.tip span{font-size:11px}.profile-summary strong{font-size:17px}.profile-summary small{font-size:11px}.summary-credit b{font-size:24px}.profile-card strong{font-size:13px}.profile-card small,.profile-card a,.profile-card button{font-size:11px}.form-card label,.settings-form label,.modal label{font-size:12px}.form-card input,.form-card select,.settings-form input,.modal input,.modal select{font-size:14px;padding:12px 13px}.form-title strong{font-size:13px}.form-title small{font-size:11px}.budget-input span{font-size:11px}.budget-presets button{font-size:12px;padding:8px 12px}.form-note{font-size:11px}.preview-task>div{font-size:11px}.preview-task>strong{font-size:15px}.preview-task>small{font-size:11px}.preview-task footer,.formula{font-size:11px}.promotion-row b{font-size:13px}.promotion-row small{font-size:11px}.analytics-hero small,.analytics-hero p{font-size:12px}.analytics-grid article small,.analytics-grid article span{font-size:12px}.settings-card>p{font-size:13px}.admin-badge,.admin-tab{font-size:12px}.admin-row small{font-size:12px}
+
+/* Final mobile wallet and notification corrections. */
+.page-head > #stage2WalletHead{flex-basis:100%;order:3;width:100%;display:flex;align-items:center;gap:12px;margin:0 0 10px}
+.page-head > #stage2WalletHead .stage2-balance-card{display:none!important}
+.page-head > #stage2WalletHead .stage2-wallet-filter{width:min(320px,100%);max-width:320px;margin-left:auto}
+.top-actions .notification{display:grid!important;place-items:center;position:relative;font-size:0!important}
+.top-actions .notification::before{content:"🔔";font-size:18px;line-height:1}
+.top-actions .notification i{right:4px;top:4px;width:17px;height:17px;min-width:17px;border-radius:999px;display:grid;place-items:center;background:#e95772;color:#fff;font:800 9px/1 Inter,sans-serif;font-style:normal}
+.top-actions .notification i:empty{display:none}
+body.dark .page-head > #stage2WalletHead .stage2-wallet-filter{background:#101827;color:#eef2fa;border-color:#2a3850}
+
 @media(max-width:800px){
   .main{padding-left:20px;padding-right:20px;padding-bottom:100px}
-  .breadcrumb small,.eyebrow{font-size:10px}
-  .breadcrumb strong{font-size:16px}
-  .hero{padding:30px 28px;min-height:330px}
-  .hero h1{font-size:clamp(27px,8vw,31px);line-height:1.02;letter-spacing:-.04em;max-width:100%;white-space:nowrap}
-  .hero p{font-size:14px}
-  .page-head h2,.section-head h2{font-size:23px}
-  .page-head p{font-size:13px}
-  .metric-grid small,.metric-grid em{font-size:11px}
-  .task-card h3{font-size:14px}
-  .task-card small{font-size:11px}
-  .task-action{font-size:11px}
-  .shortcut strong{font-size:12px}
-  .shortcut small{font-size:10px}
-  .profile-card strong{font-size:13px}
-  .profile-card small,.profile-card a,.profile-card button{font-size:11px}
-  .form-card label,.settings-form label,.modal label{font-size:12px}
+  .breadcrumb small,.eyebrow{font-size:10px}.breadcrumb strong{font-size:16px}
+  .hero{padding:30px 28px;min-height:330px}.hero h1{font-size:clamp(27px,8vw,31px);line-height:1.02;letter-spacing:-.04em;max-width:100%;white-space:nowrap}.hero p{font-size:14px}
+  .page-head h2,.section-head h2{font-size:23px}.page-head p{font-size:13px}.metric-grid small,.metric-grid em{font-size:11px}.task-card h3{font-size:14px}.task-card small{font-size:11px}.task-action{font-size:11px}.shortcut strong{font-size:12px}.shortcut small{font-size:10px}.profile-card strong{font-size:13px}.profile-card small,.profile-card a,.profile-card button{font-size:11px}.form-card label,.settings-form label,.modal label{font-size:12px}
+  .top-actions .notification{display:grid!important}
+  .page-head > #stage2WalletHead{flex-direction:column;align-items:stretch;gap:8px}
+  .page-head > #stage2WalletHead .stage2-wallet-filter{width:100%;max-width:none;margin-left:0}
 }
