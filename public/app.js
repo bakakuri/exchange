@@ -1,212 +1,24 @@
-const state = {
-  supabase: null,
-  user: null,
-  profile: null,
-  tasks: [],
-  socialProfiles: [],
-  completed: new Set(),
-  signUpMode: false
-};
-
-const $ = (s) => document.querySelector(s);
-const $$ = (s) => [...document.querySelectorAll(s)];
-
-function toast(message) {
-  const el = $("#toast");
-  el.textContent = message;
-  el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 3200);
-}
-
-function showView(id) {
-  $$(".view").forEach(v => v.classList.remove("active-view"));
-  $("#" + id)?.classList.add("active-view");
-  $$(".nav-item[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === id));
-  window.scrollTo({top:0, behavior:"smooth"});
-}
-
-$$(".nav-item[data-view]").forEach(btn => btn.addEventListener("click", () => showView(btn.dataset.view)));
-$$("[data-view-target]").forEach(btn => btn.addEventListener("click", () => showView(btn.dataset.viewTarget)));
-
-function setCredits(value) {
-  const n = Number(value || 0);
-  $("#credits").textContent = n;
-  $("#walletCredits").textContent = n;
-}
-
-function taskCard(task) {
-  const done = state.completed.has(task.id);
-  return `<article class="task-card"><div><div class="task-top"><span class="platform">${escapeHtml(task.platform)}</span><span class="reward">+${task.reward} credits</span></div><h3>${escapeHtml(task.title)}</h3><small>${escapeHtml(task.category)} · ${escapeHtml(task.action)}</small></div><div class="task-actions"><a class="task-action secondary" href="${safeUrl(task.target_url)}" target="_blank" rel="noopener noreferrer">Open →</a><button class="task-action ${done ? "done" : ""}" data-task="${task.id}" ${done ? "disabled" : ""}>${done ? "✓ Completed" : "Confirm & earn"}</button></div></article>`;
-}
-
-function renderTasks(list = state.tasks) {
-  $("#allTasks").innerHTML = list.length ? list.map(taskCard).join("") : `<div class="empty">No active tasks yet.</div>`;
-  $("#dashboardTasks").innerHTML = list.slice(0,4).map(taskCard).join("") || `<div class="empty">No tasks available.</div>`;
-}
-
-async function loadData() {
-  if (!state.supabase || !state.user) {
-    setCredits(0);
-    $("#profileGrid").innerHTML = `<div class="empty">Sign in to manage your profiles.</div>`;
-    return;
-  }
-
-  const uid = state.user.id;
-  const results = await Promise.all([
-    state.supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
-    state.supabase.from("tasks").select("*").eq("status","active").order("created_at",{ascending:false}),
-    state.supabase.from("social_profiles").select("*").eq("user_id",uid).order("created_at",{ascending:false}),
-    state.supabase.from("task_completions").select("task_id").eq("user_id",uid)
-  ]);
-
-  const [profileResult, tasksResult, socialsResult, completionsResult] = results;
-  const firstError = results.find(r => r.error)?.error;
-  if (firstError) {
-    console.error("Exchange data error:", firstError);
-    toast(`Supabase error: ${firstError.message}`);
-  }
-
-  state.profile = profileResult.data;
-  state.tasks = tasksResult.data || [];
-  state.socialProfiles = socialsResult.data || [];
-  state.completed = new Set((completionsResult.data || []).map(x => x.task_id));
-
-  setCredits(profileResult.data?.credits || 0);
-  $("#completedCount").textContent = state.completed.size;
-  $("#profileCount").textContent = state.socialProfiles.length;
-
-  const name = profileResult.data?.display_name || state.user.email?.split("@")[0] || "User";
-  $("#userName").textContent = name;
-  $("#userPlan").textContent = "Free plan";
-  $("#avatar").textContent = name[0]?.toUpperCase() || "U";
-  $("#topAvatar").textContent = name[0]?.toUpperCase() || "U";
-
-  $("#profileGrid").innerHTML = state.socialProfiles.length
-    ? state.socialProfiles.map(p => `<div class="profile-card"><div class="platform-icon">${escapeHtml(p.platform[0])}</div><div><b>${escapeHtml(p.handle)}</b><small>${escapeHtml(p.platform)} · ${p.active ? "Active":"Paused"}</small></div><a href="${safeUrl(p.url)}" target="_blank" rel="noopener noreferrer">Open</a></div>`).join("")
-    : `<div class="empty">No social profiles yet. Add one to start.</div>`;
-
-  renderTasks();
-}
-
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest("[data-task]");
-  if (!btn) return;
-  if (!state.user) return openAuth();
-  const taskId = btn.dataset.task;
-  btn.disabled = true;
-  try {
-    const {data, error} = await state.supabase.rpc("complete_task", {p_task_id: taskId});
-    if (error) throw error;
-    toast(`Task completed · +${data} credits`);
-    await loadData();
-  } catch (err) {
-    toast(err.message || "Could not complete task");
-    btn.disabled = false;
-  }
-});
-
-$("#filter").addEventListener("change", (e) => {
-  const value = e.target.value;
-  renderTasks(value === "All platforms" ? state.tasks : state.tasks.filter(t => t.platform === value));
-});
-
-function openAuth() {
-  $("#modal").classList.remove("hidden");
-  $("#signOutBtn").classList.toggle("hidden", !state.user);
-  $("#authForm").classList.toggle("hidden", !!state.user);
-  $("#toggleAuth").classList.toggle("hidden", !!state.user);
-  $("#modalTitle").textContent = state.user ? "Account" : (state.signUpMode ? "Create account" : "Sign in");
-  $("#authSubmit").textContent = state.signUpMode ? "Create account" : "Sign in";
-  $("#displayName").classList.toggle("hidden", !state.signUpMode);
-}
-
-$("#authBtn").addEventListener("click", openAuth);
-$("#closeModal").addEventListener("click", () => $("#modal").classList.add("hidden"));
-$("#toggleAuth").addEventListener("click", () => { state.signUpMode = !state.signUpMode; openAuth(); });
-
-$("#authForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (!state.supabase) return toast("Supabase is not configured.");
-  const email = $("#email").value.trim();
-  const password = $("#password").value;
-  const displayName = $("#displayName").value.trim();
-
-  try {
-    let result;
-    if (state.signUpMode) {
-      result = await state.supabase.auth.signUp({email, password, options: { data: { display_name: displayName || email.split("@")[0] } }});
-    } else {
-      result = await state.supabase.auth.signInWithPassword({email,password});
-    }
-    if (result.error) throw result.error;
-    toast(state.signUpMode ? "Account created. Check your email if confirmation is enabled." : "Signed in.");
-    $("#modal").classList.add("hidden");
-    await initSession();
-  } catch (err) {
-    toast(err.message || "Authentication failed");
-  }
-});
-
-$("#signOutBtn").addEventListener("click", async () => {
-  await state.supabase.auth.signOut();
-  $("#modal").classList.add("hidden");
-  await initSession();
-  toast("Signed out");
-});
-
-$("#addProfile").addEventListener("click", async () => {
-  if (!state.user) return openAuth();
-  const platform = prompt("Platform: Instagram, TikTok, X, YouTube or Facebook");
-  if (!platform) return;
-  const handle = prompt("Handle / channel name");
-  const url = prompt("Public profile URL");
-  const allowed = ["Instagram","TikTok","X","YouTube","Facebook"];
-  if (!allowed.includes(platform) || !handle || !url) return toast("Invalid profile data.");
-  const {error} = await state.supabase.from("social_profiles").insert({user_id:state.user.id,platform,handle,url});
-  if (error) return toast(error.message);
-  await loadData();
-  toast("Profile added");
-});
-
-async function initSession() {
-  if (!state.supabase) return;
-  const {data:{session}, error} = await state.supabase.auth.getSession();
-  if (error) throw error;
-  state.user = session?.user || null;
-  $("#authBtn").querySelector("span").textContent = state.user ? "Account" : "Sign in";
-  await loadData();
-}
-
-function escapeHtml(v) {
-  return String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c]));
-}
-function safeUrl(v) {
-  try { const u = new URL(v); return ["http:","https:"].includes(u.protocol) ? u.href : "#"; } catch { return "#"; }
-}
-
-(async function boot() {
-  try {
-    const response = await fetch(`/api/config?ts=${Date.now()}`, {cache:"no-store"});
-    if (!response.ok) throw new Error(`Config endpoint returned ${response.status}`);
-    const cfg = await response.json();
-
-    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
-      console.error("Exchange config is missing:", {configured: cfg.configured, hasUrl: !!cfg.supabaseUrl, hasAnonKey: !!cfg.supabaseAnonKey});
-      toast("Supabase environment variables are not available to this deployment.");
-      return;
-    }
-
-    if (!window.supabase || typeof window.supabase.createClient !== "function") {
-      console.error("Supabase browser SDK failed to load.");
-      toast("Supabase browser SDK failed to load.");
-      return;
-    }
-
-    state.supabase = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-    state.supabase.auth.onAuthStateChange(() => initSession().catch(err => console.error("Auth state error:", err)));
-    await initSession();
-  } catch (err) {
-    console.error("Exchange initialization failed:", err);
-    toast(err.message || "Could not initialize Exchange.");
-  }
-})();
+const state={supabase:null,user:null,profile:null,tasks:[],socialProfiles:[],completed:new Set(),promotions:[],signUpMode:false};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const safe=v=>{try{const u=new URL(v);return['http:','https:'].includes(u.protocol)?u.href:'#'}catch{return'#'}};
+function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),3200)}
+function showView(id){$$('.view').forEach(v=>v.classList.remove('active-view'));$('#'+id)?.classList.add('active-view');$$('.nav-item[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));if(id==='promotions')renderPromotionForm();if(id==='my-promotions')renderPromotions()}
+$$('.nav-item[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));$$('[data-view-target]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.viewTarget)));
+function setCredits(v){const n=Number(v||0);$('#credits').textContent=n;$('#walletCredits').textContent=n}
+function taskCard(t){const done=state.completed.has(t.id);return `<article class="task-card"><div><div class="task-top"><span class="platform">${esc(t.platform)}</span><span class="reward">+${t.reward} credits</span></div><h3>${esc(t.title)}</h3><small>${esc(t.category)} · ${esc(t.action)}</small></div><div class="task-actions"><a class="task-action secondary" href="${safe(t.target_url)}" target="_blank" rel="noopener">Open →</a><button class="task-action ${done?'done':''}" data-task="${t.id}" ${done?'disabled':''}>${done?'✓ Completed':'Confirm & earn'}</button></div></article>`}
+function renderTasks(list=state.tasks){$('#allTasks').innerHTML=list.length?list.map(taskCard).join(''):'<div class="empty">No active tasks yet.</div>';$('#dashboardTasks').innerHTML=list.slice(0,4).map(taskCard).join('')||'<div class="empty">No tasks available.</div>'}
+function renderProfiles(){if(!state.user){$('#profileGrid').innerHTML='<div class="empty">Sign in to manage your profiles.</div>';return}$('#profileGrid').innerHTML=state.socialProfiles.length?state.socialProfiles.map(p=>`<div class="profile-card"><div class="platform-icon">${esc(p.platform[0])}</div><div><b>${esc(p.handle)}</b><small>${esc(p.platform)} · ${p.active?'Active':'Paused'}</small></div><a href="${safe(p.url)}" target="_blank" rel="noopener">Open</a></div>`).join(''):'<div class="empty">No social profiles yet. Add one to start.</div>'}
+function renderPromotionForm(){const s=$('#promotionProfile');if(!s)return;s.innerHTML=state.socialProfiles.length?state.socialProfiles.map(p=>`<option value="${p.id}">${esc(p.platform)} · ${esc(p.handle)}</option>`).join(''):'<option value="">Add a profile first</option>'}
+function renderPromotions(){const el=$('#promotionList');if(!el)return;el.innerHTML=state.promotions.length?state.promotions.map(p=>`<div class="promotion-row"><div><b>${esc(p.title||'Promotion')}</b><small>${esc(p.platform||'')} · ${esc(p.status||'active')} · ${p.reward||0} credits per completion</small></div><strong>${p.cost||0} credits</strong></div>`).join(''):'<div class="empty">You have no promotions yet.</div>'}
+async function loadData(){if(!state.supabase||!state.user){setCredits(0);state.tasks=[];state.socialProfiles=[];state.promotions=[];renderTasks([]);renderProfiles();renderPromotions();return}const uid=state.user.id;const q=await Promise.all([state.supabase.from('profiles').select('*').eq('id',uid).maybeSingle(),state.supabase.from('tasks').select('*').eq('status','active').order('created_at',{ascending:false}),state.supabase.from('social_profiles').select('*').eq('user_id',uid).order('created_at',{ascending:false}),state.supabase.from('task_completions').select('task_id').eq('user_id',uid),state.supabase.from('promotions').select('*').eq('user_id',uid).order('created_at',{ascending:false})]);const err=q.find(x=>x.error)?.error;if(err){console.error(err);toast(err.message);return}const[p,t,s,c,pr]=q.map(x=>x.data);state.profile=p;state.tasks=t||[];state.socialProfiles=s||[];state.completed=new Set((c||[]).map(x=>x.task_id));state.promotions=pr||[];setCredits(p?.credits);$('#completedCount').textContent=state.completed.size;$('#profileCount').textContent=state.socialProfiles.length;const name=p?.display_name||state.user.email?.split('@')[0]||'User';$('#userName').textContent=name;$('#userPlan').textContent=p?.role==='admin'?'Admin':'Free plan';$('#avatar').textContent=name[0]?.toUpperCase()||'U';$('#topAvatar').textContent=name[0]?.toUpperCase()||'U';renderTasks();renderProfiles();renderPromotionForm();renderPromotions()}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-task]');if(!b)return;if(!state.user)return openAuth();b.disabled=true;try{const r=await state.supabase.rpc('complete_task',{p_task_id:b.dataset.task});if(r.error)throw r.error;toast(`Task completed · +${r.data} credits`);await loadData()}catch(err){toast(err.message||'Could not complete task');b.disabled=false}});
+$('#filter')?.addEventListener('change',e=>renderTasks(e.target.value==='All platforms'?state.tasks:state.tasks.filter(t=>t.platform===e.target.value)));
+function openAuth(){$('#modal').classList.remove('hidden');$('#signOutBtn').classList.toggle('hidden',!state.user);$('#authForm').classList.toggle('hidden',!!state.user);$('#toggleAuth').classList.toggle('hidden',!!state.user);$('#modalTitle').textContent=state.user?'Account':(state.signUpMode?'Create account':'Sign in');$('#authSubmit').textContent=state.signUpMode?'Create account':'Sign in';$('#displayName').classList.toggle('hidden',!state.signUpMode)}
+$('#authBtn').addEventListener('click',openAuth);$('#closeModal').addEventListener('click',()=>$('#modal').classList.add('hidden'));$('#toggleAuth').addEventListener('click',()=>{state.signUpMode=!state.signUpMode;openAuth()});
+$('#authForm').addEventListener('submit',async e=>{e.preventDefault();if(!state.supabase)return toast('Supabase is not configured.');try{const email=$('#email').value.trim(),password=$('#password').value,displayName=$('#displayName').value.trim();const r=state.signUpMode?await state.supabase.auth.signUp({email,password,options:{data:{display_name:displayName||email.split('@')[0]}}}):await state.supabase.auth.signInWithPassword({email,password});if(r.error)throw r.error;$('#modal').classList.add('hidden');toast(state.signUpMode?'Account created.':'Signed in.');await initSession()}catch(err){toast(err.message||'Authentication failed')}});
+$('#signOutBtn').addEventListener('click',async()=>{await state.supabase.auth.signOut();$('#modal').classList.add('hidden');await initSession();toast('Signed out')});
+$('#addProfile').addEventListener('click',async()=>{if(!state.user)return openAuth();const platform=prompt('Platform: Instagram, TikTok, X, YouTube or Facebook');const handle=prompt('Handle / channel name');const profileUrl=prompt('Public profile URL');const allowed=['Instagram','TikTok','X','YouTube','Facebook'];if(!allowed.includes(platform)||!handle||!safe(profileUrl)||safe(profileUrl)==='#')return toast('Invalid profile data.');const{error}=await state.supabase.from('social_profiles').insert({user_id:state.user.id,platform,handle,url:profileUrl});if(error)return toast(error.message);await loadData();toast('Profile added')});
+$('#createPromotion')?.addEventListener('click',async()=>{if(!state.user)return openAuth();const social=$('#promotionProfile').value,title=$('#promotionTitle').value.trim(),target=$('#promotionUrl').value.trim(),cost=Math.floor(Number($('#promotionBudget').value));const platform=$('#promotionPlatform').value,action=$('#promotionAction').value;if(!social||!title||!safe(target)||safe(target)==='#'||cost<10)return toast('Complete all promotion fields.');const{error}=await state.supabase.from('promotions').insert({user_id:state.user.id,social_profile_id:social,cost,status:'active'});if(error)return toast(error.message);const reward=Math.max(1,Math.floor(cost/10));const{error:te}=await state.supabase.from('tasks').insert({owner_id:state.user.id,social_profile_id:social,platform,action:action==='subscribe'?'Subscribe':action==='follow'?'Follow':action==='like'?'Like':'Visit',target_url:target,title,category:'Promotion',reward,status:'active'});if(te)return toast(te.message);toast(`Promotion created · ${cost} credits budget`);await loadData();showView('my-promotions')});
+async function initSession(){if(!state.supabase)return;const r=await state.supabase.auth.getSession();if(r.error)throw r.error;state.user=r.data.session?.user||null;$('#authBtn').querySelector('span').textContent=state.user?'Account':'Sign in';await loadData()}
+(async()=>{try{const r=await fetch(`/api/config?ts=${Date.now()}`,{cache:'no-store'}),cfg=await r.json();if(!r.ok)throw Error(cfg.error||`Config endpoint returned ${r.status}`);if(!cfg.supabaseUrl||!cfg.supabaseAnonKey)return toast('Supabase environment variables are not available to this deployment.');if(!window.supabase)return toast('Supabase browser SDK failed to load.');state.supabase=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);state.supabase.auth.onAuthStateChange(()=>initSession().catch(console.error));await initSession()}catch(e){console.error(e);toast(e.message||'Could not initialize Exchange')}})();
