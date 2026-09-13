@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Exchange - social promotion marketplace">
+  <title>Exchange • Social Growth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">↗</span><span>Exchange</span></div>
+      <nav>
+        <button class="nav-item active" data-view="dashboard">⌂ <span>Dashboard</span></button>
+        <button class="nav-item" data-view="tasks">◎ <span>Tasks</span></button>
+        <button class="nav-item" data-view="profiles">◉ <span>My profiles</span></button>
+        <button class="nav-item" data-view="analytics">▥ <span>Analytics</span></button>
+        <button class="nav-item" data-view="wallet">◈ <span>Credits</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-item">⚙ <span>Settings</span></button>
+        <div class="mini-user"><div class="avatar">G</div><div><b>Guest User</b><small>Free plan</small></div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar"><div class="mobile-brand">Exchange</div><div class="top-actions"><button class="icon-btn">⌕</button><button class="icon-btn">♢</button><div class="avatar">G</div></div></header>
+
+      <section id="dashboard" class="view active-view">
+        <div class="hero"><div><span class="eyebrow">SOCIAL GROWTH HUB</span><h1>Grow your audience,<br><em>one task at a time.</em></h1><p>Complete community tasks, earn credits, and promote your own social profiles.</p><button class="primary" data-view-target="tasks">Explore tasks <span>→</span></button></div><div class="hero-orb"><div class="orb-ring"></div><div class="orb-core">↗</div></div></div>
+        <div class="stats"><div class="stat-card"><span>Available credits</span><strong id="credits">240</strong><small>+24 this week</small></div><div class="stat-card"><span>Tasks completed</span><strong>38</strong><small>12% more than last week</small></div><div class="stat-card"><span>Profile views</span><strong>1,284</strong><small>+18.4% this week</small></div><div class="stat-card"><span>Active profiles</span><strong>3</strong><small>Across 3 platforms</small></div></div>
+        <div class="section-head"><div><span class="eyebrow">RECOMMENDED</span><h2>Tasks for you</h2></div><button class="text-btn" data-view-target="tasks">View all →</button></div>
+        <div class="task-grid" id="dashboardTasks"></div>
+      </section>
+
+      <section id="tasks" class="view"><div class="section-head"><div><span class="eyebrow">EARN CREDITS</span><h2>Available tasks</h2><p class="muted">Choose a task and complete it on the official platform.</p></div><select id="filter"><option>All platforms</option><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>X</option></select></div><div class="task-grid" id="allTasks"></div></section>
+
+      <section id="profiles" class="view"><div class="section-head"><div><span class="eyebrow">YOUR PRESENCE</span><h2>My profiles</h2><p class="muted">Connect public profile URLs. Exchange never creates accounts for you.</p></div><button class="primary" id="addProfile">+ Add profile</button></div><div class="profile-grid"><div class="profile-card"><div class="platform-icon instagram">◎</div><div><b>@your_creator</b><small>Instagram · Active</small></div><strong>842</strong><span>views</span></div><div class="profile-card"><div class="platform-icon tiktok">♪</div><div><b>@your_channel</b><small>TikTok · Active</small></div><strong>312</strong><span>views</span></div><div class="profile-card"><div class="platform-icon youtube">▶</div><div><b>Tech Corner</b><small>YouTube · Active</small></div><strong>130</strong><span>views</span></div></div></section>
+
+      <section id="analytics" class="view"><div class="section-head"><div><span class="eyebrow">PERFORMANCE</span><h2>Analytics</h2></div><select><option>Last 7 days</option><option>Last 30 days</option></select></div><div class="chart-card"><div class="chart-top"><div><span class="muted">Profile views</span><strong>1,284</strong></div><span class="positive">↗ 18.4%</span></div><div class="bars"> <i style="height:38%"></i><i style="height:52%"></i><i style="height:44%"></i><i style="height:70%"></i><i style="height:58%"></i><i style="height:82%"></i><i style="height:96%"></i></div><div class="days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div></div></section>
+
+      <section id="wallet" class="view"><div class="section-head"><div><span class="eyebrow">CREDIT WALLET</span><h2>Your credits</h2></div></div><div class="wallet-hero"><span>Current balance</span><strong id="walletCredits">240</strong><p>Credits are used to promote your profiles.</p></div><div class="packages"><div><b>Starter</b><strong>500</strong><span>credits</span><button>Coming soon</button></div><div><b>Growth</b><strong>1,500</strong><span>credits</span><button>Coming soon</button></div><div><b>Pro</b><strong>5,000</strong><span>credits</span><button>Coming soon</button></div></div></section>
+    </main>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
