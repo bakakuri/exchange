@@ -11,7 +11,8 @@ Supabase-connected social promotion marketplace starter.
 - Secure task completion through a PostgreSQL RPC
 - Credit transaction ledger
 - Row Level Security policies
-- Vercel deployment config
+- Campaign budget protection and cancellation refunds
+- Admin controls
 - Mobile-first UI
 
 Exchange does not create fake accounts, automate follows/subscriptions, bypass platform security, or use bots to inflate metrics.
@@ -22,7 +23,10 @@ Exchange does not create fake accounts, automate follows/subscriptions, bypass p
 
 Open **SQL Editor** in your Supabase project and run:
 
-`supabase/schema.sql`
+1. `supabase/schema.sql`
+2. The files in `supabase/migrations/` in filename order
+
+The migrations add campaign fields, budget protection, starter tasks, analytics, admin controls, and campaign refund safeguards.
 
 Then enable the authentication method you want under Supabase Auth.
 
@@ -55,4 +59,4 @@ Redeploy after saving them.
 
 ## Important
 
-The browser uses only the Supabase anonymous/publishable key. Credits are not awarded by client-side JavaScript. Completion and credit accounting happen in the database RPC.
+The browser uses only the Supabase anonymous/publishable key. Credits are not awarded by client-side JavaScript. Completion and credit accounting happen in database RPCs.
