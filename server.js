@@ -3,6 +3,7 @@ const express = require("express");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
+const fs = require("fs");
 
 const app = express();
 
@@ -17,8 +18,26 @@ app.use(rateLimit({
 
 const supabaseUrl = (process.env.SUPABASE_URL || "").trim();
 const supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || "").trim();
+const publicDir = path.join(__dirname, "public");
+const indexPath = path.join(publicDir, "index.html");
 
-app.use(express.static(path.join(__dirname, "public"), { etag: true }));
+// Serve the browser SDK from an explicit UMD URL even if an older index.html is cached.
+app.get("/", (_req, res) => {
+  try {
+    let html = fs.readFileSync(indexPath, "utf8");
+    html = html.replace(
+      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"
+    );
+    res.set("Cache-Control", "no-store, max-age=0");
+    res.type("html").send(html);
+  } catch (error) {
+    console.error("Failed to render index:", error);
+    res.status(500).send("Exchange failed to load.");
+  }
+});
+
+app.use(express.static(publicDir, { etag: true }));
 
 app.get("/api/config", (_req, res) => {
   res.set("Cache-Control", "no-store, max-age=0");
@@ -47,7 +66,7 @@ app.use((req, res) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ error: "Not found" });
   }
-  return res.sendFile(path.join(__dirname, "public", "index.html"));
+  return res.sendFile(indexPath);
 });
 
 module.exports = app;
