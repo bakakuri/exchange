@@ -6,7 +6,6 @@ const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "50kb" }));
@@ -40,8 +39,11 @@ app.get("/api/platforms", (_req, res) => {
   res.json(["Instagram", "TikTok", "X", "YouTube", "Facebook"]);
 });
 
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+app.use((req, res) => {
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({ error: "Not found" });
+  }
+  return res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.listen(PORT, () => console.log(`Exchange running on port ${PORT}`));
+module.exports = app;
