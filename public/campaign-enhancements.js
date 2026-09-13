@@ -62,6 +62,19 @@
     }
   });
 
-  document.addEventListener('DOMContentLoaded', render);
-  setInterval(render, 1000);
+  function observe(){
+    const list=$('#promotionList');
+    if(!list||typeof MutationObserver==='undefined')return;
+    let queued=false;
+    const observer=new MutationObserver(()=>{
+      if(queued)return;
+      queued=true;
+      requestAnimationFrame(()=>{queued=false;render()});
+    });
+    observer.observe(list,{childList:true,subtree:true});
+    render();
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});
+  else observe();
 })();
