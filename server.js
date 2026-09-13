@@ -21,13 +21,17 @@ const supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || "").trim();
 const publicDir = path.join(__dirname, "public");
 const indexPath = path.join(publicDir, "index.html");
 
-// Serve the browser SDK from an explicit UMD URL even if an older index.html is cached.
+// Inject the readability pass at the server level so it also applies to the root page.
 app.get("/", (_req, res) => {
   try {
     let html = fs.readFileSync(indexPath, "utf8");
     html = html.replace(
       "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
       "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"
+    );
+    html = html.replace(
+      "</head>",
+      '<link rel="stylesheet" href="/typography.css?v=1"></head>'
     );
     res.set("Cache-Control", "no-store, max-age=0");
     res.type("html").send(html);
