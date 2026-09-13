@@ -35,7 +35,6 @@
   `;
   document.head.appendChild(style);
 
-  // Keep the earlier preview crash fix. app.js calls preview() after the deferred script loads.
   const previewPlatform = q('#previewPlatform');
   if (previewPlatform && !q('#previewAction')) {
     const previewAction = document.createElement('span');
@@ -44,24 +43,17 @@
     previewPlatform.parentElement.appendChild(previewAction);
   }
 
-  function getState(){
-    try { return typeof state !== 'undefined' ? state : null; } catch { return null; }
-  }
+  function getState(){try{return typeof state!=='undefined'?state:null}catch{return null}}
 
   function getProfileCard(){
     const settings=q('#profile-settings');
-    if(!settings) return null;
-    return [...settings.querySelectorAll('.settings-card')].find(c => c.querySelector('#settingsAvatar')) || settings.querySelector('.settings-card');
+    if(!settings)return null;
+    return [...settings.querySelectorAll('.settings-card')].find(c=>c.querySelector('#settingsAvatar'))||settings.querySelector('.settings-card');
   }
 
   function setupIdentity(){
-    const settings=q('#profile-settings');
-    const card=getProfileCard();
-    const avatar=q('#settingsAvatar');
-    const s=getState();
-    if(!settings || !card || !avatar || !s?.user) return;
-
-    // Use the authenticated Supabase profile as the single source of truth.
+    const settings=q('#profile-settings'),card=getProfileCard(),avatar=q('#settingsAvatar'),s=getState();
+    if(!settings||!card||!avatar||!s?.user)return;
     const p=s.profile||{};
     const name=p.display_name||p.username||s.user.email?.split('@')[0]||'მომხმარებელი';
     const email=s.user.email||'';
@@ -71,51 +63,38 @@
     if(!userCard){userCard=document.createElement('div');userCard.className='profile-user-card';avatar.insertAdjacentElement('afterend',userCard)}
     userCard.innerHTML=`<div class="profile-user-name">${esc(name)}</div><div class="profile-user-email">${esc(email)}</div><div class="profile-user-status">${esc(role)}</div>`;
 
-    // Remove the old identity/summary blocks that caused duplicate or incorrect text.
     [...card.children].forEach(el=>{
-      if(el===avatar||el===userCard||el===q('.profile-edit-row',card)||el===q('#profileSettingsForm',card)) return;
+      if(el===avatar||el===userCard||el===q('.profile-edit-row',card)||el===q('#profileSettingsForm',card))return;
       const txt=(el.textContent||'').trim();
-      if(/პირადი ინფორმაცია|ელფოსტა|მომხმარებლის სახელი|ანგარიშის ძირითადი ინფორმაცია/.test(txt) && !el.matches('.profile-edit-row')) el.remove();
+      if(/პირადი ინფორმაცია|მომხმარებლის სახელი|ანგარიშის ძირითადი ინფორმაცია/.test(txt))el.remove();
     });
   }
 
   function setupEditor(){
-    const form=q('#profileSettingsForm');
-    if(!form) return;
-    const card=form.closest('.settings-card');
-    if(!card) return;
+    const form=q('#profileSettingsForm');if(!form)return;
+    const card=form.closest('.settings-card');if(!card)return;
     form.classList.add('profile-edit-form');
-    if(!form.dataset.profileEditState){
-      form.dataset.profileEditState='closed';form.classList.add('is-closed');form.style.maxHeight='0px';form.style.opacity='0';form.style.marginTop='0';
-    }
+    if(!form.dataset.profileEditState){form.dataset.profileEditState='closed';form.classList.add('is-closed');form.style.maxHeight='0px';form.style.opacity='0';form.style.marginTop='0'}
     let row=q('.profile-edit-row',card);
-    if(!row){
-      row=document.createElement('div');row.className='profile-edit-row';
-      row.innerHTML='<p>ანგარიშის ინფორმაციის შეცვლა</p><button type="button" class="profile-edit-toggle" aria-expanded="false"><span>✎</span><span>რედაქტირება</span></button>';
-      const userCard=q('.profile-user-card',card);(userCard||card).insertAdjacentElement('afterend',row);
-    }
+    if(!row){row=document.createElement('div');row.className='profile-edit-row';row.innerHTML='<p>ანგარიშის ინფორმაციის შეცვლა</p><button type="button" class="profile-edit-toggle" aria-expanded="false"><span>✎</span><span>რედაქტირება</span></button>';const userCard=q('.profile-user-card',card);(userCard||card).insertAdjacentElement('afterend',row)}
     const toggle=q('.profile-edit-toggle',row);
     if(toggle&&!toggle.dataset.bound){
-      toggle.dataset.bound='1';toggle.addEventListener('click',()=>{
-        const open=form.dataset.profileEditState!=='open';form.dataset.profileEditState=open?'open':'closed';form.classList.toggle('is-open',open);form.classList.toggle('is-closed',!open);form.style.maxHeight=open?`${form.scrollHeight+40}px`:'0px';form.style.opacity=open?'1':'0';form.style.marginTop=open?'14px':'0';toggle.setAttribute('aria-expanded',String(open));toggle.querySelector('span:last-child').textContent=open?'დახურვა':'რედაქტირება';
+      toggle.dataset.bound='1';
+      toggle.addEventListener('click',()=>{
+        const open=form.dataset.profileEditState!=='open';
+        form.dataset.profileEditState=open?'open':'closed';form.classList.toggle('is-open',open);form.classList.toggle('is-closed',!open);form.style.maxHeight=open?`${form.scrollHeight+40}px`:'0px';form.style.opacity=open?'1':'0';form.style.marginTop=open?'14px':'0';toggle.setAttribute('aria-expanded',String(open));toggle.querySelector('span:last-child').textContent=open?'დახურვა':'რედაქტირება';
       });
     }
   }
 
   function getActionsCard(){
-    const settings=q('#profile-settings');
-    if(!settings) return null;
-    return [...settings.querySelectorAll('.settings-card')].find(c=>{
-      const text=(c.textContent||'').replace(/\s+/g,' ');
-      return text.includes('ანგარიშის მოქმედებები') || !!c.querySelector('.danger-btn');
-    })||null;
+    const settings=q('#profile-settings');if(!settings)return null;
+    return [...settings.querySelectorAll('.settings-card')].find(c=>{const text=(c.textContent||'').replace(/\s+/g,' ');return text.includes('ანგარიშის მოქმედებები')||!!c.querySelector('.danger-btn')})||null;
   }
 
   function renderExtra(){
-    const settings=q('#profile-settings');
-    const layout=q('#profile-settings .settings-layout');
-    const s=getState();
-    if(!settings||!layout||!s?.user) return;
+    const settings=q('#profile-settings'),layout=q('#profile-settings .settings-layout'),s=getState();
+    if(!settings||!layout||!s?.user)return;
     let extra=q('#profileExtra');
     if(!extra){extra=document.createElement('div');extra.id='profileExtra';extra.className='profile-extra';layout.insertAdjacentElement('afterend',extra)}
     const text=(sel,def='0')=>q(sel)?.textContent||def;
@@ -125,18 +104,17 @@
     const activity=tx.length?tx.map(r=>`<div class="profile-activity-item"><span class="profile-activity-icon">${esc(r.querySelector('.tx-icon')?.textContent||'↗')}</span><div><strong>${esc(r.querySelector('b')?.textContent||'ოპერაცია')}</strong><small>${esc(r.querySelector('small')?.textContent||'')}</small></div><span class="profile-activity-value">${esc(r.querySelector('strong')?.textContent||'')}</span></div>`).join(''):'<div class="empty">ბოლო აქტივობა ჯერ არ არის.</div>';
     extra.innerHTML=`<div class="profile-stat-grid"><article class="profile-stat"><small>კრედიტები</small><strong>${esc(text('#credits'))}</strong></article><article class="profile-stat"><small>შესრულებული</small><strong>${esc(text('#completedCount'))}</strong></article><article class="profile-stat"><small>დაგროვილი</small><strong>${esc(text('#earnedCount'))}</strong></article><article class="profile-stat"><small>აქტიური კამპანიები</small><strong>${esc(text('#analyticsCampaigns'))}</strong></article></div><article class="profile-section"><div class="profile-section-head"><div><h3>სოციალური პროფილები</h3><small>${esc(text('#profileCount'))} დაკავშირებული პროფილი</small></div><button class="link-btn" data-view-target="profiles">მართვა →</button></div><div class="profile-social-list">${socials}</div></article><article class="profile-section"><div class="profile-section-head"><div><h3>ბოლო აქტივობა</h3><small>კრედიტის ოპერაციები</small></div><button class="link-btn" data-view-target="wallet">ყველას ნახვა →</button></div><div class="profile-activity">${activity}</div></article>`;
 
-    // Move the ENTIRE account-actions card, not just its logout button, to the very bottom.
     const actions=getActionsCard();
     if(actions){actions.classList.add('profile-account-actions-bottom');if(actions.parentElement!==settings||actions.previousElementSibling!==extra)extra.insertAdjacentElement('afterend',actions)}
   }
 
   function gateUnauthenticated(){
-    const s=getState();
-    const settings=q('#profile-settings');
-    const nav=[...document.querySelectorAll('[data-view="profile-settings"]')];
+    const s=getState(),settings=q('#profile-settings'),nav=[...document.querySelectorAll('[data-view="profile-settings"]')];
     if(!s?.user){
       nav.forEach(x=>x.hidden=true);
-      if(settings) settings.classList.remove('active-view');
+      if(settings?.classList.contains('active-view')){
+        if(typeof showView==='function')showView('dashboard');else settings.classList.remove('active-view');
+      }
       return;
     }
     nav.forEach(x=>x.hidden=false);
@@ -144,11 +122,8 @@
 
   function render(){
     gateUnauthenticated();
-    const s=getState();
-    if(!s?.user) return;
-    setupIdentity();
-    setupEditor();
-    renderExtra();
+    const s=getState();if(!s?.user)return;
+    setupIdentity();setupEditor();renderExtra();
   }
 
   document.addEventListener('DOMContentLoaded',render);
