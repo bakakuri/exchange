@@ -20,7 +20,7 @@
     .profile-activity-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #edf0f5}
     .profile-activity-item:last-child{border-bottom:0}.profile-activity-icon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#e9faf2;color:#159a62;font-weight:900}
     .profile-activity-item div:nth-child(2){min-width:0;flex:1}.profile-activity-item strong{display:block;font-size:12px}.profile-activity-item small{display:block;color:#8d96a5;font-size:10px;margin-top:2px}.profile-activity-value{font-weight:900;font-size:12px}
-    .profile-account-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-radius:14px;background:#111b2d;color:#fff}
+    .profile-account-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-radius:14px;background:#111b2d;color:#fff;margin-top:6px}
     .profile-account-strip small{display:block;color:#9aa8bf;font-size:11px;margin-top:2px}
     .profile-edit-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid #edf0f5}
     .profile-edit-row p{margin:0;color:#8993a4;font-size:12px;line-height:1.5}
@@ -93,8 +93,30 @@
     return danger ? danger.closest('.settings-card') : null;
   }
 
+  function placeAccountStrip() {
+    const settings = q('#profile-settings');
+    const card = q('.settings-card', settings);
+    const avatar = q('#settingsAvatar');
+    if (!settings || !card || !avatar) return;
+
+    let strip = q('.profile-account-strip', card);
+    const oldIdentity = avatar.nextElementSibling;
+    if (!strip) {
+      strip = document.createElement('div');
+      strip.className = 'profile-account-strip';
+    }
+
+    const val = (s, d = '') => q(s)?.textContent || d;
+    strip.innerHTML = `<div><strong>${esc(val('#settingsName', 'მომხმარებელი'))}</strong><small>${esc(val('#settingsEmail', 'ელფოსტა არ არის მითითებული'))}</small></div><div><strong>${esc(val('#userPlan', 'მომხმარებელი'))}</strong><small>Exchange ანგარიში</small></div>`;
+
+    // Remove the old personal-info block and put the dark account block in its exact place.
+    if (oldIdentity && !oldIdentity.classList.contains('profile-account-strip')) oldIdentity.replaceWith(strip);
+    else if (strip.parentElement !== card) avatar.insertAdjacentElement('afterend', strip);
+  }
+
   function render() {
     setupProfileEditor();
+    placeAccountStrip();
 
     const settings = q('#profile-settings');
     const layout = q('#profile-settings .settings-layout');
@@ -127,7 +149,7 @@
     const tx = [...document.querySelectorAll('#transactionsList .transaction')].slice(0, 5);
     const activity = tx.length ? tx.map(r => `<div class="profile-activity-item"><span class="profile-activity-icon">${esc(r.querySelector('.tx-icon')?.textContent || '↗')}</span><div><strong>${esc(r.querySelector('b')?.textContent || 'ოპერაცია')}</strong><small>${esc(r.querySelector('small')?.textContent || '')}</small></div><span class="profile-activity-value">${esc(r.querySelector('strong')?.textContent || '')}</span></div>`).join('') : '<div class="empty">ბოლო აქტივობა ჯერ არ არის.</div>';
 
-    extra.innerHTML = `<div class="profile-account-strip"><div><strong>${esc(val('#settingsName', 'მომხმარებელი'))}</strong><small>${esc(val('#settingsEmail', 'ელფოსტა არ არის მითითებული'))}</small></div><div><strong>${esc(val('#userPlan', 'მომხმარებელი'))}</strong><small>Exchange ანგარიში</small></div></div><div class="profile-stat-grid"><article class="profile-stat"><small>კრედიტები</small><strong>${esc(val('#credits'))}</strong></article><article class="profile-stat"><small>შესრულებული</small><strong>${esc(val('#completedCount'))}</strong></article><article class="profile-stat"><small>დაგროვილი</small><strong>${esc(val('#earnedCount'))}</strong></article><article class="profile-stat"><small>აქტიური კამპანიები</small><strong>${esc(val('#analyticsCampaigns'))}</strong></article></div><article class="profile-section"><div class="profile-section-head"><div><h3>სოციალური პროფილები</h3><small>${esc(val('#profileCount'))} დაკავშირებული პროფილი</small></div><button class="link-btn" data-view-target="profiles">მართვა →</button></div><div class="profile-social-list">${socials}</div></article><article class="profile-section"><div class="profile-section-head"><div><h3>ბოლო აქტივობა</h3><small>კრედიტის ოპერაციები</small></div><button class="link-btn" data-view-target="wallet">ყველას ნახვა →</button></div><div class="profile-activity">${activity}</div></article>`;
+    extra.innerHTML = `<div class="profile-stat-grid"><article class="profile-stat"><small>კრედიტები</small><strong>${esc(val('#credits'))}</strong></article><article class="profile-stat"><small>შესრულებული</small><strong>${esc(val('#completedCount'))}</strong></article><article class="profile-stat"><small>დაგროვილი</small><strong>${esc(val('#earnedCount'))}</strong></article><article class="profile-stat"><small>აქტიური კამპანიები</small><strong>${esc(val('#analyticsCampaigns'))}</strong></article></div><article class="profile-section"><div class="profile-section-head"><div><h3>სოციალური პროფილები</h3><small>${esc(val('#profileCount'))} დაკავშირებული პროფილი</small></div><button class="link-btn" data-view-target="profiles">მართვა →</button></div><div class="profile-social-list">${socials}</div></article><article class="profile-section"><div class="profile-section-head"><div><h3>ბოლო აქტივობა</h3><small>კრედიტის ოპერაციები</small></div><button class="link-btn" data-view-target="wallet">ყველას ნახვა →</button></div><div class="profile-activity">${activity}</div></article>`;
   }
 
   document.addEventListener('DOMContentLoaded', render);
