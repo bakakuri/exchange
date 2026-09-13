@@ -9,11 +9,11 @@
     task_reward:'დავალების ჯილდო',promotion_spend:'კამპანიის ხარჯი',promotion_refund:'კამპანიის თანხის დაბრუნება',
     opening_balance:'საწყისი ბალანსი',admin_adjustment:'ადმინისტრატორის კორექცია',signup_bonus:'საწყისი ბონუსი'
   };
-  const actionLabels={Follow:'გამომყევი',Subscribe:'გამომიწერე',Like:'მოიწონე',Visit:'ეწვიე პროფილს'};
   let currentPage=1;
   const perPage=8;
-  let lastTaskSignature='';
+  let lastUserId=null;
   let notificationChannel=null;
+  let loadDataWrapped=false;
 
   function st(){try{return typeof state!=='undefined'?state:null}catch{return null}}
   function sb(){const s=st();return s&&s.supabase?s.supabase:null}
@@ -100,19 +100,17 @@
     for(let i=1;i<=pages;i++){if(pages>7&&Math.abs(i-currentPage)>2&&i!==1&&i!==pages)continue;const b=document.createElement('button');b.textContent=i;b.className=i===currentPage?'active':'';b.onclick=()=>{currentPage=i;renderStage2Tasks()};p.appendChild(b)}
     const next=document.createElement('button');next.textContent='›';next.disabled=currentPage===pages;next.onclick=()=>{currentPage++;renderStage2Tasks()};p.appendChild(next);
     let c=q('#stage2TaskCount');if(!c){c=document.createElement('div');c.id='stage2TaskCount';c.className='stage2-count';p.after(c)}c.textContent=a.length?`${(currentPage-1)*perPage+1}–${Math.min(currentPage*perPage,a.length)} / ${a.length} დავალება`:'0 დავალება';
-    const sig=a.map(x=>x.id+':'+x.reward).join('|')+'|'+currentPage;
-    if(sig!==lastTaskSignature){lastTaskSignature=sig;}
   }
 
   function enhanceWallet(){
     const host=q('#wallet');if(!host)return;
-    let head=q('#stage2WalletHead');if(!head){head=document.createElement('div');head.id='stage2WalletHead';head.className='stage2-wallet-head';const panel=host.querySelector('.panel')||host.firstElementChild; if(panel)panel.prepend(head);}
+    let head=q('#stage2WalletHead');if(!head){head=document.createElement('div');head.id='stage2WalletHead';head.className='stage2-wallet-head';const panel=host.querySelector('.panel')||host.firstElementChild;if(panel)panel.prepend(head);}
     const s=st();const bal=s?.profile?.credits||0;
     head.innerHTML=`<div class="stage2-balance-card"><small>მიმდინარე ბალანსი</small><strong>${money(bal)} კრედიტი</strong><small>განახლდება ავტომატურად</small></div><input id="stage2WalletFilter" class="stage2-wallet-filter" type="search" placeholder="🔍 მოძებნე ოპერაცია...">`;
     const list=q('#transactionsList');if(!list)return;const term=(q('#stage2WalletFilter')?.value||'').trim().toLocaleLowerCase('ka-GE');
     const rows=(s?.transactions||[]).filter(x=>!term||`${labels[x.type]||x.type} ${x.amount}`.toLocaleLowerCase('ka-GE').includes(term)).slice(0,50);
     list.innerHTML=rows.length?rows.map(x=>{const amount=Number(x.amount||0),positive=amount>0;return `<div class="transaction"><span class="tx-icon ${positive?'tx-positive':'tx-negative'}">${positive?'↑':'↓'}</span><div><b>${esc(labels[x.type]||x.type)}</b><small>${new Date(x.created_at).toLocaleString('ka-GE')}</small></div><strong class="${positive?'positive':'negative'}">${positive?'+':''}${money(amount)}</strong></div>`}).join(''):'<div class="empty">ოპერაციები ვერ მოიძებნა.</div>';
-    q('#stage2WalletFilter').oninput=enhanceWallet;
+    const input=q('#stage2WalletFilter');if(input&&input.dataset.bound!=='1'){input.dataset.bound='1';input.addEventListener('input',enhanceWallet)}
   }
 
   function enhanceAnalytics(){
@@ -150,28 +148,47 @@
     panel.querySelectorAll('[data-notification-id]').forEach(n=>n.onclick=async()=>{const client=sb(),s=st();if(!client||!s?.user)return;await client.from('notifications').update({read_at:new Date().toISOString()}).eq('id',n.dataset.notificationId).eq('user_id',s.user.id);n.classList.remove('unread');await loadNotifications()});
   }
 
-  function notifications(){
+  async function notifications(){
     const s=st(),client=sb();if(!s||!client||!s.user)return;
-    loadNotifications();
+    if(lastUserId===s.user.id&&notificationChannel)return;
+    if(notificationChannel){try{await client.removeChannel(notificationChannel)}catch{}}
+    lastUserId=s.user.id;
+    await loadNotifications();
     try{
       notificationChannel=client.channel('exchange-notifications-'+s.user.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+s.user.id},payload=>{loadNotifications();toast(payload.new?.title||'ახალი შეტყობინება')}).subscribe();
     }catch(e){console.error('realtime notifications',e)}
   }
 
+  function syncBottomNav(){
+    const s=st(),user=!!s?.user;qa('#stage2BottomNav button').forEach(b=>b.style.display=(!user&&b.dataset.view!=='dashboard'&&b.dataset.view!=='tasks')?'none':'grid');
+  }
+
   function bottomNav(){
     if(q('#stage2BottomNav'))return;const n=document.createElement('nav');n.id='stage2BottomNav';n.className='stage2-bottom-nav';
-    [['dashboard','⌂','მთავარი'],['tasks','✓','დავალებები'],['promotions','↗','კამპანია'],['wallet','◈','კრედიტები'],['profile-settings','◎','პროფილი']].forEach(x=>{const b=document.createElement('button');b.dataset.view=x[0];b.innerHTML=`<span>${x[1]}</span>${x[2]}`;b.onclick=()=>go(x[0]);n.appendChild(b)});document.body.appendChild(n);
-    setInterval(()=>{const s=st(),user=!!s?.user;qa('#stage2BottomNav button').forEach(b=>b.style.display=(!user&&b.dataset.view!=='dashboard'&&b.dataset.view!=='tasks')?'none':'grid')},1000);
+    [['dashboard','⌂','მთავარი'],['tasks','✓','დავალებები'],['promotions','↗','კამპანია'],['wallet','◈','კრედიტები'],['profile-settings','◎','პროფილი']].forEach(x=>{const b=document.createElement('button');b.dataset.view=x[0];b.innerHTML=`<span>${x[1]}</span>${x[2]}`;b.onclick=()=>go(x[0]);n.appendChild(b)});document.body.appendChild(n);syncBottomNav();
+  }
+
+  function bindLoadData(){
+    if(loadDataWrapped||typeof window.loadData!=='function')return;
+    const original=window.loadData;
+    window.loadData=async function(){
+      const result=await original.apply(this,arguments);
+      taskControls();
+      renderStage2Tasks();
+      enhanceWallet();
+      enhanceAnalytics();
+      syncBottomNav();
+      const s=st();
+      if(s?.user)await notifications();
+      else if(notificationChannel){try{await s?.supabase?.removeChannel(notificationChannel)}catch{}notificationChannel=null;lastUserId=null}
+      return result;
+    };
+    loadDataWrapped=true;
   }
 
   function boot(){
-    injectStyle();addSkeleton();bottomNav();taskControls();
-    setTimeout(()=>{renderStage2Tasks();enhanceWallet();enhanceAnalytics();notifications()},900);
-    setInterval(()=>{
-      const s=st();if(!s?.supabase)return;
-      taskControls();renderStage2Tasks();enhanceWallet();enhanceAnalytics();
-      const sig=(s.user?.id||'')+'|'+(s.transactions?.length||0)+'|'+(s.promotions?.length||0);if(sig!==boot.lastSig){boot.lastSig=sig;notifications()}
-    },1800);
+    injectStyle();addSkeleton();bottomNav();taskControls();bindLoadData();
+    setTimeout(()=>{taskControls();renderStage2Tasks();enhanceWallet();enhanceAnalytics();const s=st();if(s?.user)notifications();syncBottomNav()},900);
     document.addEventListener('click',e=>{const p=q('#stage2NotifyPanel'),wrap=q('#stage2NotifyWrap');if(p&&wrap&&!wrap.contains(e.target))p.hidden=true});
   }
   boot();
