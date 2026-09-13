@@ -1,90 +1,93 @@
 (function(){
   'use strict';
 
-  const q=s=>document.querySelector(s);
-
   const presets={
     Instagram:{
       title:'მაგ. გამომყევი Instagram-ზე',
-      url:'https://instagram.com/...',
-      handle:'Instagram მომხმარებელი'
+      url:'https://instagram.com/...'
     },
     TikTok:{
       title:'მაგ. გამომყევი TikTok-ზე',
-      url:'https://tiktok.com/@...',
-      handle:'TikTok მომხმარებელი'
+      url:'https://tiktok.com/@...'
     },
     YouTube:{
       title:'მაგ. გამომიწერე YouTube-ზე',
-      url:'https://youtube.com/@...',
-      handle:'YouTube არხი'
+      url:'https://youtube.com/@...'
     },
     X:{
       title:'მაგ. გამომყევი X-ზე',
-      url:'https://x.com/...',
-      handle:'X მომხმარებელი'
+      url:'https://x.com/...'
     },
     Facebook:{
       title:'მაგ. გამომყევი Facebook-ზე',
-      url:'https://facebook.com/...',
-      handle:'Facebook გვერდი'
+      url:'https://facebook.com/...'
     }
   };
 
-  function applyPlatform(){
-    const platform=q('#promotionPlatform');
-    const title=q('#promotionTitle');
-    const url=q('#promotionUrl');
-    const previewUrl=q('#previewUrl');
-    const previewPlatform=q('#previewPlatform');
-    if(!platform)return;
+  function getElements(){
+    return {
+      platform:document.querySelector('#promotionPlatform'),
+      title:document.querySelector('#promotionTitle'),
+      url:document.querySelector('#promotionUrl'),
+      previewUrl:document.querySelector('#previewUrl'),
+      previewPlatform:document.querySelector('#previewPlatform')
+    };
+  }
 
-    const p=presets[platform.value]||presets.Instagram;
+  function applyPlatform(){
+    const {platform,title,url,previewUrl,previewPlatform}=getElements();
+    if(!platform)return false;
+
+    const preset=presets[platform.value]||presets.Instagram;
 
     if(title){
-      title.placeholder=p.title;
-      title.setAttribute('aria-label',p.title);
+      title.placeholder=preset.title;
+      title.setAttribute('aria-label',preset.title);
     }
 
     if(url){
-      url.placeholder=p.url;
+      url.placeholder=preset.url;
       url.setAttribute('inputmode','url');
-      url.setAttribute('aria-label',p.url);
-    }
-
-    if(previewUrl && (!url || !url.value.trim())){
-      previewUrl.textContent=p.url;
+      url.setAttribute('aria-label',preset.url);
     }
 
     if(previewPlatform){
       previewPlatform.textContent=platform.value;
     }
 
+    if(previewUrl && (!url || !url.value.trim())){
+      previewUrl.textContent=preset.url;
+    }
+
     if(typeof window.preview==='function'){
-      try{window.preview()}catch{}
-    }
-  }
-
-  function bind(){
-    const platform=q('#promotionPlatform');
-    if(!platform)return false;
-
-    if(platform.dataset.platformExamplesBound!=='1'){
-      platform.dataset.platformExamplesBound='1';
-      platform.addEventListener('change',applyPlatform);
+      try{window.preview();}catch{}
     }
 
-    applyPlatform();
     return true;
   }
 
+  function handleChange(event){
+    const target=event.target;
+    if(target && target.id==='promotionPlatform'){
+      applyPlatform();
+    }
+  }
+
   function init(){
-    if(bind())return;
+    document.addEventListener('change',handleChange,true);
+    applyPlatform();
+
+    if(typeof MutationObserver==='undefined')return;
+
     const observer=new MutationObserver(()=>{
-      if(bind())observer.disconnect();
+      const platform=document.querySelector('#promotionPlatform');
+      if(platform && !platform.dataset.platformExamplesReady){
+        platform.dataset.platformExamplesReady='1';
+        applyPlatform();
+      }
     });
+
     observer.observe(document.body,{childList:true,subtree:true});
-    setTimeout(()=>observer.disconnect(),10000);
   }
 
   if(document.readyState==='loading'){
