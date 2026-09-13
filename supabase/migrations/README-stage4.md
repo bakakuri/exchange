@@ -12,4 +12,12 @@ Stage 4 adds:
 - account security status panel
 - read-only Stage 4 smoke tests in `../tests/stage4_product.sql`
 
-Run these SQL migrations in filename order. The UI files are loaded automatically by `server.js`.
+Final production hardening adds `20260913_exchange_api_lockdown.sql`:
+
+- removes direct client task creation/update
+- removes direct client promotion creation
+- moves profile edits to a protected RPC
+- fixes strict platform URL validation
+- keeps economic mutations behind server-side RPCs
+
+Run the SQL migrations in filename order. The UI files are loaded automatically by `server.js`.
