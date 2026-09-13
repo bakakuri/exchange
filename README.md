@@ -1,22 +1,42 @@
 # Exchange 🚀
 
-A mobile-first social promotion marketplace MVP.
+Supabase-connected social promotion marketplace starter.
 
-## Current scope
-- Responsive dashboard
-- Credit wallet UI
-- Community task feed
-- Platform filtering
-- Profile management UI
-- Basic analytics UI
-- Express API with security headers and rate limiting
-- Vercel deployment configuration
-- Supabase environment placeholders
+## What is included
 
-## Safety boundary
-Exchange does not create fake social accounts, automate follows/subscriptions, bypass platform security, or inflate metrics through bots. Tasks are designed around user actions on the official social platform.
+- Supabase Auth client integration
+- User profile and credit wallet
+- Social profile management
+- Public active task feed
+- Secure task completion through a PostgreSQL RPC
+- Credit transaction ledger
+- Row Level Security policies
+- Vercel deployment config
+- Mobile-first UI
 
-## Local development
+Exchange does not create fake accounts, automate follows/subscriptions, bypass platform security, or use bots to inflate metrics.
+
+## Setup
+
+### 1. Supabase
+
+Open **SQL Editor** in your Supabase project and run:
+
+`supabase/schema.sql`
+
+Then enable the authentication method you want under Supabase Auth.
+
+### 2. Local environment
+
+Copy `.env.example` to `.env` and set:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+
+Never put a `service_role` or secret key in the browser or GitHub.
+
+### 3. Run
+
 ```bash
 npm install
 npm start
@@ -24,8 +44,15 @@ npm start
 
 Open `http://localhost:3000`.
 
-## Supabase
-The application is prepared for Supabase integration through environment variables. Database schema, authentication, RLS policies, and production secrets should be configured in the owner's Supabase project.
+### 4. Vercel
 
-## Deployment
-Import the GitHub repository into Vercel and add the required environment variables in the Vercel project settings.
+Add the same two environment variables to the Vercel project:
+
+`SUPABASE_URL`
+`SUPABASE_ANON_KEY`
+
+Redeploy after saving them.
+
+## Important
+
+The browser uses only the Supabase anonymous/publishable key. Credits are not awarded by client-side JavaScript. Completion and credit accounting happen in the database RPC.

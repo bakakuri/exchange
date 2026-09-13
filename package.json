@@ -2,19 +2,14 @@
   "name": "exchange",
   "version": "1.0.0",
   "private": true,
-  "description": "Follower Exchange Platform MVP",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
-  },
-  "engines": {
-    "node": ">=20"
-  },
+  "type": "commonjs",
+  "engines": { "node": ">=20" },
+  "scripts": { "start": "node server.js", "dev": "node --watch server.js" },
   "dependencies": {
+    "@supabase/supabase-js": "^2.57.0",
+    "dotenv": "^17.2.2",
     "express": "^5.1.0",
-    "helmet": "^8.1.0",
     "express-rate-limit": "^8.1.0",
-    "dotenv": "^17.2.2"
+    "helmet": "^8.1.0"
   }
 }
