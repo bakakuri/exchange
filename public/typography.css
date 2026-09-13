@@ -1,3 +1,5 @@
+@import url('/ui-polish.css?v=1');
+
 /* Readability pass: keep the premium look, remove tiny hard-to-read text. */
 :root{--text-sm:13px;--text-xs:12px;--text-label:12px}
 body{font-size:15px}
