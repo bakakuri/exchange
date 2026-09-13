@@ -3,7 +3,7 @@
   const q=s=>document.querySelector(s);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const stateRef=()=>{try{return typeof state!=='undefined'?state:null}catch{return null}};
-  let panel=null,channel=null,lastUserId=null,poll=null;
+  let panel=null,channel=null,lastUserId=null;
   const typeNames={credit:'კრედიტები',promotion:'კამპანია',system:'სისტემა',task:'დავალება',security:'უსაფრთხოება'};
   function sb(){return stateRef()?.supabase||null}
   function user(){return stateRef()?.user||null}
@@ -20,9 +20,10 @@
   async function markAllRead(){const s=sb(),u=user();if(!s||!u)return;const r=await s.from('notifications').update({read_at:new Date().toISOString()}).eq('user_id',u.id).is('read_at',null);if(r.error)return;const items=await loadNotifications();renderPanel(items);setBadge(0)}
   async function refreshBadge(){if(!user()){setBadge(0);return}setBadge(await unreadCount())}
   function setupRealtime(){const s=sb(),u=user();if(!s||!u||channel)return;try{channel=s.channel('exchange-ui-notifications-'+u.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+u.id},async()=>{const items=await loadNotifications();setBadge(items.filter(x=>!x.read_at).length);if(panel)renderPanel(items)}).subscribe()}catch(e){console.warn('Notification realtime unavailable:',e)}}
-  function resetRealtime(){try{if(channel&&sb())sb().removeChannel(channel)}catch{}channel=null;lastUserId=user()?.id||null;setupRealtime();refreshBadge()}
+  async function resetRealtime(){const s=sb();try{if(channel&&s)await s.removeChannel(channel)}catch{}channel=null;lastUserId=user()?.id||null;setupRealtime();refreshBadge()}
   function setupTheme(){const saved=localStorage.getItem('exchange-theme');if(saved==='dark')document.body.classList.add('dark');else if(saved==='light')document.body.classList.remove('dark');const buttons=[q('#themeBtn'),q('#themeTop')].filter(Boolean);const sync=()=>{const dark=document.body.classList.contains('dark');buttons.forEach(b=>{b.textContent=dark?'☀':'☾';b.title=dark?'ღია თემა':'მუქი თემა';b.setAttribute('aria-label',b.title)});document.querySelector('meta[name="theme-color"]')?.setAttribute('content',dark?'#0c1320':'#f5f7fb')};buttons.forEach(b=>{if(b.dataset.themeBound==='1')return;b.dataset.themeBound='1';b.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();document.body.classList.toggle('dark');localStorage.setItem('exchange-theme',document.body.classList.contains('dark')?'dark':'light');sync()},{capture:true})});sync()}
   function closeOutside(e){if(panel&&!panel.contains(e.target)&&!notifyButton()?.contains(e.target))closePanel()}
-  function init(){ensureBell();setupTheme();document.addEventListener('click',closeOutside);poll=setInterval(()=>{const id=user()?.id||null;if(id!==lastUserId)resetRealtime();else if(id)refreshBadge()},5000);resetRealtime()}
+  function waitForSupabase(attempt=0){const s=sb();if(s){resetRealtime();return}if(attempt<50)setTimeout(()=>waitForSupabase(attempt+1),200)}
+  function init(){ensureBell();setupTheme();document.addEventListener('click',closeOutside);waitForSupabase()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
