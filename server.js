@@ -21,20 +21,27 @@ const supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || "").trim();
 const publicDir = path.join(__dirname, "public");
 const indexPath = path.join(publicDir, "index.html");
 
-// Inject the readability pass at the server level so it also applies to the root page.
+function renderIndex() {
+  let html = fs.readFileSync(indexPath, "utf8");
+  html = html.replace(
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"
+  );
+  html = html.replace(
+    "</head>",
+    '<link rel="stylesheet" href="/typography.css?v=1"></head>'
+  );
+  html = html.replace(
+    "</body>",
+    '<script src="/profile-enhancements.js?v=1"></script></body>'
+  );
+  return html;
+}
+
 app.get("/", (_req, res) => {
   try {
-    let html = fs.readFileSync(indexPath, "utf8");
-    html = html.replace(
-      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
-      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"
-    );
-    html = html.replace(
-      "</head>",
-      '<link rel="stylesheet" href="/typography.css?v=1"></head>'
-    );
     res.set("Cache-Control", "no-store, max-age=0");
-    res.type("html").send(html);
+    res.type("html").send(renderIndex());
   } catch (error) {
     console.error("Failed to render index:", error);
     res.status(500).send("Exchange failed to load.");
@@ -70,7 +77,13 @@ app.use((req, res) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ error: "Not found" });
   }
-  return res.sendFile(indexPath);
+  try {
+    res.set("Cache-Control", "no-store, max-age=0");
+    return res.type("html").send(renderIndex());
+  } catch (error) {
+    console.error("Failed to render fallback index:", error);
+    return res.status(500).send("Exchange failed to load.");
+  }
 });
 
 module.exports = app;
