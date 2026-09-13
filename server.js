@@ -3,7 +3,6 @@ const express = require("express");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
-const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 
@@ -16,23 +15,28 @@ app.use(rateLimit({
   legacyHeaders: false
 }));
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+const supabaseUrl = (process.env.SUPABASE_URL || "").trim();
+const supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || "").trim();
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"), { etag: true }));
 
 app.get("/api/config", (_req, res) => {
+  res.set("Cache-Control", "no-store, max-age=0");
   res.json({
-    supabaseUrl: supabaseUrl || "",
-    supabaseAnonKey: supabaseAnonKey || ""
+    supabaseUrl,
+    supabaseAnonKey,
+    configured: Boolean(supabaseUrl && supabaseAnonKey)
   });
 });
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, service: "exchange", time: new Date().toISOString() });
+  res.set("Cache-Control", "no-store, max-age=0");
+  res.json({
+    ok: true,
+    service: "exchange",
+    supabaseConfigured: Boolean(supabaseUrl && supabaseAnonKey),
+    time: new Date().toISOString()
+  });
 });
 
 app.get("/api/platforms", (_req, res) => {
