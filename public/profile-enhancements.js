@@ -11,8 +11,7 @@
     .profile-stat strong{display:block;color:#172033;font:700 22px "Space Grotesk",sans-serif}
     .profile-section{background:#fff;border:1px solid #e4e9f0;border-radius:19px;padding:18px}
     .profile-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-    .profile-section-head h3{margin:0;font-size:18px}
-    .profile-section-head small{color:#8993a4;font-size:12px}
+    .profile-section-head h3{margin:0;font-size:18px}.profile-section-head small{color:#8993a4;font-size:12px}
     .profile-social-list,.profile-activity{display:grid;gap:8px}
     .profile-social-item{display:flex;align-items:center;gap:11px;padding:11px;border-radius:13px;background:#f8f9fc;border:1px solid #edf0f5}
     .profile-social-icon{width:38px;height:38px;border-radius:11px;background:#eef1ff;color:#5662e3;display:grid;place-items:center;font-weight:900}
@@ -28,7 +27,7 @@
     .profile-edit-toggle{border:1px solid #dfe5ee;background:#f7f8fc;color:#5360e4;border-radius:11px;padding:10px 13px;display:inline-flex;align-items:center;gap:7px;font-weight:900;font-size:12px;white-space:nowrap}
     .profile-edit-toggle:hover{background:#eef1ff;border-color:#d6dcff}.profile-edit-toggle .edit-icon{font-size:15px;line-height:1}
     .profile-edit-form{overflow:hidden;transition:max-height .25s ease,opacity .2s ease,margin-top .25s ease}.profile-edit-form.is-closed{max-height:0!important;opacity:0;margin-top:0!important}.profile-edit-form.is-open{max-height:1000px;opacity:1}
-    .profile-logout-card{order:999}.profile-logout-card .danger-btn{margin-top:8px}
+    .profile-logout-bottom{margin-top:14px;width:100%}.profile-logout-bottom .danger-btn{margin-top:8px}
     @media(max-width:800px){
       .profile-stat-grid{grid-template-columns:repeat(2,1fr)}.profile-section{padding:15px}.profile-stat strong{font-size:20px}.profile-account-strip{align-items:flex-start;flex-direction:column}
       .profile-edit-row{align-items:flex-start;flex-direction:column}.profile-edit-toggle{width:100%;justify-content:center}
@@ -87,29 +86,35 @@
     }
   }
 
-  function moveLogoutToBottom() {
+  function getLogoutCard() {
     const settings = q('#profile-settings');
-    if (!settings) return;
-    const layout = q('.settings-layout', settings);
-    if (!layout) return;
+    if (!settings) return null;
     const danger = q('.danger-btn', settings);
-    if (!danger) return;
-    const card = danger.closest('.settings-card');
-    if (card && card.parentElement === layout) card.classList.add('profile-logout-card');
+    return danger ? danger.closest('.settings-card') : null;
   }
 
   function render() {
     setupProfileEditor();
-    moveLogoutToBottom();
 
+    const settings = q('#profile-settings');
     const layout = q('#profile-settings .settings-layout');
-    if (!layout) return;
+    if (!settings || !layout) return;
+
     let extra = q('#profileExtra');
     if (!extra) {
       extra = document.createElement('div');
       extra.id = 'profileExtra';
       extra.className = 'profile-extra';
       layout.insertAdjacentElement('afterend', extra);
+    }
+
+    // Keep the logout card after every other profile section, at the true bottom.
+    const logoutCard = getLogoutCard();
+    if (logoutCard) {
+      logoutCard.classList.add('profile-logout-bottom');
+      if (logoutCard.parentElement !== settings || logoutCard.previousElementSibling !== extra) {
+        extra.insertAdjacentElement('afterend', logoutCard);
+      }
     }
 
     const val = (s, d = '0') => q(s)?.textContent || d;
