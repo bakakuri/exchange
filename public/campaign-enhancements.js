@@ -23,7 +23,7 @@
     const rows = [...list.querySelectorAll('.promotion-row')];
     rows.forEach((row, index) => {
       const p = s.promotions[index];
-      if (!p || p.status === 'completed' || row.querySelector('.promotion-cancel')) return;
+      if (!p || p.status === 'completed' || p.status === 'cancelled' || row.querySelector('.promotion-cancel')) return;
       const actions = document.createElement('div');
       actions.className = 'promotion-actions';
       actions.innerHTML = `<button type="button" class="promotion-cancel" data-cancel-promotion="${esc(p.id)}">გაუქმება</button>`;
