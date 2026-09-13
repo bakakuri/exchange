@@ -47,11 +47,12 @@ body{font-size:15px}
 .settings-card>p{font-size:13px}
 .admin-badge,.admin-tab{font-size:12px}
 .admin-row small{font-size:12px}
-.admin-row strong{font-size:13px}
 @media(max-width:800px){
   .main{padding-left:20px;padding-right:20px;padding-bottom:100px}
   .breadcrumb small,.eyebrow{font-size:10px}
   .breadcrumb strong{font-size:16px}
+  .hero{padding:30px 28px;min-height:330px}
+  .hero h1{font-size:31px;line-height:1.02;letter-spacing:-.04em;max-width:100%;white-space:nowrap}
   .hero p{font-size:14px}
   .page-head h2,.section-head h2{font-size:23px}
   .page-head p{font-size:13px}
