@@ -1,0 +1,3 @@
+/* Keep authentication modal above the mobile drawer/backdrop. */
+.modal{z-index:1000!important}
+.modal-card{position:relative;z-index:1001}
