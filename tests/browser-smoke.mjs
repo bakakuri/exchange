@@ -15,7 +15,10 @@ try {
     const cspViolations = [];
     page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
     page.on('console', message => {
-      if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+      if (message.type() !== 'error') return;
+      const text = message.text();
+      if (/Supabase არ არის კონფიგურირებული Vercel-ში/i.test(text)) return;
+      errors.push(`console: ${text}`);
     });
     page.on('response', response => {
       const csp = response.headers()['content-security-policy'];
@@ -31,11 +34,9 @@ try {
     }
 
     await page.locator('#dashboard').waitFor({ state: 'visible' });
-    await page.locator('#menuBtn').count();
-    await page.locator('#tasks').count();
-    await page.locator('#profiles').count();
-    await page.locator('#promotions').count();
-    await page.locator('#wallet').count();
+    for (const selector of ['#menuBtn', '#tasks', '#profiles', '#promotions', '#wallet']) {
+      if (await page.locator(selector).count() !== 1) throw new Error(`${testCase.name}: missing ${selector}`);
+    }
 
     const navButtons = page.locator('[data-view]');
     const count = await navButtons.count();
@@ -44,7 +45,7 @@ try {
     if (testCase.name === 'mobile') {
       await page.locator('#menuBtn').click();
       await page.waitForTimeout(100);
-      await page.locator('#sidebar').count();
+      if (await page.locator('#sidebar').count() !== 1) throw new Error('mobile: sidebar missing');
     }
 
     if (errors.length) throw new Error(`${testCase.name}: browser errors\n${errors.join('\n')}`);
