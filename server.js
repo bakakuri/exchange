@@ -4,11 +4,22 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 
 const app = express();
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
 app.use(express.json({ limit: "50kb" }));
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: true, legacyHeaders: false }));
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please try again later." }
+});
 
 const supabaseUrl = (process.env.SUPABASE_URL || "").trim();
 const supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || "").trim();
@@ -29,7 +40,7 @@ function renderIndex() {
   html = html.replace('<link rel="stylesheet" href="/styles.css?v=8">', '<link rel="stylesheet" href="/styles.css?v=14"><link rel="stylesheet" href="/mobile-ui-fix.css?v=2">');
   html = html.replace(/<link rel="stylesheet" href="\/ui-consistency\.css[^>]*>/g, '');
   html = html.replace(/<link rel="stylesheet" href="\/final-mobile-fix\.css[^>]*>/g, '');
-  html = html.replace("</body>", tag("/feature-lifecycle.js?v=1") + tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=2") + tag("/stage2-enhancements.js?v=3") + tag("/stage4-product.js?v=4") + tag("/production-hardening.js?v=1") + tag("/task-verification.js?v=1") + tag("/promotion-platform-enhancements.js?v=3") + tag("/profile-activity-fix.js?v=1") + tag("/task-card-polish.js?v=1") + tag("/task-click-compat.js?v=1") + '<link rel="stylesheet" href="/ui-consistency.css?v=1"><link rel="stylesheet" href="/final-mobile-fix.css?v=2"><link rel="stylesheet" href="/task-profile-fix.css?v=1"><link rel="stylesheet" href="/auth-modal-fix.css?v=1">' + "</body>");
+  html = html.replace("</body>", tag("/feature-lifecycle.js?v=1") + tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=2") + tag("/stage2-enhancements.js?v=3") + tag("/stage4-product.js?v=4") + tag("/production-hardening.js?v=1") + tag("/task-verification.js?v=1") + tag("/promotion-platform-enhancements.js?v=3") + tag("/profile-activity-fix.js?v=1") + tag("/task-card-polish.js?v=1") + '<link rel="stylesheet" href="/ui-consistency.css?v=1"><link rel="stylesheet" href="/final-mobile-fix.css?v=2"><link rel="stylesheet" href="/task-profile-fix.css?v=1"><link rel="stylesheet" href="/auth-modal-fix.css?v=1">' + "</body>");
   return html;
 }
 
@@ -38,6 +49,7 @@ app.get("/", (_req, res) => {
   catch (error) { console.error("Failed to render index:", error); res.status(500).send("Exchange failed to load."); }
 });
 app.use(express.static(publicDir, { etag: true }));
+app.use("/api", apiLimiter);
 app.get("/api/config", (_req, res) => { res.set("Cache-Control", "no-store, max-age=0"); res.json({ supabaseUrl, supabaseAnonKey, configured: Boolean(supabaseUrl && supabaseAnonKey) }); });
 app.get("/api/health", (_req, res) => { res.set("Cache-Control", "no-store, max-age=0"); res.json({ ok: true, service: "exchange", supabaseConfigured: Boolean(supabaseUrl && supabaseAnonKey), time: new Date().toISOString() }); });
 app.get("/api/platforms", (_req, res) => { res.json(["Instagram", "TikTok", "YouTube", "X", "Facebook"]); });
