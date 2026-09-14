@@ -1,0 +1,24 @@
+/* Task metadata and profile activity final pass. */
+
+/* Keep task category/action on the card's right side as colored badges. */
+.task-card{position:relative!important;align-items:center!important}
+.task-card>.task-context-right{margin-left:auto!important;flex:0 0 auto!important;display:flex!important;flex-direction:column!important;align-items:flex-end!important;justify-content:center!important;gap:5px!important;max-width:38%!important;text-align:right!important}
+.task-context-category,.task-context-action{display:block!important;width:max-content!important;max-width:100%!important;padding:5px 9px!important;border-radius:999px!important;font-size:10px!important;font-weight:800!important;line-height:1.2!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.task-context-category{background:#f0edff!important;border:1px solid #e3dcff!important;color:#7056e8!important}
+.task-context-action{background:#eaf8f1!important;border:1px solid #d4efdf!important;color:#16885b!important}
+
+/* Profile activity rows are always visible and readable. */
+#profileExtra .profile-activity-item{min-height:48px!important}
+#profileExtra .profile-activity-icon{background:#edf4ff!important;color:#1677ff!important}
+#profileExtra .profile-activity-icon.is-positive{background:#eaf8f1!important;color:#16885b!important}
+#profileExtra .profile-activity-icon.is-negative{background:#fff0f3!important;color:#d04e69!important}
+#profileExtra .profile-activity-value.is-positive{color:#16885b!important;font-weight:900!important}
+#profileExtra .profile-activity-value.is-negative{color:#d04e69!important;font-weight:900!important}
+#profileExtra .profile-activity .empty{width:100%!important;box-sizing:border-box!important}
+
+@media(max-width:760px){
+  .task-card{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:9px!important}
+  .task-card>.task-context-right{max-width:42%!important;align-self:center!important}
+  .task-context-category,.task-context-action{font-size:9px!important;padding:5px 7px!important}
+  .task-card>.task-actions{grid-column:1/-1!important}
+}
