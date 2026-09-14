@@ -22,7 +22,12 @@
 
     const rows = [...list.querySelectorAll('.promotion-row')];
     rows.forEach((row, index) => {
-      const p = s.promotions[index];
+      if (!row.dataset.promotionId) {
+        const p = s.promotions[index];
+        if (p) row.dataset.promotionId = p.id;
+      }
+      const id = row.dataset.promotionId;
+      const p = id ? s.promotions.find(x => x.id === id) : null;
       if (!p || p.status === 'completed' || p.status === 'cancelled' || row.querySelector('.promotion-cancel')) return;
       const actions = document.createElement('div');
       actions.className = 'promotion-actions';
