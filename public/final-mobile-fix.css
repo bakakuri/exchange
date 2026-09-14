@@ -1,0 +1,90 @@
+/* Final mobile corrections: one consistent light UI for generated sections. */
+
+/* ADMIN */
+#adminStats{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin:0 0 14px!important}
+#adminStats .admin-stat{width:100%!important;min-width:0!important;background:#fff!important;border:1px solid #dfe6ef!important;border-radius:17px!important;padding:15px!important;box-shadow:0 7px 22px rgba(28,57,99,.06)!important}
+#adminStats .admin-stat small{display:block!important;color:#7b8799!important;font-size:10px!important;margin-bottom:5px!important}
+#adminStats .admin-stat strong{display:block!important;color:#101827!important;font-size:24px!important;line-height:1.1!important}
+.admin-tabs{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;padding:5px!important;margin:0 0 13px!important;background:#eef3f9!important;border:1px solid #dfe6ef!important;border-radius:15px!important}
+.admin-tabs button,.admin-tab,[data-admin-tab]{width:100%!important;min-height:42px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;color:#64748b!important;padding:9px 8px!important;font-size:10px!important;font-weight:800!important;box-shadow:none!important}
+.admin-tabs button:hover,.admin-tab:hover,[data-admin-tab]:hover{background:#fff!important;color:#1677ff!important}
+.admin-tabs button.active,.admin-tab.active,[data-admin-tab].active{background:#fff!important;color:#1677ff!important;border-color:#d8e5f7!important;box-shadow:0 4px 12px rgba(28,57,99,.08)!important}
+#adminContent{display:grid!important;gap:10px!important;width:100%!important}
+#adminContent .admin-row{width:100%!important;display:grid!important;grid-template-columns:1fr!important;gap:10px!important;padding:14px!important;background:#fff!important;color:#101827!important;border:1px solid #dfe6ef!important;border-radius:17px!important;box-shadow:0 7px 22px rgba(28,57,99,.05)!important;overflow:hidden!important}
+#adminContent .admin-row>div{width:100%!important;min-width:0!important}
+#adminContent .admin-row>div:first-child strong,#adminContent .admin-row>div:nth-child(2) strong{display:block!important;color:#172033!important;font-size:12px!important;line-height:1.4!important}
+#adminContent .admin-row small{display:block!important;color:#7b8799!important;font-size:9px!important;line-height:1.5!important;overflow-wrap:anywhere!important;word-break:break-word!important;margin-top:3px!important}
+#adminContent .admin-row>div:nth-child(2){padding-top:9px!important;border-top:1px solid #edf1f6!important}
+#adminContent .admin-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important;width:100%!important}
+#adminContent .admin-actions select{grid-column:1/-1!important;width:100%!important;min-width:0!important;min-height:42px!important;border:1px solid #d8e2ee!important;border-radius:11px!important;background:#f8faff!important;color:#263247!important;padding:9px 11px!important}
+#adminContent .admin-actions button{width:100%!important;min-height:42px!important;border:1px solid #d5e2f0!important;border-radius:11px!important;background:#eaf2ff!important;color:#1268e9!important;padding:9px 11px!important;font-size:10px!important;font-weight:850!important;box-shadow:none!important}
+#adminContent .admin-actions button.danger{background:#fff0f3!important;border-color:#ffd7df!important;color:#d04e69!important}
+
+/* PROFILE: remove the legacy dark/private-looking treatment and make the security area a real card. */
+#profile-settings .settings-layout{width:100%!important;max-width:760px!important}
+#profile-settings .settings-card{width:100%!important;background:#fff!important;color:#101827!important;border:1px solid #dfe6ef!important;border-radius:20px!important;box-shadow:0 8px 26px rgba(28,57,99,.06)!important}
+#profile-settings .profile-user-card{width:100%!important;background:#f8faff!important;color:#101827!important;border:1px solid #dfe6ef!important;border-radius:17px!important;box-shadow:none!important}
+#profile-settings .profile-user-name{color:#101827!important;font-size:21px!important;line-height:1.25!important}
+#profile-settings .profile-user-email{color:#64748b!important;line-height:1.45!important;overflow-wrap:anywhere!important}
+#profile-settings .profile-user-status{background:#eef9f4!important;color:#167b57!important;border:1px solid #d4eee2!important;border-radius:10px!important}
+#profile-settings .profile-edit-row{width:100%!important;border-top:1px solid #e5ebf2!important}
+#profile-settings .profile-edit-row p{color:#64748b!important}
+#profile-settings .profile-edit-toggle{width:100%!important;justify-content:center!important;min-height:44px!important;background:#fff!important;color:#334155!important;border:1px solid #d7e1ee!important;border-radius:12px!important}
+#profileExtra{width:100%!important;display:grid!important;gap:12px!important;margin-top:12px!important}
+#profileExtra .profile-stat-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important;width:100%!important}
+#profileExtra .profile-stat{width:100%!important;background:#fff!important;border:1px solid #dfe6ef!important;border-radius:16px!important;padding:14px!important;box-shadow:0 6px 18px rgba(28,57,99,.05)!important}
+#profileExtra .profile-stat small{display:block!important;color:#7b8799!important;font-size:9px!important;margin-bottom:5px!important}
+#profileExtra .profile-stat strong{display:block!important;color:#101827!important;font-size:20px!important}
+#profileExtra .profile-section{width:100%!important;background:#fff!important;color:#101827!important;border:1px solid #dfe6ef!important;border-radius:18px!important;padding:15px!important;box-shadow:0 7px 22px rgba(28,57,99,.05)!important;overflow:hidden!important}
+#profileExtra .profile-section-head{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:10px!important;margin-bottom:11px!important}
+#profileExtra .profile-section-head h3{color:#101827!important;font-size:17px!important;margin:0!important}
+#profileExtra .profile-section-head small{color:#7b8799!important;font-size:9px!important}
+#profileExtra .profile-social-list,#profileExtra .profile-activity{display:grid!important;gap:7px!important;width:100%!important}
+#profileExtra .profile-social-item{display:flex!important;align-items:center!important;gap:9px!important;width:100%!important;background:#f8faff!important;border:1px solid #e1e8f1!important;border-radius:12px!important;padding:10px!important;min-width:0!important}
+#profileExtra .profile-social-info{min-width:0!important;flex:1!important}
+#profileExtra .profile-social-info strong{display:block!important;color:#172033!important;font-size:11px!important;overflow-wrap:anywhere!important}
+#profileExtra .profile-social-info small{display:block!important;color:#7b8799!important;font-size:9px!important;margin-top:2px!important;overflow-wrap:anywhere!important}
+#profileExtra .profile-social-item a{color:#1677ff!important;font-size:10px!important;font-weight:800!important;white-space:nowrap!important}
+#profileExtra .profile-activity-item{display:grid!important;grid-template-columns:30px minmax(0,1fr) auto!important;align-items:center!important;gap:8px!important;width:100%!important;padding:9px 0!important;border-bottom:1px solid #e8edf3!important}
+#profileExtra .profile-activity-item strong{color:#172033!important;font-size:10px!important}
+#profileExtra .profile-activity-item small{color:#7b8799!important;font-size:8px!important}
+#profileExtra .profile-activity-value{color:#172033!important;font-size:10px!important;white-space:nowrap!important}
+#profile-settings .stage4-security{width:100%!important;margin-top:12px!important;padding:16px!important;background:#fff!important;color:#101827!important;border:1px solid #dfe6ef!important;border-radius:18px!important;box-shadow:0 7px 22px rgba(28,57,99,.05)!important;overflow:hidden!important}
+#profile-settings .stage4-security h3{color:#101827!important;font-size:18px!important;line-height:1.25!important;margin:2px 0 6px!important}
+#profile-settings .stage4-security p{color:#64748b!important;font-size:11px!important;line-height:1.55!important;margin:0!important;overflow-wrap:anywhere!important}
+#profile-settings .stage4-security-list{display:grid!important;gap:7px!important;margin-top:12px!important;width:100%!important}
+#profile-settings .stage4-security-list span{display:block!important;width:100%!important;box-sizing:border-box!important;padding:9px 10px!important;border-radius:10px!important;font-size:9px!important;line-height:1.45!important;overflow-wrap:anywhere!important;word-break:break-word!important}
+#profile-settings .stage4-security-list .ok{background:#eaf8f1!important;color:#117c51!important}
+#profile-settings .stage4-security-list .warn{background:#fff5df!important;color:#996b00!important}
+#profile-settings .profile-account-actions-bottom{width:100%!important;background:#fff!important;color:#101827!important;border:1px solid #dfe6ef!important;border-radius:18px!important;box-shadow:0 7px 22px rgba(28,57,99,.05)!important}
+
+/* WALLET: balance and search must be stacked and full-width on mobile. */
+#stage2WalletHead{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;width:100%!important;margin:0 0 14px!important}
+#stage2WalletHead .stage2-balance-card{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;margin:0!important;border-radius:18px!important;padding:19px!important;background:linear-gradient(135deg,#1677ff,#4a8fff)!important;color:#fff!important;box-shadow:0 12px 28px rgba(22,119,255,.18)!important}
+#stage2WalletHead .stage2-balance-card strong{display:block!important;font-size:29px!important;line-height:1.1!important;margin:5px 0!important}
+#stage2WalletHead .stage2-wallet-filter{display:block!important;width:100%!important;max-width:none!important;min-width:0!important;box-sizing:border-box!important;min-height:46px!important;margin:0!important;background:#fff!important;color:#172033!important;border:1px solid #dfe6ef!important;border-radius:13px!important;padding:11px 13px!important;box-shadow:0 4px 14px rgba(28,57,99,.05)!important}
+#stage2WalletHead .stage2-wallet-filter:focus{border-color:#82b3ff!important;box-shadow:0 0 0 3px rgba(22,119,255,.10)!important}
+#wallet .transactions{width:100%!important;box-sizing:border-box!important;background:#fff!important;border:1px solid #dfe6ef!important;border-radius:18px!important;padding:3px 12px!important;box-shadow:0 7px 22px rgba(28,57,99,.05)!important;overflow:hidden!important}
+#wallet .transaction{width:100%!important;min-width:0!important;display:grid!important;grid-template-columns:34px minmax(0,1fr) auto!important;align-items:center!important;gap:9px!important;min-height:60px!important;padding:10px 0!important;background:#fff!important;border:0!important;border-bottom:1px solid #e8edf3!important;border-radius:0!important}
+#wallet .transaction b{font-size:10px!important;color:#172033!important}
+#wallet .transaction small{font-size:8px!important;color:#7b8799!important;margin-top:2px!important}
+#wallet .transaction>strong{font-size:11px!important;white-space:nowrap!important}
+
+/* TASK/DETAIL ACTIONS: no browser-default gray buttons. */
+.task-actions,.promotion-actions,.stage4-campaign-actions{width:100%!important}
+.task-actions .task-action,.stage4-task-info,.stage4-campaign-actions button,.promotion-row button{appearance:none!important;-webkit-appearance:none!important;box-sizing:border-box!important;border-radius:11px!important;min-height:43px!important;font-weight:800!important}
+.task-actions .task-action{width:100%!important;background:linear-gradient(135deg,#1677ff,#2f87ff)!important;color:#fff!important;border:1px solid transparent!important}
+.task-actions .task-action.secondary{background:#edf4ff!important;color:#1268e9!important;border-color:#d8e7ff!important}
+.task-actions .task-action.done{background:#eaf8f1!important;color:#16885b!important;border-color:#d2efdf!important}
+.stage4-task-info{width:100%!important;background:#edf4ff!important;color:#1677ff!important;border:1px solid #d8e7ff!important;box-shadow:none!important}
+
+@media(min-width:761px){
+  #adminStats{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .admin-tabs{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  #adminContent .admin-row{grid-template-columns:minmax(0,1.5fr) minmax(130px,.8fr) auto!important;align-items:center!important}
+  #adminContent .admin-row>div:nth-child(2){padding-top:0!important;border-top:0!important}
+  #adminContent .admin-actions{display:flex!important;justify-content:flex-end!important;width:auto!important}
+  #adminContent .admin-actions select{width:auto!important;min-width:92px!important;grid-column:auto!important}
+  #adminContent .admin-actions button{width:auto!important}
+  #stage2WalletHead{grid-template-columns:1fr!important}
+}
