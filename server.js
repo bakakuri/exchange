@@ -15,6 +15,7 @@ const supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || "").trim();
 const publicDir = path.join(__dirname, "public");
 const indexPath = path.join(publicDir, "index.html");
 const tag=(src)=>'<scr'+'ipt src="'+src+'"></scr'+'ipt>';
+const unstyled='<style id="exchange-unstyled">body *{all:revert!important}.view{display:none!important}.active-view{display:block!important}[hidden]{display:none!important}</style>';
 
 function renderIndex() {
   let html = fs.readFileSync(indexPath, "utf8");
@@ -25,7 +26,7 @@ function renderIndex() {
   html = html.replace(/<link rel="stylesheet" href="\/typography\.css[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="\/ui-polish\.css[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="\/stage4-product\.css[^>]*>/g, "");
-  html = html.replace("</body>", tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=2") + tag("/stage2-enhancements.js?v=2") + tag("/stage4-product.js?v=3") + tag("/production-hardening.js?v=1") + tag("/task-verification.js?v=1") + tag("/promotion-platform-enhancements.js?v=2") + "</body>");
+  html = html.replace("</body>", tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=2") + tag("/stage2-enhancements.js?v=2") + tag("/stage4-product.js?v=3") + tag("/production-hardening.js?v=1") + tag("/task-verification.js?v=1") + tag("/promotion-platform-enhancements.js?v=2") + unstyled + "</body>");
   return html;
 }
 
