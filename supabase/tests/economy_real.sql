@@ -2,8 +2,13 @@ BEGIN;
 
 -- Exchange economy integration test.
 -- Requires only 1 normal user and 1 admin.
--- All test writes are rolled back at the end.
+-- All writes are rolled back at the end.
 -- Run in Supabase SQL Editor as database owner/admin.
+--
+-- IMPORTANT:
+-- The rate-limit tests deliberately seed historical completion rows inside
+-- this transaction. This avoids making the 300/day test depend on wall-clock
+-- timing or accidentally tripping the 30/minute limit.
 
 DO $$
 DECLARE
@@ -30,7 +35,7 @@ DECLARE
   v_difference_after integer;
 BEGIN
   ------------------------------------------------------------------
-  -- SETUP: one normal user + one admin
+  -- SETUP
   ------------------------------------------------------------------
   SELECT id INTO v_user
   FROM public.profiles
@@ -48,8 +53,13 @@ BEGIN
     RAISE EXCEPTION 'TEST SETUP FAILED: need at least 1 user and 1 admin';
   END IF;
 
+  -- Make the actors independent of existing rate/daily history.
+  UPDATE public.task_completions
+  SET completed_at=date_trunc('day',now())-interval '1 second'
+  WHERE user_id IN (v_user,v_admin);
+
   ------------------------------------------------------------------
-  -- BASELINE LEDGER
+  -- 0. BASELINE LEDGER
   ------------------------------------------------------------------
   PERFORM set_config('request.jwt.claim.sub',v_user::text,true);
 
@@ -72,11 +82,15 @@ BEGIN
     'TEST starter','Starter',7,'active'
   ) RETURNING id,reward INTO v_task,v_reward;
 
-  SELECT credits INTO v_before FROM public.profiles WHERE id=v_user;
+  SELECT credits INTO v_before
+  FROM public.profiles WHERE id=v_user;
+
   IF public.complete_task(v_task)<>v_reward THEN
     RAISE EXCEPTION 'FAIL: Starter task reward return';
   END IF;
-  SELECT credits INTO v_after FROM public.profiles WHERE id=v_user;
+
+  SELECT credits INTO v_after
+  FROM public.profiles WHERE id=v_user;
 
   IF v_after<>v_before+v_reward THEN
     RAISE EXCEPTION 'FAIL: Starter task did not add credits';
@@ -105,7 +119,9 @@ BEGIN
   END;
 
   IF v_err IS NULL OR v_err NOT ILIKE '%already completed%' THEN
-    RAISE EXCEPTION 'FAIL: duplicate completion not blocked: %',COALESCE(v_err,'no error');
+    RAISE EXCEPTION
+      'FAIL: duplicate completion not blocked: %',
+      COALESCE(v_err,'no error');
   END IF;
 
   ------------------------------------------------------------------
@@ -127,14 +143,18 @@ BEGIN
   END;
 
   IF v_err IS NULL OR v_err NOT ILIKE '%own task%' THEN
-    RAISE EXCEPTION 'FAIL: self completion not blocked: %',COALESCE(v_err,'no error');
+    RAISE EXCEPTION
+      'FAIL: self completion not blocked: %',
+      COALESCE(v_err,'no error');
   END IF;
 
   ------------------------------------------------------------------
-  -- GIVE USER TEST BUDGET
+  -- TEST CREDIT BUDGET
   ------------------------------------------------------------------
   PERFORM set_config('request.jwt.claim.sub',v_admin::text,true);
-  PERFORM public.admin_adjust_credits(v_user,1000,'economy integration test setup');
+  PERFORM public.admin_adjust_credits(
+    v_user,1000,'economy integration test setup'
+  );
 
   PERFORM set_config('request.jwt.claim.sub',v_user::text,true);
 
@@ -148,25 +168,29 @@ BEGIN
 
   ------------------------------------------------------------------
   -- 4. PROMOTION BUDGET DECREMENT + EXHAUSTION
-  -- 10 credits / reward 1 = ten completions required.
+  -- 10 credits / reward 1 = exactly 10 completions.
   ------------------------------------------------------------------
   v_promo:=public.create_promotion(
     v_social_profile,'TEST budget','Instagram','Follow',
     'https://www.instagram.com/example-budget/',10
   );
 
-  SELECT remaining_budget,reward INTO v_remaining_before,v_reward
+  SELECT remaining_budget,reward
+  INTO v_remaining_before,v_reward
   FROM public.promotions WHERE id=v_promo;
 
   IF v_remaining_before<>10 OR v_reward<>1 THEN
-    RAISE EXCEPTION 'FAIL: unexpected promotion setup: budget %, reward %',v_remaining_before,v_reward;
+    RAISE EXCEPTION
+      'FAIL: unexpected promotion setup: budget %, reward %',
+      v_remaining_before,v_reward;
   END IF;
 
   SELECT id INTO v_task
-  FROM public.tasks WHERE promotion_id=v_promo
-  ORDER BY created_at LIMIT 1;
+  FROM public.tasks
+  WHERE promotion_id=v_promo
+  ORDER BY created_at,id
+  LIMIT 1;
 
-  -- Add 9 more tasks to the same promotion.
   INSERT INTO public.tasks(
     owner_id,social_profile_id,promotion_id,platform,action,
     target_url,title,category,reward,status
@@ -177,7 +201,7 @@ BEGIN
     'TEST budget '||g,'Promotion',1,'active'
   FROM generate_series(1,9) g;
 
-  -- Ensure the admin starts outside the one-minute limit.
+  -- Keep the admin outside the minute limit.
   UPDATE public.task_completions
   SET completed_at=now()-interval '2 minutes'
   WHERE user_id=v_admin;
@@ -187,10 +211,11 @@ BEGIN
     WHERE promotion_id=v_promo
     ORDER BY created_at,id
   LOOP
+    PERFORM set_config('request.jwt.claim.sub',v_admin::text,true);
+
     INSERT INTO public.task_verifications(task_id,user_id,status)
     VALUES(v_task,v_admin,'approved');
 
-    PERFORM set_config('request.jwt.claim.sub',v_admin::text,true);
     IF public.complete_task(v_task)<>1 THEN
       RAISE EXCEPTION 'FAIL: promotion task did not pay 1 credit';
     END IF;
@@ -199,19 +224,20 @@ BEGIN
     INTO v_remaining_after,v_status
     FROM public.promotions WHERE id=v_promo;
 
-    v_remaining_before:=v_remaining_after;
-
-    -- Keep the rate-limit test isolated from the budget test.
+    -- Every successful completion is moved outside the one-minute window.
     UPDATE public.task_completions
     SET completed_at=now()-interval '2 minutes'
     WHERE task_id=v_task AND user_id=v_admin;
   END LOOP;
 
-  SELECT remaining_budget,status INTO v_remaining_after,v_status
+  SELECT remaining_budget,status
+  INTO v_remaining_after,v_status
   FROM public.promotions WHERE id=v_promo;
 
   IF v_remaining_after<>0 OR v_status<>'completed' THEN
-    RAISE EXCEPTION 'FAIL: budget exhaustion did not complete promotion (%,%)',v_remaining_after,v_status;
+    RAISE EXCEPTION
+      'FAIL: budget exhaustion did not complete promotion (%,%)',
+      v_remaining_after,v_status;
   END IF;
 
   IF EXISTS(
@@ -235,27 +261,42 @@ BEGIN
   ) RETURNING id INTO v_task;
 
   PERFORM set_config('request.jwt.claim.sub',v_admin::text,true);
+
   INSERT INTO public.task_verifications(task_id,user_id,status)
   VALUES(v_task,v_admin,'pending');
 
   v_err:=NULL;
-  BEGIN PERFORM public.complete_task(v_task);
-  EXCEPTION WHEN OTHERS THEN v_err:=SQLERRM; END;
+  BEGIN
+    PERFORM public.complete_task(v_task);
+  EXCEPTION WHEN OTHERS THEN
+    v_err:=SQLERRM;
+  END;
+
   IF v_err IS NULL OR v_err NOT ILIKE '%pending%' THEN
-    RAISE EXCEPTION 'FAIL: pending verification not blocked: %',COALESCE(v_err,'no error');
+    RAISE EXCEPTION
+      'FAIL: pending verification not blocked: %',
+      COALESCE(v_err,'no error');
   END IF;
 
-  UPDATE public.task_verifications SET status='rejected'
+  UPDATE public.task_verifications
+  SET status='rejected'
   WHERE task_id=v_task AND user_id=v_admin;
 
   v_err:=NULL;
-  BEGIN PERFORM public.complete_task(v_task);
-  EXCEPTION WHEN OTHERS THEN v_err:=SQLERRM; END;
+  BEGIN
+    PERFORM public.complete_task(v_task);
+  EXCEPTION WHEN OTHERS THEN
+    v_err:=SQLERRM;
+  END;
+
   IF v_err IS NULL OR v_err NOT ILIKE '%rejected%' THEN
-    RAISE EXCEPTION 'FAIL: rejected verification not blocked: %',COALESCE(v_err,'no error');
+    RAISE EXCEPTION
+      'FAIL: rejected verification not blocked: %',
+      COALESCE(v_err,'no error');
   END IF;
 
-  UPDATE public.task_verifications SET status='approved'
+  UPDATE public.task_verifications
+  SET status='approved'
   WHERE task_id=v_task AND user_id=v_admin;
 
   IF public.complete_task(v_task)<>2 THEN
@@ -272,11 +313,15 @@ BEGIN
     'https://www.instagram.com/example-cancel/',10
   );
 
-  SELECT credits INTO v_before FROM public.profiles WHERE id=v_user;
+  SELECT credits INTO v_before
+  FROM public.profiles WHERE id=v_user;
+
   IF public.cancel_promotion(v_promo)<>10 THEN
     RAISE EXCEPTION 'FAIL: cancellation refund amount';
   END IF;
-  SELECT credits INTO v_after FROM public.profiles WHERE id=v_user;
+
+  SELECT credits INTO v_after
+  FROM public.profiles WHERE id=v_user;
 
   IF v_after<>v_before+10 THEN
     RAISE EXCEPTION 'FAIL: cancellation did not refund 10 credits';
@@ -294,31 +339,38 @@ BEGIN
   INTO v_user,v_remaining_before
   FROM public.promotions WHERE id=v_promo;
 
-  SELECT id INTO v_task FROM public.tasks
-  WHERE promotion_id=v_promo ORDER BY created_at LIMIT 1;
+  SELECT id INTO v_task
+  FROM public.tasks
+  WHERE promotion_id=v_promo
+  ORDER BY created_at
+  LIMIT 1;
 
-  SELECT credits INTO v_before FROM public.profiles WHERE id=v_user;
+  SELECT credits INTO v_before
+  FROM public.profiles WHERE id=v_user;
 
   PERFORM set_config('request.jwt.claim.sub',v_admin::text,true);
   PERFORM public.admin_delete_task(v_task);
 
-  SELECT credits INTO v_after FROM public.profiles WHERE id=v_user;
+  SELECT credits INTO v_after
+  FROM public.profiles WHERE id=v_user;
+
   IF v_after<>v_before+v_remaining_before THEN
-    RAISE EXCEPTION 'FAIL: admin task deletion did not refund remaining budget';
+    RAISE EXCEPTION
+      'FAIL: admin task deletion did not refund remaining budget';
   END IF;
 
-  SELECT status INTO v_status FROM public.promotions WHERE id=v_promo;
+  SELECT status INTO v_status
+  FROM public.promotions WHERE id=v_promo;
+
   IF v_status<>'cancelled' THEN
     RAISE EXCEPTION 'FAIL: admin deletion did not cancel promotion';
   END IF;
 
   ------------------------------------------------------------------
   -- 8. 30 TASKS / MINUTE
+  -- Seed 29 recent completions, then use real complete_task calls
+  -- for completion #30 and #31. This directly tests the boundary.
   ------------------------------------------------------------------
-  UPDATE public.task_completions
-  SET completed_at=now()-interval '2 minutes'
-  WHERE user_id=v_admin;
-
   PERFORM set_config('request.jwt.claim.sub',v_admin::text,true);
 
   INSERT INTO public.tasks(
@@ -326,40 +378,60 @@ BEGIN
   )
   SELECT
     v_user,'Instagram','Follow',
-    'https://www.instagram.com/rate-'||g||'/',
-    'RATE-'||g,'Promotion',1,'active'
-  FROM generate_series(1,31) g;
+    'https://www.instagram.com/rate-history-'||g||'/',
+    'RATE-HISTORY-'||g,'Promotion',1,'completed'
+  FROM generate_series(1,29) g;
 
-  v_count:=0;
-  FOR v_task IN
-    SELECT id FROM public.tasks
-    WHERE owner_id=v_user AND title LIKE 'RATE-%'
-    ORDER BY id
-  LOOP
-    v_count:=v_count+1;
-    v_err:=NULL;
-    BEGIN
-      INSERT INTO public.task_verifications(task_id,user_id,status)
-      VALUES(v_task,v_admin,'approved');
-      PERFORM public.complete_task(v_task);
-    EXCEPTION WHEN OTHERS THEN
-      v_err:=SQLERRM;
-    END;
+  INSERT INTO public.task_completions(task_id,user_id,reward,completed_at)
+  SELECT
+    t.id,v_admin,1,now()-interval '10 seconds'
+  FROM public.tasks t
+  WHERE t.owner_id=v_user
+    AND t.title LIKE 'RATE-HISTORY-%';
 
-    IF v_count<=30 AND v_err IS NOT NULL THEN
-      RAISE EXCEPTION 'FAIL: rate test completion % blocked: %',v_count,v_err;
-    END IF;
-    IF v_count=31
-       AND (v_err IS NULL OR v_err NOT ILIKE '%Too many task completions%') THEN
-      RAISE EXCEPTION 'FAIL: 31st/minute limit did not fire: %',COALESCE(v_err,'no error');
-    END IF;
-  END LOOP;
+  INSERT INTO public.tasks(
+    owner_id,platform,action,target_url,title,category,reward,status
+  ) VALUES(
+    v_user,'Instagram','Follow',
+    'https://www.instagram.com/rate-real-30/',
+    'RATE-REAL-30','Promotion',1,'active'
+  ) RETURNING id INTO v_task;
+
+  INSERT INTO public.task_verifications(task_id,user_id,status)
+  VALUES(v_task,v_admin,'approved');
+
+  IF public.complete_task(v_task)<>1 THEN
+    RAISE EXCEPTION 'FAIL: 30th/minute completion was blocked';
+  END IF;
+
+  INSERT INTO public.tasks(
+    owner_id,platform,action,target_url,title,category,reward,status
+  ) VALUES(
+    v_user,'Instagram','Follow',
+    'https://www.instagram.com/rate-real-31/',
+    'RATE-REAL-31','Promotion',1,'active'
+  ) RETURNING id INTO v_task2;
+
+  INSERT INTO public.task_verifications(task_id,user_id,status)
+  VALUES(v_task2,v_admin,'approved');
+
+  v_err:=NULL;
+  BEGIN
+    PERFORM public.complete_task(v_task2);
+  EXCEPTION WHEN OTHERS THEN
+    v_err:=SQLERRM;
+  END;
+
+  IF v_err IS NULL OR v_err NOT ILIKE '%Too many task completions%' THEN
+    RAISE EXCEPTION
+      'FAIL: 31st/minute limit did not fire: %',
+      COALESCE(v_err,'no error');
+  END IF;
 
   ------------------------------------------------------------------
   -- 9. 300 TASKS / DAY
-  -- After each successful completion, move that completion 2 minutes
-  -- into the past. It remains TODAY, so the daily counter increments,
-  -- while the one-minute counter stays below 30.
+  -- Seed 299 completed tasks earlier today but outside the minute
+  -- window, then use real complete_task calls for #300 and #301.
   ------------------------------------------------------------------
   UPDATE public.task_completions
   SET completed_at=date_trunc('day',now())-interval '1 second'
@@ -370,47 +442,58 @@ BEGIN
   )
   SELECT
     v_user,'Instagram','Follow',
-    'https://www.instagram.com/day-'||g||'/',
-    'DAY-'||g,'Promotion',1,'active'
-  FROM generate_series(1,301) g;
+    'https://www.instagram.com/day-history-'||g||'/',
+    'DAY-HISTORY-'||g,'Promotion',1,'completed'
+  FROM generate_series(1,299) g;
 
-  v_count:=0;
-  FOR v_task IN
-    SELECT id FROM public.tasks
-    WHERE owner_id=v_user AND title LIKE 'DAY-%'
-    ORDER BY id
-  LOOP
-    v_count:=v_count+1;
-    v_err:=NULL;
-    BEGIN
-      INSERT INTO public.task_verifications(task_id,user_id,status)
-      VALUES(v_task,v_admin,'approved');
-      PERFORM public.complete_task(v_task);
+  INSERT INTO public.task_completions(task_id,user_id,reward,completed_at)
+  SELECT
+    t.id,v_admin,1,now()-interval '2 minutes'
+  FROM public.tasks t
+  WHERE t.owner_id=v_user
+    AND t.title LIKE 'DAY-HISTORY-%';
 
-      SELECT id INTO v_completion
-      FROM public.task_completions
-      WHERE task_id=v_task AND user_id=v_admin
-      ORDER BY completed_at DESC
-      LIMIT 1;
+  INSERT INTO public.tasks(
+    owner_id,platform,action,target_url,title,category,reward,status
+  ) VALUES(
+    v_user,'Instagram','Follow',
+    'https://www.instagram.com/day-real-300/',
+    'DAY-REAL-300','Promotion',1,'active'
+  ) RETURNING id INTO v_task;
 
-      UPDATE public.task_completions
-      SET completed_at=now()-interval '2 minutes'
-      WHERE id=v_completion;
-    EXCEPTION WHEN OTHERS THEN
-      v_err:=SQLERRM;
-    END;
+  INSERT INTO public.task_verifications(task_id,user_id,status)
+  VALUES(v_task,v_admin,'approved');
 
-    IF v_count<=300 AND v_err IS NOT NULL THEN
-      RAISE EXCEPTION 'FAIL: day test completion % blocked: %',v_count,v_err;
-    END IF;
-    IF v_count=301
-       AND (v_err IS NULL OR v_err NOT ILIKE '%Daily task completion limit%') THEN
-      RAISE EXCEPTION 'FAIL: 301st/day limit did not fire: %',COALESCE(v_err,'no error');
-    END IF;
-  END LOOP;
+  IF public.complete_task(v_task)<>1 THEN
+    RAISE EXCEPTION 'FAIL: 300th/day completion was blocked';
+  END IF;
+
+  INSERT INTO public.tasks(
+    owner_id,platform,action,target_url,title,category,reward,status
+  ) VALUES(
+    v_user,'Instagram','Follow',
+    'https://www.instagram.com/day-real-301/',
+    'DAY-REAL-301','Promotion',1,'active'
+  ) RETURNING id INTO v_task2;
+
+  INSERT INTO public.task_verifications(task_id,user_id,status)
+  VALUES(v_task2,v_admin,'approved');
+
+  v_err:=NULL;
+  BEGIN
+    PERFORM public.complete_task(v_task2);
+  EXCEPTION WHEN OTHERS THEN
+    v_err:=SQLERRM;
+  END;
+
+  IF v_err IS NULL OR v_err NOT ILIKE '%Daily task completion limit%' THEN
+    RAISE EXCEPTION
+      'FAIL: 301st/day limit did not fire: %',
+      COALESCE(v_err,'no error');
+  END IF;
 
   ------------------------------------------------------------------
-  -- FINAL LEDGER CONSISTENCY
+  -- 10. FINAL LEDGER CONSISTENCY
   ------------------------------------------------------------------
   PERFORM set_config('request.jwt.claim.sub',v_user::text,true);
 
@@ -425,7 +508,8 @@ BEGIN
   END IF;
 
   IF v_balance_after-v_balance_before<>v_ledger_after-v_ledger_before THEN
-    RAISE EXCEPTION 'FAIL: profile balance delta does not match ledger delta';
+    RAISE EXCEPTION
+      'FAIL: profile balance delta does not match ledger delta';
   END IF;
 
   RAISE NOTICE 'ALL ECONOMY TESTS PASSED';
