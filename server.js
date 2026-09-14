@@ -37,6 +37,7 @@ app.use((req, res, next) => {
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' https://cdn.jsdelivr.net`,
     "style-src 'self' 'unsafe-inline'",
+    "style-src-elem 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self' data:",
     `connect-src ${connect}`,
@@ -51,8 +52,9 @@ app.use((req, res, next) => {
 function renderIndex(res) {
   const nonce = res.locals.cspNonce;
   let html = fs.readFileSync(indexPath, "utf8");
+  html = html.replace(/<link[^>]*fonts\.googleapis\.com[^>]*>/gi, "");
+  html = html.replace(/<link[^>]*fonts\.gstatic\.com[^>]*>/gi, "");
   html = html.replace(/<link rel="preconnect"[^>]*>/g, "");
-  html = html.replace(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>/g, "");
   html = html.replace("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js");
   html = html.replace('<script src="/app.js?v=8" defer></script>', `<script src="/app.js?v=14" nonce="${nonce}"></script><script nonce="${nonce}">window.state=state;</script>`);
   html = html.replace(/<link rel="stylesheet" href="\/typography\.css[^>]*>/g, "");
@@ -63,7 +65,7 @@ function renderIndex(res) {
   html = html.replace(/<link rel="stylesheet" href="\/ui-consistency\.css[^>]*>/g, '');
   html = html.replace(/<link rel="stylesheet" href="\/final-mobile-fix\.css[^>]*>/g, '');
   html = html.replace("</body>",
-    tag("/feature-lifecycle.js?v=2", nonce) +
+    tag("/feature-lifecycle.js?v=3", nonce) +
     tag("/profile-enhancements.js?v=1", nonce) +
     tag("/campaign-enhancements.js?v=2", nonce) +
     tag("/stage2-enhancements.js?v=3", nonce) +
@@ -73,6 +75,7 @@ function renderIndex(res) {
     tag("/promotion-platform-enhancements.js?v=3", nonce) +
     tag("/profile-activity-fix.js?v=1", nonce) +
     tag("/task-card-polish.js?v=1", nonce) +
+    tag("/load-data-finalizer.js?v=1", nonce) +
     '<link rel="stylesheet" href="/ui-consistency.css?v=1"><link rel="stylesheet" href="/final-mobile-fix.css?v=2"><link rel="stylesheet" href="/task-profile-fix.css?v=1"><link rel="stylesheet" href="/auth-modal-fix.css?v=1">' +
     "</body>");
   return html;
