@@ -21,7 +21,7 @@ function renderIndex() {
   html = html.replace(/<link rel="preconnect"[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>/g, "");
   html = html.replace("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js");
-  html = html.replace('<script src="/app.js?v=8" defer></script>', '<script src="/app.js?v=13"></script>');
+  html = html.replace('<script src="/app.js?v=8" defer></script>', '<script src="/app.js?v=13"></script><script>window.state=state;</script>');
   html = html.replace(/<link rel="stylesheet" href="\/typography\.css[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="\/ui-polish\.css[^>]*>/g, "");
   html = html.replace('<link rel="stylesheet" href="/stage4-product.css?v=1">', '<link rel="stylesheet" href="/stage4-product.css?v=4">');
