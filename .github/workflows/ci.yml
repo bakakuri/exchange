@@ -40,3 +40,21 @@ jobs:
       - name: Verify obsolete runtime patches are not referenced
         run: |
           ! grep -R "task-click-compat.js\|auth-event-fix.js\|load-data-fix.js\|interaction-repair.js\|stability-fix.js\|mobile-menu-compat.js" server.js public/index.html
+
+      - name: Start production server
+        run: node server.js > /tmp/exchange-server.log 2>&1 &
+
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.55.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run desktop and mobile browser QA
+        env:
+          BASE_URL: http://127.0.0.1:3000
+        run: node tests/browser-smoke.mjs
+
+      - name: Show server log on failure
+        if: failure()
+        run: cat /tmp/exchange-server.log || true
