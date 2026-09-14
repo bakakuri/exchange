@@ -20,33 +20,9 @@
     if (content && modal) { content.innerHTML = html; modal.hidden = false; document.body.style.overflow = 'hidden'; }
   };
 
-  let coreLoadData = typeof window.loadData === 'function' ? window.loadData : null;
-  let inFlight = null;
-  let requestSequence = 0;
-
-  async function loadData(...args) {
-    if (inFlight) return inFlight;
-    const sequence = ++requestSequence;
-    inFlight = (async () => {
-      if (typeof coreLoadData !== 'function') throw new Error('Exchange data service is unavailable');
-      const result = await coreLoadData.apply(this, args);
-      document.dispatchEvent(new CustomEvent('exchange:data-ready', { detail: { state: getState(), result, sequence } }));
-      return result;
-    })();
-    try { return await inFlight; } finally { inFlight = null; }
-  }
-
-  window.__exchangeCoreLoadData = coreLoadData;
-  window.exchangeLoadData = loadData;
+  window.__exchangeCoreLoadData = typeof window.loadData === 'function' ? window.loadData : null;
+  window.exchangeLoadData = (...args) => window.loadData?.(...args);
   window.__exchangeDataReady = result => document.dispatchEvent(new CustomEvent('exchange:data-ready', { detail: { state: getState(), result } }));
-  try {
-    Object.defineProperty(window, 'loadData', {
-      configurable: true,
-      enumerable: true,
-      get: () => loadData,
-      set: next => { if (typeof next === 'function' && next !== loadData) coreLoadData = next; }
-    });
-  } catch (error) { console.error('Exchange lifecycle install failed:', error); }
 
   document.addEventListener('click', event => {
     const target = event.target.closest?.('[data-stage4-go]');
@@ -71,7 +47,8 @@
       const result = await s.supabase.rpc('complete_task', { p_task_id: taskId });
       if (result.error) throw result.error;
       toast('დავალება დასრულდა · +' + Number(result.data || 0).toLocaleString('ka-GE') + ' კრედიტი ✓');
-      await loadData();
+      if (typeof window.exchangeLoadData === 'function') await window.exchangeLoadData();
+      else if (typeof window.loadData === 'function') await window.loadData();
     } catch (error) {
       toast(error.message || String(error));
       if (button) button.disabled = false;
@@ -93,7 +70,7 @@
       if (result.error) throw result.error;
       closeModal();
       toast('დადასტურება გაიგზავნა ✓');
-      await loadData();
+      if (typeof window.exchangeLoadData === 'function') await window.exchangeLoadData();
     } catch (error) {
       toast(error.message || String(error));
       if (submit) submit.disabled = false;
@@ -109,7 +86,7 @@
     if (existing?.status === 'pending') { toast('ეს დავალება უკვე გაგზავნილია შემოწმებაზე.'); return; }
     if (existing?.status === 'approved') return claimReward(taskId, button);
 
-    openModal(`<h2>დავალების დადასტურება</h2><p><strong>${esc(task.title || 'დავალება')}</strong></p><p class="verification-note">შეასრულე მოქმედება და გამოგზავნე მტკიცებულება. ჯილდო გაიცემა ადმინისტრატორის დადასტურების შემდეგ.</p><form id="exchangeVerificationForm"><label>მეთოდი<select id="exchangeVerificationMethod"><option value="manual">ხელით შემოწმება</option><option value="link">მტკიცებულების ბმული</option><option value="screenshot">სქრინშოტის ბმული</option><option value="platform">პლატფორმის შემოწმება</option></select></label><label>მტკიცებულების ბმული<input id="exchangeVerificationProof" type="url" placeholder="https://..."></label><label>შენიშვნა<textarea id="exchangeVerificationNote" rows="3" placeholder="რა მოქმედება შეასრულე?"></textarea></label><button class="primary large" type="submit">დადასტურების გაგზავნა</button></form>`);
+    openModal(`<h2>დავალების დადასტურება</h2><p><strong>${esc(task.title || 'დავალება')}</strong></p><p class="verification-note">შეასრულე მოქმედება და გამოგზავნე მტკიცებულება. ჯილდო გაიცემა ადმინისტრატორის დადასტურების შემდეგ.</p><form id="exchangeVerificationForm"><label>მეთოდი<select id="exchangeVerificationMethod"><option value="manual">ხელით შემოწმება</option><option value="link">მტკიცებულების ბმული</option><option value="screenshot">სქრინშოტის ბმული</option><option value="platform">პლატფორმის შემოწმება</option></select></label><label>მტკიცებულების ბმული<input id="exchangeVerificationProof" type="url" placeholder="https://..."></label><label>შენიშვნა<textarea id="exchangeVerificationNote" rows="3" placeholder="რა მოქმედება შეასრულე?</textarea></label><button class="primary large" type="submit">დადასტურების გაგზავნა</button></form>`);
     if (existing?.status === 'rejected') {
       q('#exchangeVerificationProof').value = existing.proof_url || '';
       q('#exchangeVerificationNote').value = existing.note || '';
@@ -128,5 +105,5 @@
   }, true);
 
   document.documentElement.dataset.stage4Guards = '0';
-  document.dispatchEvent(new CustomEvent('exchange:lifecycle-ready', { detail: { loadData } }));
+  document.dispatchEvent(new CustomEvent('exchange:lifecycle-ready', { detail: { loadData: window.loadData } }));
 })();
