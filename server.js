@@ -92,4 +92,10 @@ app.use((req, res) => {
   try { res.set("Cache-Control", "no-store, max-age=0"); return res.type("html").send(renderIndex(res)); }
   catch (error) { console.error("Failed to render fallback index:", error); return res.status(500).send("Exchange failed to load."); }
 });
+
+if (require.main === module) {
+  const port = Number(process.env.PORT || 3000);
+  app.listen(port, "0.0.0.0", () => console.log(`Exchange listening on ${port}`));
+}
+
 module.exports = app;
