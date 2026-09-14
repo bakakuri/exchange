@@ -40,6 +40,8 @@
       new MutationObserver(() => render()).observe(target, {childList:true, subtree:true});
     }
   };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
-  setInterval(render, 700);
+
+  document.addEventListener('exchange:data-ready', render);
+  document.addEventListener('DOMContentLoaded', boot, {once:true});
+  if (document.readyState !== 'loading') boot();
 })();
