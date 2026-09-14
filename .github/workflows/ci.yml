@@ -1,0 +1,43 @@
+name: Exchange CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find . -type f -name '*.js' -not -path './node_modules/*' -print0)
+
+      - name: Verify required files
+        run: |
+          test -f server.js
+          test -f package.json
+          test -f public/index.html
+          test -f public/app.js
+          test -f supabase/schema.sql
+
+      - name: Verify obsolete runtime patches are not referenced
+        run: |
+          ! grep -R "task-click-compat.js\|auth-event-fix.js\|load-data-fix.js\|interaction-repair.js\|stability-fix.js\|mobile-menu-compat.js" server.js public/index.html
