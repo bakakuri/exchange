@@ -10,7 +10,13 @@
     const back = document.querySelector('#drawerBackdrop');
     if (back) back.addEventListener('click', () => { if (typeof closeDrawer === 'function') closeDrawer(); });
     const avatar = document.querySelector('#topAvatar');
-    if (avatar) avatar.addEventListener('click', () => { if (typeof showView === 'function') showView('profile-settings'); });
+    if (avatar) avatar.addEventListener('click', () => { if (state?.user) nav('profile-settings'); else if (typeof auth === 'function') auth(false); });
+    const authButton = document.querySelector('#authBtn');
+    if (authButton) authButton.addEventListener('click', () => { if (state?.user) { if (typeof logout === 'function') logout(); } else if (typeof auth === 'function') auth(false); });
+    const close = document.querySelector('#modalClose');
+    if (close) close.addEventListener('click', () => { if (typeof closeModal === 'function') closeModal(); });
+    const add = document.querySelector('#addProfile');
+    if (add) add.addEventListener('click', () => { if (typeof addProfile === 'function') addProfile(); });
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind, { once: true }); else bind();
 })();
