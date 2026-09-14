@@ -22,11 +22,12 @@ function renderIndex() {
   html = html.replace(/<link rel="preconnect"[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>/g, "");
   html = html.replace("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js");
-  html = html.replace('<script src="/app.js?v=8" defer></script>', '<script src="/app.js?v=10"></script>');
+  html = html.replace('<script src="/app.js?v=8" defer></script>', '<script src="/app.js?v=11"></script>');
   html = html.replace(/<link rel="stylesheet" href="\/typography\.css[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="\/ui-polish\.css[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="\/stage4-product\.css[^>]*>/g, "");
-  html = html.replace('<link rel="stylesheet" href="/styles.css?v=8">', '<link rel="stylesheet" href="/styles.css?v=10">');
+  html = html.replace('<link rel="stylesheet" href="/styles.css?v=8">', '<link rel="stylesheet" href="/styles.css?v=11"><link rel="stylesheet" href="/mobile-ui-fix.css?v=1">');
+  html = html.replace('<body>', '<body><button id="mobileMenu" hidden aria-hidden="true" type="button"></button>');
   html = html.replace("</body>", tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=2") + tag("/stage2-enhancements.js?v=2") + tag("/stage4-product.js?v=3") + tag("/production-hardening.js?v=1") + tag("/task-verification.js?v=1") + tag("/promotion-platform-enhancements.js?v=2") + visualStyleGuard + "</body>");
   return html;
 }
