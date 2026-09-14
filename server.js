@@ -21,15 +21,15 @@ function renderIndex() {
   html = html.replace(/<link rel="preconnect"[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>/g, "");
   html = html.replace("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js");
-  html = html.replace('<script src="/app.js?v=8" defer></script>', '<script src="/app.js?v=13"></script><script>window.state=state;</script>');
+  html = html.replace('<script src="/app.js?v=8" defer></script>', '<script src="/app.js?v=14"></script><script>window.state=state;</script>');
   html = html.replace(/<link rel="stylesheet" href="\/typography\.css[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="\/ui-polish\.css[^>]*>/g, "");
   html = html.replace('<link rel="stylesheet" href="/stage4-product.css?v=1">', '<link rel="stylesheet" href="/stage4-product.css?v=4">');
   html = html.replace(/<link rel="stylesheet" href="\/stage4-product\.css[^>]*>/g, '<link rel="stylesheet" href="/stage4-product.css?v=4">');
-  html = html.replace('<link rel="stylesheet" href="/styles.css?v=8">', '<link rel="stylesheet" href="/styles.css?v=13"><link rel="stylesheet" href="/mobile-ui-fix.css?v=2">');
+  html = html.replace('<link rel="stylesheet" href="/styles.css?v=8">', '<link rel="stylesheet" href="/styles.css?v=14"><link rel="stylesheet" href="/mobile-ui-fix.css?v=2">');
   html = html.replace(/<link rel="stylesheet" href="\/ui-consistency\.css[^>]*>/g, '');
   html = html.replace(/<link rel="stylesheet" href="\/final-mobile-fix\.css[^>]*>/g, '');
-  html = html.replace("</body>", tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=2") + tag("/stage2-enhancements.js?v=3") + tag("/stage4-product.js?v=4") + tag("/production-hardening.js?v=1") + tag("/task-verification.js?v=1") + tag("/promotion-platform-enhancements.js?v=3") + tag("/profile-activity-fix.js?v=1") + tag("/task-card-polish.js?v=1") + '<link rel="stylesheet" href="/ui-consistency.css?v=1"><link rel="stylesheet" href="/final-mobile-fix.css?v=2"><link rel="stylesheet" href="/task-profile-fix.css?v=1"><link rel="stylesheet" href="/auth-modal-fix.css?v=1">' + "</body>");
+  html = html.replace("</body>", tag("/feature-lifecycle.js?v=1") + tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=2") + tag("/stage2-enhancements.js?v=3") + tag("/stage4-product.js?v=4") + tag("/production-hardening.js?v=1") + tag("/task-verification.js?v=1") + tag("/promotion-platform-enhancements.js?v=3") + tag("/profile-activity-fix.js?v=1") + tag("/task-card-polish.js?v=1") + '<link rel="stylesheet" href="/ui-consistency.css?v=1"><link rel="stylesheet" href="/final-mobile-fix.css?v=2"><link rel="stylesheet" href="/task-profile-fix.css?v=1"><link rel="stylesheet" href="/auth-modal-fix.css?v=1">' + "</body>");
   return html;
 }
 
