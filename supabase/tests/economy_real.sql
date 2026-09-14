@@ -30,7 +30,6 @@ DECLARE
 BEGIN
   --------------------------------------------------------------------
   -- TEST ACCOUNT SETUP
-  -- Only one normal user + one admin are required.
   --------------------------------------------------------------------
 
   SELECT id
@@ -166,6 +165,9 @@ BEGIN
 
   --------------------------------------------------------------------
   -- 4. PROMOTION BUDGET DECREMENT + EXHAUSTION
+  -- create_promotion(10) means budget=10 but reward=1.
+  -- Therefore one task cannot exhaust the promotion. We create ten
+  -- linked tasks and let the admin complete them as the second actor.
   --------------------------------------------------------------------
 
   PERFORM set_config('request.jwt.claim.sub',v_admin::text,true);
@@ -199,36 +201,78 @@ BEGIN
   FROM public.promotions
   WHERE id=v_promo;
 
-  SELECT id
-  INTO v_task
-  FROM public.tasks
-  WHERE promotion_id=v_promo
-  LIMIT 1;
+  -- create_promotion creates the first linked task. Add nine more so
+  -- ten rewards of 1 credit consume the complete 10-credit budget.
+  INSERT INTO public.tasks(
+    owner_id,social_profile_id,promotion_id,platform,action,
+    target_url,title,category,reward,status
+  )
+  SELECT
+    v_user,
+    v_social_profile,
+    v_promo,
+    'Instagram',
+    'Follow',
+    'https://www.instagram.com/example-budget-'||g||'/',
+    'TEST budget extra '||g,
+    'Promotion',
+    v_reward,
+    'active'
+  FROM generate_series(1,9) g;
 
-  PERFORM set_config('request.jwt.claim.sub',v_admin::text,true);
+  v_count:=0;
 
-  INSERT INTO public.task_verifications(task_id,user_id,status)
-  VALUES(v_task,v_admin,'approved');
+  FOR v_task IN
+    SELECT id
+    FROM public.tasks
+    WHERE promotion_id=v_promo
+    ORDER BY id
+  LOOP
+    v_count:=v_count+1;
 
-  IF public.complete_task(v_task)<>v_reward THEN
-    RAISE EXCEPTION 'FAIL: promotion task reward return';
-  END IF;
+    PERFORM set_config('request.jwt.claim.sub',v_admin::text,true);
 
-  SELECT remaining_budget,status
-  INTO v_after_remaining,v_err
-  FROM public.promotions
-  WHERE id=v_promo;
+    INSERT INTO public.task_verifications(task_id,user_id,status)
+    VALUES(v_task,v_admin,'approved');
 
-  IF v_after_remaining<>v_before_remaining-v_reward THEN
-    RAISE EXCEPTION 'FAIL: promotion budget did not decrement';
-  END IF;
+    IF public.complete_task(v_task)<>v_reward THEN
+      RAISE EXCEPTION
+        'FAIL: promotion task % reward return',v_count;
+    END IF;
 
-  IF v_after_remaining<>0 OR v_err<>'completed' THEN
-    RAISE EXCEPTION 'FAIL: budget exhaustion did not complete promotion';
+    SELECT remaining_budget,status
+    INTO v_after_remaining,v_err
+    FROM public.promotions
+    WHERE id=v_promo;
+
+    IF v_after_remaining<>v_before_remaining-(v_reward*v_count) THEN
+      RAISE EXCEPTION
+        'FAIL: promotion budget mismatch after task %: expected %, got %',
+        v_count,
+        v_before_remaining-(v_reward*v_count),
+        v_after_remaining;
+    END IF;
+
+    IF v_count<10 AND v_err<>'active' THEN
+      RAISE EXCEPTION
+        'FAIL: promotion completed too early after task %',v_count;
+    END IF;
+
+    IF v_count=10 AND v_err<>'completed' THEN
+      RAISE EXCEPTION
+        'FAIL: budget exhaustion did not complete promotion';
+    END IF;
+  END LOOP;
+
+  IF v_count<>10 THEN
+    RAISE EXCEPTION
+      'FAIL: expected 10 linked promotion tasks, got %',v_count;
   END IF;
 
   SELECT status INTO v_err
-  FROM public.tasks WHERE id=v_task;
+  FROM public.tasks
+  WHERE promotion_id=v_promo
+    AND id=v_task;
 
   IF v_err<>'completed' THEN
     RAISE EXCEPTION 'FAIL: exhausted promotion task not completed';
@@ -393,9 +437,6 @@ BEGIN
 
   --------------------------------------------------------------------
   -- 9. 30 TASKS / MINUTE
-  -- Use admin as actor and user as owner.
-  -- Existing admin completions are moved outside the 1-minute window
-  -- inside this transaction so the test is independent of prior use.
   --------------------------------------------------------------------
 
   UPDATE public.task_completions
@@ -455,8 +496,6 @@ BEGIN
 
   --------------------------------------------------------------------
   -- 10. 300 TASKS / DAY
-  -- Move all admin completions to yesterday first, so the test starts
-  -- with zero completions today.
   --------------------------------------------------------------------
 
   UPDATE public.task_completions
