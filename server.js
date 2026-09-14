@@ -15,18 +15,19 @@ const supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || "").trim();
 const publicDir = path.join(__dirname, "public");
 const indexPath = path.join(publicDir, "index.html");
 const tag=(src)=>'<scr'+'ipt src="'+src+'"></scr'+'ipt>';
-const unstyled='<style id="exchange-unstyled">body *{all:revert!important}.view{display:none!important}.active-view{display:block!important}[hidden]{display:none!important}</style>';
+const visualStyleGuard='<scr'+'ipt>(function(){function disableInjectedStyles(){document.querySelectorAll("style#stage2-style,style[data-exchange-injected]").forEach(function(s){s.disabled=true})}disableInjectedStyles();new MutationObserver(disableInjectedStyles).observe(document.head,{childList:true});})();</scr'+'ipt>';
 
 function renderIndex() {
   let html = fs.readFileSync(indexPath, "utf8");
   html = html.replace(/<link rel="preconnect"[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>/g, "");
   html = html.replace("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2", "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js");
-  html = html.replace('<script src="/app.js?v=8" defer></script>', '<script src="/app.js?v=9"></script>');
+  html = html.replace('<script src="/app.js?v=8" defer></script>', '<script src="/app.js?v=10"></script>');
   html = html.replace(/<link rel="stylesheet" href="\/typography\.css[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="\/ui-polish\.css[^>]*>/g, "");
   html = html.replace(/<link rel="stylesheet" href="\/stage4-product\.css[^>]*>/g, "");
-  html = html.replace("</body>", tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=2") + tag("/stage2-enhancements.js?v=2") + tag("/stage4-product.js?v=3") + tag("/production-hardening.js?v=1") + tag("/task-verification.js?v=1") + tag("/promotion-platform-enhancements.js?v=2") + unstyled + "</body>");
+  html = html.replace('<link rel="stylesheet" href="/styles.css?v=8">', '<link rel="stylesheet" href="/styles.css?v=10">');
+  html = html.replace("</body>", tag("/profile-enhancements.js?v=1") + tag("/campaign-enhancements.js?v=2") + tag("/stage2-enhancements.js?v=2") + tag("/stage4-product.js?v=3") + tag("/production-hardening.js?v=1") + tag("/task-verification.js?v=1") + tag("/promotion-platform-enhancements.js?v=2") + visualStyleGuard + "</body>");
   return html;
 }
 
