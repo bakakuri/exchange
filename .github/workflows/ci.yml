@@ -1,0 +1,72 @@
+# .github/workflows/ci.yml
+# Runs on every push and pull request against main.
+# Checks:
+#   1. Syntax validation — every JS file in server/ and tests/ passes node --check
+#   2. Unit + integration tests — npm test (node:test, no npm install required)
+#
+# There is no live Supabase project yet, so end-to-end API tests are not
+# part of this workflow.  Full DB validation runs locally via psql against
+# a Supabase-CLI local stack (scripts/test/*.sql).
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  # ── Syntax check ─────────────────────────────────────────────────────────────
+  syntax:
+    name: Syntax check (node --check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Check every .js file under server/ and tests/ using the CJS checker.
+      # The tests/ directory uses CommonJS (require()), so --check is correct.
+      - name: Check server JS files
+        run: |
+          find server -name '*.js' | sort | while read f; do
+            node --check "$f" || { echo "FAIL: $f"; exit 1; }
+          done
+          echo "All server JS files pass syntax check."
+
+      - name: Check test JS files
+        run: |
+          find tests -name '*.js' | sort | while read f; do
+            node --check "$f" || { echo "FAIL: $f"; exit 1; }
+          done
+          echo "All test JS files pass syntax check."
+
+  # ── Unit + integration tests ──────────────────────────────────────────────────
+  test:
+    name: Tests (node:test — no npm install)
+    runs-on: ubuntu-latest
+    needs: syntax
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The test suite uses only:
+      #   - node:test, node:assert/strict, node:http, node:crypto (built-in)
+      #   - server/middleware/*.js, server/utils/errors.js, server/validators/*.js
+      #     (none of which import npm packages)
+      # Therefore no npm install step is needed here.
+      - name: Run tests
+        run: node --test tests/unit/*.test.js tests/integration/*.test.js
+
+  # ── Vercel preview / production deploy (triggered by Vercel's own git integration) ──
+  # Vercel is configured separately (vercel.json + Vercel project settings).
+  # Pushes to main trigger a production deploy automatically once the project
+  # is linked.  No deploy step is needed in this workflow.

@@ -1,0 +1,134 @@
+/* css/forms.css - form controls, buttons, and the auth pages/header nav
+   that use them. Kept separate from layout.css because it's about
+   interactive controls, not page structure. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 360px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.field input,
+.field textarea,
+.field select {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  resize: vertical;
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible,
+.field select:focus-visible {
+  border-color: var(--color-accent);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--color-accent);
+  color: #ffffff;
+}
+.btn--primary:hover:not(:disabled) { background: var(--color-accent-strong); }
+
+/* Used since Stage 6 (credits/tasks "Load more") but never actually
+   defined until now - those buttons were rendering as unstyled browser
+   defaults. */
+.btn--ghost {
+  background: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+.btn--ghost:hover:not(:disabled) { border-color: var(--color-accent); }
+
+.btn--danger {
+  background: transparent;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.btn--danger:hover:not(:disabled) { background: var(--color-danger); color: #ffffff; }
+
+.form-error {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+}
+
+.form-success {
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+}
+
+.auth-page {
+  max-width: 360px;
+}
+
+.auth-page__alt {
+  margin-top: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.home-hero__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.home-hero__actions a {
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.home-hero__actions a:first-child {
+  background: var(--color-accent);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.app-nav__auth {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.app-nav__logout {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+.app-nav__logout:hover { border-color: var(--color-accent); }

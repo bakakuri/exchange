@@ -1,0 +1,29 @@
+<section class="admin-page">
+  <h1>Admin</h1>
+
+  <!-- ── Platform stats ──────────────────────────────────────────────── -->
+  <div class="admin-stats" data-admin-stats>
+    <span class="admin-stats__loading">Loading stats…</span>
+  </div>
+
+  <!-- ── User management ─────────────────────────────────────────────── -->
+  <div class="admin-users">
+    <div class="admin-users__header">
+      <h2 class="admin-users__heading">Users</h2>
+      <input
+        class="form-input admin-users__search"
+        type="search"
+        placeholder="Search by username or name…"
+        data-admin-search
+        aria-label="Search users"
+      />
+    </div>
+
+    <ul class="admin-user-list" data-admin-user-list></ul>
+    <p class="admin-user-list__empty" data-admin-users-empty hidden>No users found.</p>
+    <p class="form-error" id="admin-list-error" role="alert" hidden></p>
+    <button class="btn btn--ghost btn--sm" data-admin-load-more type="button" hidden>
+      Load more
+    </button>
+  </div>
+</section>

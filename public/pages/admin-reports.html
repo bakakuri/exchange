@@ -1,0 +1,21 @@
+<section class="admin-reports-page">
+  <a class="admin-back" href="/admin" data-link>← Back to admin</a>
+  <h1>Open reports</h1>
+
+  <div class="admin-reports-filter">
+    <label class="form-label" for="admin-reports-status">Status</label>
+    <select class="form-input admin-reports-filter__select" id="admin-reports-status" data-admin-reports-status>
+      <option value="open">Open</option>
+      <option value="resolved">Resolved</option>
+      <option value="dismissed">Dismissed</option>
+    </select>
+  </div>
+
+  <p class="report-list__loading" data-admin-reports-loading>Loading…</p>
+  <ul class="admin-report-list" data-admin-report-list></ul>
+  <p class="report-list__empty" data-admin-reports-empty hidden>No reports found.</p>
+  <p class="form-error" id="admin-reports-error" role="alert" hidden></p>
+  <button class="btn btn--ghost btn--sm" data-admin-reports-load-more type="button" hidden>
+    Load more
+  </button>
+</section>

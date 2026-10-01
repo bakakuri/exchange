@@ -1,0 +1,62 @@
+<section class="reports-page">
+  <h1>Reports</h1>
+
+  <!-- ── Submit a report ──────────────────────────────────────────────────── -->
+  <div class="report-submit">
+    <h2 class="report-submit__heading">Submit a report</h2>
+    <p class="report-submit__hint">
+      Report spam, fraud, broken tasks, or other issues. We review every report.
+    </p>
+    <form class="report-form" id="report-form" novalidate>
+      <div class="form-row">
+        <label class="form-label" for="report-type">Category</label>
+        <select class="form-input" id="report-type" name="report_type" required>
+          <option value="">Select a category…</option>
+          <option value="spam">Spam</option>
+          <option value="fraud">Fraud</option>
+          <option value="invalid_task">Invalid task</option>
+          <option value="inappropriate_content">Inappropriate content</option>
+          <option value="broken_url">Broken URL</option>
+          <option value="abuse">Abuse</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="report-target-type">What are you reporting?</label>
+        <select class="form-input" id="report-target-type" name="target_type">
+          <option value="task">A task</option>
+          <option value="campaign">A campaign</option>
+          <option value="user">A user</option>
+        </select>
+      </div>
+      <div class="form-row" id="report-target-row">
+        <label class="form-label" for="report-target-id">ID of the task / campaign / user</label>
+        <input class="form-input" type="text" id="report-target-id" name="target_id"
+          placeholder="Paste the UUID from the URL" required />
+        <p class="form-hint" id="report-target-hint">
+          You can find the ID in the page URL: <code>/tasks/&lt;id&gt;</code>
+        </p>
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="report-description">Description</label>
+        <textarea class="form-input form-input--textarea" id="report-description"
+          name="description" rows="4" placeholder="Describe the issue in detail (at least 10 characters)" required></textarea>
+      </div>
+      <button class="btn" type="submit">Submit report</button>
+      <p class="form-error" id="report-error" role="alert" hidden></p>
+      <p class="form-success" id="report-success" role="status" hidden>
+        Your report has been submitted. Thank you.
+      </p>
+    </form>
+  </div>
+
+  <!-- ── My reports history ────────────────────────────────────────────────── -->
+  <div class="report-history">
+    <h2 class="report-history__heading">My reports</h2>
+    <ul class="report-list" data-report-list></ul>
+    <p class="report-list__empty" data-report-empty hidden>You haven't submitted any reports yet.</p>
+    <p class="form-error" id="report-list-error" role="alert" hidden></p>
+    <button class="btn btn--ghost btn--sm" data-report-load-more type="button" hidden>
+      Load more
+    </button>
+  </div>
+</section>

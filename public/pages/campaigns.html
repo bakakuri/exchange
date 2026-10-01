@@ -1,0 +1,23 @@
+<section class="campaigns-page">
+  <div class="campaigns-page__header">
+    <h1>My campaigns</h1>
+    <a href="/campaigns/new" data-link class="btn btn--primary">New campaign</a>
+  </div>
+
+  <div class="submissions-filter">
+    <div class="field">
+      <label for="filter-status">Status</label>
+      <select id="filter-status">
+        <option value="">All</option>
+        <option value="active">Active</option>
+        <option value="paused">Paused</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+  </div>
+
+  <ul class="campaign-list" data-campaign-list></ul>
+  <button type="button" class="btn btn--ghost" id="campaigns-load-more" hidden>Load more</button>
+  <p class="form-error" id="campaigns-error" role="alert" hidden></p>
+</section>

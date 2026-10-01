@@ -1,0 +1,59 @@
+<section class="profile-page">
+  <h1>Your profile</h1>
+
+  <dl class="profile-stats" data-profile-stats></dl>
+
+  <form id="profile-form" class="form" novalidate>
+    <div class="field">
+      <label for="profile-username">Username</label>
+      <input id="profile-username" name="username" type="text" minlength="3" maxlength="30" required />
+    </div>
+    <div class="field">
+      <label for="profile-display-name">Display name</label>
+      <input id="profile-display-name" name="display_name" type="text" maxlength="60" />
+    </div>
+    <div class="field">
+      <label for="profile-avatar-url">Avatar URL</label>
+      <input id="profile-avatar-url" name="avatar_url" type="url" placeholder="https://" />
+    </div>
+    <div class="field">
+      <label for="profile-bio">Bio</label>
+      <textarea id="profile-bio" name="bio" maxlength="500" rows="4"></textarea>
+    </div>
+    <div class="field">
+      <label for="profile-country">Country code</label>
+      <input id="profile-country" name="country" type="text" maxlength="2" placeholder="e.g. GE" />
+    </div>
+    <div class="field">
+      <label for="profile-language">Language code</label>
+      <input id="profile-language" name="language" type="text" maxlength="2" placeholder="e.g. ka" />
+    </div>
+    <p class="form-error" id="profile-error" role="alert" hidden></p>
+    <p class="form-success" id="profile-success" role="status" hidden>Saved.</p>
+    <button type="submit" class="btn btn--primary">Save changes</button>
+  </form>
+
+  <p class="auth-page__alt"><a href="#" data-link id="view-profile-link">View your public profile</a></p>
+
+  <section class="social-section">
+    <h2>Linked accounts</h2>
+    <ul class="social-list" data-social-list></ul>
+
+    <form id="social-form" class="form" novalidate>
+      <div class="field">
+        <label for="social-platform">Platform</label>
+        <select id="social-platform" name="platform" required></select>
+      </div>
+      <div class="field">
+        <label for="social-username">Username</label>
+        <input id="social-username" name="username" type="text" maxlength="100" required />
+      </div>
+      <div class="field">
+        <label for="social-profile-url">Profile URL</label>
+        <input id="social-profile-url" name="profile_url" type="url" placeholder="https://" required />
+      </div>
+      <p class="form-error" id="social-error" role="alert" hidden></p>
+      <button type="submit" class="btn btn--primary">Add account</button>
+    </form>
+  </section>
+</section>

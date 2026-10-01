@@ -1,0 +1,173 @@
+/* css/referrals.css - /referrals page */
+
+.referrals-page {
+  max-width: 640px;
+}
+
+/* ── share section ────────────────────────────────────────────────────── */
+
+.referral-share {
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.referral-share__heading,
+.referral-claim__heading,
+.referral-history__heading {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-lg);
+}
+
+.referral-share__hint,
+.referral-claim__hint {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.referral-share__code {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-3);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent-strong);
+  user-select: all;
+}
+
+.referral-share__link-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.referral-share__link-input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  cursor: default;
+}
+
+/* ── claim section ────────────────────────────────────────────────────── */
+
+.referral-claim {
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.referral-claim__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.referral-claim__input {
+  width: 10ch;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--font-size-lg);
+}
+
+/* ── history section ──────────────────────────────────────────────────── */
+
+.referral-history {
+  margin-bottom: var(--space-5);
+}
+
+.referral-history__heading {
+  margin-bottom: var(--space-4);
+}
+
+.referral-list {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.referral-list__empty {
+  color: var(--color-text-muted);
+}
+
+.referral-list__load-more {
+  margin-top: var(--space-2);
+}
+
+/* ── referral item card ────────────────────────────────────────────────── */
+
+.referral-item {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.referral-item__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-1);
+}
+
+.referral-item__direction {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.referral-item__status {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.referral-item__status--pending {
+  color: var(--color-warning);
+  background: rgba(244, 183, 64, 0.12);
+}
+
+.referral-item__status--rewarded {
+  color: var(--color-success);
+  background: rgba(62, 207, 142, 0.12);
+}
+
+.referral-item__user {
+  margin: 0 0 var(--space-1);
+  font-weight: 600;
+}
+
+.referral-item__date {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── success message ─────────────────────────────────────────────────── */
+
+.form-success {
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  margin: var(--space-3) 0 0;
+}

@@ -1,0 +1,126 @@
+/* css/profile.css - layout for the /profile (edit) and /u/:username
+   (view) pages. Kept separate from forms.css: this is page structure,
+   not form controls. */
+
+.profile-page {
+  max-width: 480px;
+}
+
+.profile-stats,
+.profile-view__stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-4) 0 var(--space-6);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.profile-stats dt,
+.profile-view__stats dt {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.profile-stats dd,
+.profile-view__stats dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.profile-view__header h1 {
+  margin-bottom: var(--space-1);
+}
+
+.profile-view__username {
+  color: var(--color-text-muted);
+  margin-top: 0;
+}
+
+.profile-view__bio {
+  white-space: pre-wrap;
+  margin: var(--space-4) 0;
+}
+
+.profile-view__loading {
+  color: var(--color-text-muted);
+}
+
+/* Linked social accounts - used on both /profile (editable) and
+   /u/:username (read-only, .social-list--readonly). */
+
+.social-section {
+  margin-top: var(--space-8);
+}
+
+.social-list {
+  list-style: none;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.social-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.social-list--readonly .social-list__item {
+  justify-content: flex-start;
+}
+
+.social-list__item a {
+  color: var(--color-text);
+}
+
+.social-list__remove {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-danger);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+.social-list__remove:hover { border-color: var(--color-danger); }
+
+.social-list__empty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.activity-list__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.activity-list__date {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}

@@ -1,0 +1,62 @@
+<section class="admin-user-page">
+  <a class="admin-back" href="/admin" data-link>← Back to admin</a>
+
+  <p class="admin-user-detail__loading" data-admin-user-loading>Loading…</p>
+  <div data-admin-user-profile></div>
+  <p class="form-error" id="admin-user-error" role="alert" hidden></p>
+
+  <div data-admin-user-forms hidden>
+
+    <!-- ── Update role / status ──────────────────────────────────────── -->
+    <div class="admin-form-section">
+      <h2 class="admin-form-section__heading">Update role &amp; status</h2>
+      <form class="admin-form" id="admin-update-form" novalidate>
+        <div class="admin-form__row">
+          <label class="form-label" for="admin-role">Role</label>
+          <select class="form-input" id="admin-role" name="role">
+            <option value="user">user</option>
+            <option value="moderator">moderator</option>
+            <option value="admin">admin</option>
+          </select>
+        </div>
+        <div class="admin-form__row">
+          <label class="form-label" for="admin-status">Status</label>
+          <select class="form-input" id="admin-status" name="status">
+            <option value="active">active</option>
+            <option value="suspended">suspended</option>
+          </select>
+        </div>
+        <div class="admin-form__row">
+          <label class="form-label" for="admin-update-reason">Reason</label>
+          <input class="form-input" type="text" id="admin-update-reason" name="reason"
+            placeholder="Reason for this change" required />
+        </div>
+        <button class="btn btn--sm" type="submit">Save changes</button>
+        <p class="form-error" id="admin-update-error" role="alert" hidden></p>
+        <p class="form-success" id="admin-update-success" role="status" hidden>Changes saved.</p>
+      </form>
+    </div>
+
+    <!-- ── Credit adjustment ─────────────────────────────────────────── -->
+    <div class="admin-form-section">
+      <h2 class="admin-form-section__heading">Credit adjustment</h2>
+      <p class="admin-form-section__hint">Use a positive amount to add credits, negative to deduct.</p>
+      <form class="admin-form" id="admin-credit-form" novalidate>
+        <div class="admin-form__row">
+          <label class="form-label" for="admin-credit-amount">Amount</label>
+          <input class="form-input admin-form__amount" type="number" id="admin-credit-amount"
+            name="amount" placeholder="e.g. 50 or -10" required />
+        </div>
+        <div class="admin-form__row">
+          <label class="form-label" for="admin-credit-reason">Reason</label>
+          <input class="form-input" type="text" id="admin-credit-reason" name="reason"
+            placeholder="Reason for this adjustment" required />
+        </div>
+        <button class="btn btn--sm" type="submit">Adjust credits</button>
+        <p class="form-error" id="admin-credit-error" role="alert" hidden></p>
+        <p class="form-success" id="admin-credit-success" role="status" hidden>Credits adjusted.</p>
+      </form>
+    </div>
+
+  </div>
+</section>

@@ -1,0 +1,25 @@
+<section class="auth-page">
+  <h1>Create account</h1>
+  <form id="register-form" class="form" novalidate>
+    <div class="field">
+      <label for="register-email">Email</label>
+      <input id="register-email" name="email" type="email" autocomplete="email" required />
+    </div>
+    <div class="field">
+      <label for="register-username">Username</label>
+      <input id="register-username" name="username" type="text" autocomplete="username" minlength="3" maxlength="30" />
+    </div>
+    <div class="field">
+      <label for="register-password">Password</label>
+      <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="8" required />
+    </div>
+    <div class="field">
+      <label for="register-referral">Referral code (optional)</label>
+      <input id="register-referral" name="referral_code" type="text" autocomplete="off" />
+    </div>
+    <p class="form-error" id="register-error" role="alert" hidden></p>
+    <p class="form-success" id="register-success" role="status" hidden></p>
+    <button type="submit" class="btn btn--primary">Create account</button>
+  </form>
+  <p class="auth-page__alt">Already have an account? <a href="/login" data-link>Sign in</a></p>
+</section>

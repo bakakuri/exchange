@@ -1,0 +1,49 @@
+<section class="campaign-new-page">
+  <h1>New campaign</h1>
+  <p class="campaign-new__intro" data-balance-hint></p>
+
+  <form id="campaign-form" class="form" novalidate>
+    <div class="field">
+      <label for="campaign-title">Title</label>
+      <input id="campaign-title" name="title" type="text" maxlength="120" required />
+    </div>
+    <div class="field">
+      <label for="campaign-description">Description</label>
+      <textarea id="campaign-description" name="description" maxlength="2000" rows="3"></textarea>
+    </div>
+    <div class="field">
+      <label for="campaign-platform">Platform</label>
+      <select id="campaign-platform" name="platform" required></select>
+    </div>
+    <div class="field">
+      <label for="campaign-task-type">Action</label>
+      <select id="campaign-task-type" name="task_type" required></select>
+    </div>
+    <div class="field">
+      <label for="campaign-target-url">Target URL</label>
+      <input id="campaign-target-url" name="target_url" type="url" placeholder="https://" required />
+    </div>
+    <div class="field">
+      <label for="campaign-instructions">Instructions</label>
+      <textarea id="campaign-instructions" name="instructions" maxlength="1000" rows="3"></textarea>
+    </div>
+    <div class="field">
+      <label for="campaign-verification-method">Verification method</label>
+      <select id="campaign-verification-method" name="verification_method">
+        <option value="manual_proof">Manual proof review</option>
+        <option value="link_click">Link click</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="campaign-reward">Reward per completion (credits)</label>
+      <input id="campaign-reward" name="reward" type="number" min="1" step="1" required />
+    </div>
+    <div class="field">
+      <label for="campaign-desired-completions">Desired completions</label>
+      <input id="campaign-desired-completions" name="desired_completions" type="number" min="1" step="1" required />
+    </div>
+    <p class="campaign-new__total" data-campaign-total></p>
+    <p class="form-error" id="campaign-error" role="alert" hidden></p>
+    <button type="submit" class="btn btn--primary">Create campaign</button>
+  </form>
+</section>

@@ -1,0 +1,17 @@
+<section class="notifications-page">
+  <div class="notifications-page__header">
+    <h1>Notifications</h1>
+    <button type="button" class="btn btn--ghost" id="mark-all-read-btn">Mark all read</button>
+  </div>
+
+  <div class="submissions-filter">
+    <label class="notifications-unread-toggle">
+      <input type="checkbox" id="filter-unread" />
+      Unread only
+    </label>
+  </div>
+
+  <ul class="notification-list" data-notification-list></ul>
+  <button type="button" class="btn btn--ghost" id="notifications-load-more" hidden>Load more</button>
+  <p class="form-error" id="notifications-error" role="alert" hidden></p>
+</section>

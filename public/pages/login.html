@@ -1,0 +1,17 @@
+<section class="auth-page">
+  <h1>Sign in</h1>
+  <form id="login-form" class="form" novalidate>
+    <div class="field">
+      <label for="login-email">Email</label>
+      <input id="login-email" name="email" type="email" autocomplete="email" required />
+    </div>
+    <div class="field">
+      <label for="login-password">Password</label>
+      <input id="login-password" name="password" type="password" autocomplete="current-password" required />
+    </div>
+    <p class="form-error" id="login-error" role="alert" hidden></p>
+    <button type="submit" class="btn btn--primary">Sign in</button>
+  </form>
+  <p class="auth-page__alt">No account? <a href="/register" data-link>Create one</a></p>
+  <p class="auth-page__alt"><a href="/password-reset" data-link>Forgot your password?</a></p>
+</section>

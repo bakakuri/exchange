@@ -1,0 +1,20 @@
+<section class="review-queue-page">
+  <h1>Submissions to review</h1>
+  <p class="review-queue__intro">Proof submitted against tasks on campaigns you created.</p>
+
+  <div class="submissions-filter">
+    <div class="field">
+      <label for="filter-status">Status</label>
+      <select id="filter-status">
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+        <option value="">All</option>
+      </select>
+    </div>
+  </div>
+
+  <ul class="submission-list" data-review-list></ul>
+  <button type="button" class="btn btn--ghost" id="review-load-more" hidden>Load more</button>
+  <p class="form-error" id="review-error" role="alert" hidden></p>
+</section>

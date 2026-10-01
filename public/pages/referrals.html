@@ -1,0 +1,56 @@
+<section class="referrals-page">
+  <h1>Referrals</h1>
+
+  <!-- ── Share your code ──────────────────────────────────────────────── -->
+  <div class="referral-share" id="referral-share-section">
+    <h2 class="referral-share__heading">Your referral code</h2>
+    <p class="referral-share__hint">Share your link and earn a credit bonus when a friend signs up.</p>
+    <div class="referral-share__code" aria-label="Your referral code">
+      <span data-referral-code></span>
+    </div>
+    <div class="referral-share__link-row">
+      <input class="referral-share__link-input" type="text" data-referral-link readonly aria-label="Shareable referral link" />
+      <button class="btn btn--sm" data-referral-copy type="button">Copy link</button>
+    </div>
+  </div>
+
+  <!-- ── Claim a code ─────────────────────────────────────────────────── -->
+  <div class="referral-claim" id="referral-claim-section">
+    <h2 class="referral-claim__heading">Got a referral code?</h2>
+    <p class="referral-claim__hint">Enter a friend's 8-character code below to link the referral.</p>
+    <form class="referral-claim__form" id="referral-claim-form" novalidate>
+      <div class="referral-claim__row">
+        <input
+          class="form-input referral-claim__input"
+          type="text"
+          name="code"
+          id="referral-code-input"
+          maxlength="8"
+          placeholder="XXXXXXXX"
+          autocomplete="off"
+          spellcheck="false"
+          required
+          aria-label="Referral code"
+        />
+        <button class="btn btn--sm" type="submit">Claim</button>
+      </div>
+      <p class="form-error" id="referral-claim-error" role="alert" hidden></p>
+      <p class="form-success" id="referral-claim-success" role="status" hidden>
+        Referral claimed! Your referrer will receive their bonus once you complete your first task.
+      </p>
+    </form>
+  </div>
+
+  <!-- ── Referral history ─────────────────────────────────────────────── -->
+  <div class="referral-history">
+    <h2 class="referral-history__heading">Referral history</h2>
+    <ul class="referral-list" data-referral-list></ul>
+    <p class="referral-list__empty" data-referral-empty hidden>No referrals yet — share your link to get started.</p>
+    <p class="form-error" id="referral-list-error" role="alert" hidden></p>
+    <button class="btn btn--ghost btn--sm referral-list__load-more" data-referral-load-more type="button" hidden>
+      Load more
+    </button>
+  </div>
+
+  <p class="form-error" id="referrals-error" role="alert" hidden></p>
+</section>

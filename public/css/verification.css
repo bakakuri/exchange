@@ -1,0 +1,124 @@
+/* css/verification.css - task-detail's submission form, and the
+   /submissions and /submissions/review pages. */
+
+.task-detail__submit-form {
+  margin-top: var(--space-5);
+  max-width: none;
+}
+
+.task-detail__submit-hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.submissions-page,
+.review-queue-page {
+  max-width: 640px;
+}
+
+.review-queue__intro {
+  color: var(--color-text-muted);
+  margin-top: 0;
+}
+
+.submissions-filter {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.submission-list {
+  list-style: none;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.submission-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-4);
+}
+
+.submission-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.submission-card__meta {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.submission-card__proof {
+  margin-top: var(--space-3);
+  word-break: break-word;
+}
+
+.submission-card__proof-text {
+  white-space: pre-wrap;
+  color: var(--color-text);
+}
+
+.submission-card__notes {
+  margin-top: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.submission-list__empty {
+  color: var(--color-text-muted);
+}
+
+.submission-status {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.submission-status--pending { color: var(--color-text-muted); background: var(--color-surface-raised); }
+.submission-status--approved { color: var(--color-success); background: rgba(62, 207, 142, 0.12); }
+.submission-status--rejected,
+.submission-status--expired { color: var(--color-danger); background: rgba(244, 87, 79, 0.12); }
+
+.submission-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.submission-card__actions > .btn {
+  align-self: flex-start;
+  margin-right: var(--space-3);
+}
+
+.submission-card__reject-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.submission-card__reject-form textarea {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  resize: vertical;
+}
+
+.submission-card__reject-actions {
+  display: flex;
+  gap: var(--space-3);
+}

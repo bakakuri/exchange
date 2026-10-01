@@ -1,0 +1,22 @@
+<section class="tasks-page">
+  <h1>Browse tasks</h1>
+
+  <form id="tasks-filter" class="tasks-filter" novalidate>
+    <div class="field">
+      <label for="filter-platform">Platform</label>
+      <select id="filter-platform" name="platform">
+        <option value="">All platforms</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="filter-task-type">Type</label>
+      <select id="filter-task-type" name="task_type">
+        <option value="">All types</option>
+      </select>
+    </div>
+  </form>
+
+  <ul class="task-list" data-task-list></ul>
+  <button type="button" class="btn btn--ghost" id="tasks-load-more" hidden>Load more</button>
+  <p class="form-error" id="tasks-error" role="alert" hidden></p>
+</section>

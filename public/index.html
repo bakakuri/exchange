@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Exchange</title>
+  <meta name="description" content="Exchange - a social engagement and promotion marketplace." />
+  <link rel="stylesheet" href="/css/variables.css" />
+  <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/layout.css" />
+  <link rel="stylesheet" href="/css/forms.css" />
+  <link rel="stylesheet" href="/css/profile.css" />
+  <link rel="stylesheet" href="/css/credits.css" />
+  <link rel="stylesheet" href="/css/tasks.css" />
+  <link rel="stylesheet" href="/css/verification.css" />
+  <link rel="stylesheet" href="/css/campaigns.css" />
+  <link rel="stylesheet" href="/css/notifications.css" />
+  <link rel="stylesheet" href="/css/achievements.css" />
+  <link rel="stylesheet" href="/css/referrals.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="/css/reports.css" />
+</head>
+<body>
+  <header class="app-header">
+    <a class="app-header__brand" href="/" data-link>Exchange</a>
+    <nav class="app-nav" id="main-nav" aria-label="Main navigation">
+      <a href="/" data-link>Home</a>
+      <a href="/tasks" data-link>Tasks</a>
+      <a href="/campaigns" data-link>Campaigns</a>
+      <a href="/submissions" data-link>Submissions</a>
+      <a href="/submissions/review" data-link>To review</a>
+      <a href="/notifications" data-link>Notifications</a>
+      <a href="/achievements" data-link>Achievements</a>
+      <a href="/referrals" data-link>Referrals</a>
+      <a href="/reports" data-link>Reports</a>
+      <span class="app-nav__auth" id="auth-nav"></span>
+    </nav>
+  </header>
+
+  <main id="app-root" class="app-main" aria-live="polite">
+    <!-- router.js injects page content here -->
+  </main>
+
+  <footer class="app-footer">
+    <p>&copy; 2026 Exchange</p>
+  </footer>
+
+  <script type="module" src="/js/core/app.js"></script>
+</body>
+</html>
