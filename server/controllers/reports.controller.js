@@ -5,7 +5,7 @@
 
 'use strict';
 
-const asyncHandler = require('../utils/async-handler');
+const { asyncHandler } = require('../utils/async-handler');
 const service = require('../services/reports.service');
 const { validateSubmitReport } = require('../validators/reports.validator');
 const { validate } = require('../middleware/validation');
