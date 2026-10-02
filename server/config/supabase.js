@@ -3,9 +3,13 @@
 //  - supabaseAdmin: service-role key, bypasses RLS. Only for server-side
 //    logic that must act with elevated privilege (reward engine, admin
 //    actions). Never expose this client or its key to the frontend.
-//  - supabaseAnon: anon key, no user context. Only for the pre-auth
-//    flows (register/login/password-reset-request) where there is no
-//    access token yet.
+//  - createAuthClient(): a FRESH anon-key client per call, for GoTrue
+//    flows (sign-up, sign-in, refresh, token checks). Never share one
+//    client across requests for these: even with persistSession:false
+//    supabase-js keeps the last session in memory and de-duplicates
+//    concurrent refreshes regardless of whose token they are for, so a
+//    shared client can hand one user's session to another on a warm
+//    serverless instance.
 //  - getClientForUser: builds a request-scoped client authenticated as the
 //    calling user's own access token, so normal Postgres RLS policies
 //    apply. Use this for anything an already-authenticated user does on
@@ -20,9 +24,11 @@ const supabaseAdmin = createClient(config.supabaseUrl, config.supabaseServiceRol
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const supabaseAnon = createClient(config.supabaseUrl, config.supabaseAnonKey, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
+function createAuthClient() {
+  return createClient(config.supabaseUrl, config.supabaseAnonKey, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
+}
 
 function getClientForUser(accessToken) {
   return createClient(config.supabaseUrl, config.supabaseAnonKey, {
@@ -31,4 +37,4 @@ function getClientForUser(accessToken) {
   });
 }
 
-module.exports = { supabaseAdmin, supabaseAnon, getClientForUser };
+module.exports = { supabaseAdmin, createAuthClient, getClientForUser };

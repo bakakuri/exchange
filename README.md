@@ -1033,8 +1033,10 @@ and saves the round-trip).
 Adds `app.set('trust proxy', 1)` so Express reads the real client IP from
 `X-Forwarded-For` when running behind Vercel's edge (rate limiting was
 previously bucketing all traffic under the proxy's single IP).  
-Adds Helmet `permissionsPolicy` to explicitly disable browser features the
-app never uses: camera, microphone, geolocation, payment, USB.  
+Sets a `Permissions-Policy` header to explicitly disable browser features the
+app never uses: camera, microphone, geolocation, payment, USB. (Helmet has no
+option for this header, so a small middleware sets it directly; the same value
+is applied to static files through `vercel.json`.)  
 Adds `strictTransportSecurity` with a 1-year `max-age`, `includeSubDomains`,
 and `preload` so browsers enforce HTTPS after the first visit.  
 Adds `upgradeInsecureRequests` CSP directive.
@@ -1175,35 +1177,83 @@ Runs on every push and pull request to `main`/`master`. Two jobs:
 
 | Job | What it does |
 |---|---|
-| **syntax** | `node --check` on every `.js` in `server/` and `tests/` |
+| **syntax** | `node --check` on every `.js` in `server/`, `api/` and `tests/`; ES-module check on every `.js` in `public/js/` |
 | **test** | `node --test tests/unit/*.test.js tests/integration/*.test.js` — no `npm install` needed |
 
 The test job depends on the syntax job passing first.
 
-### Vercel — `vercel.json`
+### Vercel — `vercel.json` + `api/index.js`
 
-All HTTP traffic is routed to `server/server.js` via `@vercel/node`. The
-Express app handles both the static frontend (`public/`) and the `/api/*`
-routes in one process. No separate "build step" is needed — the frontend is
-plain HTML/CSS/JS with no compilation.
+Two halves, served differently:
+
+| Path | Served by | How |
+|---|---|---|
+| `public/**` (HTML, CSS, browser JS, page fragments) | Vercel CDN | `"outputDirectory": "public"` |
+| `/api/*` | One Vercel Function: `api/index.js` → the Express app in `server/server.js` | rewrite `/api/(.*)` → `/api` (the original URL is kept in `req.url`) |
+| any other path without a file extension (`/tasks`, `/u/nino`, …) | `public/index.html` | SPA rewrite, so deep links survive a refresh |
+
+Real files always win over rewrites, so `/js/core/app.js` is served as-is.
+`vercel.json` also applies the same security headers Helmet sends from
+Express (CSP, HSTS, `nosniff`, frame and referrer policy, Permissions-Policy)
+to every non-API response, since static files never pass through Express.
+
+> **Never bundle `public/` into the function** (the old `builds` +
+> `includeFiles: ["public/**"]` setup). The Node builder transpiles every
+> bundled `.js` file to CommonJS, so the browser received
+> `exports.init = …` instead of ES modules, `app.js` threw on load and every
+> page rendered blank. `tests/unit/config.test.js` guards against this.
+
+Locally nothing changes: `npm start` runs `server/server.js`, which serves
+`public/` itself via `express.static` and the same SPA fallback.
 
 **Deployment workflow:**
 1. Push to `main` → CI runs (syntax + tests)
 2. If CI passes, Vercel automatically deploys to production
 3. Pull requests get an automatic preview deployment
 
-**Required Vercel environment variables** (set in project settings):
+**Vercel environment variables** (set in project settings):
 ```
-SUPABASE_URL
-SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-APP_URL         ← your Vercel production URL, e.g. https://exchange.vercel.app
-PORT            ← optional; Vercel overrides this, but keep it for local run
+SUPABASE_URL                ← required
+SUPABASE_ANON_KEY           ← required: publishable key (sb_publishable_…) or legacy anon JWT
+SUPABASE_SERVICE_ROLE_KEY   ← required: secret key (sb_secret_…) or legacy service_role JWT — never commit it
+APP_URL                     ← recommended: your production URL, e.g. https://exchange-ivory-one.vercel.app
 ```
+`APP_URL` is used for CORS and for the links in sign-up confirmation and
+password-reset emails. If it is not set, the server falls back to Vercel's
+own `VERCEL_PROJECT_PRODUCTION_URL` (production) or `VERCEL_URL` (previews),
+and only then to `http://localhost:3000`.
+
+**Supabase → Authentication → URL Configuration** must allow the email links:
+Site URL = your production URL, and Redirect URLs include
+`https://<your-domain>/**` (plus `http://localhost:3000/**` for local work).
 
 ### Node version
 
-`.nvmrc` pins Node 22. GitHub Actions `setup-node` and Vercel both read it.
+`.nvmrc` pins Node 22 for local work and GitHub Actions; `package.json`
+`"engines": { "node": "22.x" }` pins it for Vercel (Vercel reads `engines`,
+not `.nvmrc`).
+
+---
+
+## Post-deploy fixes
+
+Found after the first real deployment (Vercel + a fresh Supabase project):
+
+| Area | Problem | Fix |
+|---|---|---|
+| Vercel | `public/**` was bundled into the function and transpiled to CommonJS, so the browser's ES modules threw and every page was blank | CDN serves `public/`; `api/index.js` runs Express for `/api/*` (see "Vercel") |
+| Server start | `reports.controller.js` imported `asyncHandler` without destructuring → `TypeError` at boot (500 on every request) | `const { asyncHandler } = …` |
+| Logging | `logger.js` destructured a non-existent `isProduction` export, so production never logged JSON | read `config.isProduction` |
+| Sign-up | With email confirmation on (Supabase's default) the chosen username and referral code were silently dropped | username set with the admin client; referral code parked in user metadata and claimed on first sign-in |
+| Password reset | Emailed link went to the site root (no `redirectTo`), and the confirm step called `auth.updateUser()` on a session-less client ("Auth session missing") | `redirectTo: <APP_URL>/password-reset`; token verified, then `admin.updateUserById` |
+| Logout | `auth.signOut()` on a session-less client never revoked the refresh token | `auth.admin.signOut(token, 'global')` |
+| Sessions | One shared anon client served sign-in/refresh for all requests; supabase-js keeps the last session in memory and merges concurrent refreshes, so users could receive each other's sessions | `createAuthClient()` — a fresh client per auth call |
+| Config | `APP_URL` unset → CORS origin and email links pointed at `http://localhost:3000` | falls back to Vercel's system URL variables |
+| Security headers | Helmet ignored the `permissionsPolicy` option — the header was never sent | set directly in `security.js` and `vercel.json` |
+| Admin | Audit log selected non-existent columns (`entity_type`, `before`, …); "pending verifications" counted a non-existent `task_verifications.status` | real columns (`target_type`, `before_data`, …); count pending `task_completions` |
+| Errors | `DB_ERROR` was not a defined code (responses had no `code`), and 5xx responses echoed raw database messages | `DB_ERROR` added; 5xx messages are generic, details only in logs |
+| New campaign | Balance hint read `balance` from a `{ credits }` response → "undefined credits" | reads `credits` |
+| Mobile | Header nav overflowed the viewport (page scrolled sideways ~560–700 px) | nav collapses into a menu below 1240px (`js/core/nav-menu.js`) |
 
 ---
 
@@ -1297,5 +1347,6 @@ error handler has a chance to log it.
 - [x] 15. Moderation (written and locally validated; report submission, my-reports history, admin queue with inline resolve/dismiss — see "Moderation / reporting (Stage 15)")
 - [x] 16. Security hardening (request ID tracing, Content-Type enforcement, UUID param validation, trust proxy, Permissions-Policy, HSTS, production env hard fail — see "Security hardening (Stage 16)")
 - [x] 17. Testing (105 tests — unit: AppError, validators, middleware; integration: health, request-id, auth guards, Content-Type enforcement, UUID param validation — see "Testing (Stage 17)")
-- [x] 18. CI/CD (GitHub Actions: syntax check + node:test on every push/PR; Vercel: all traffic → Express via @vercel/node; .nvmrc pins Node 22 — see "CI/CD (Stage 18)")
+- [x] 18. CI/CD (GitHub Actions: syntax check + node:test on every push/PR; Vercel: CDN serves public/, api/index.js runs Express for /api/*; Node 22 pinned — see "CI/CD (Stage 18)")
 - [x] 19. Production readiness (structured JSON logging, request timeout middleware, graceful SIGTERM/SIGINT shutdown, uncaughtException/unhandledRejection handlers, health check enriched with node version + uptime — see "Production readiness (Stage 19)")
+- [x] Post-deploy fixes (blank page on Vercel, auth email flows, admin queries, mobile nav — see "Post-deploy fixes")

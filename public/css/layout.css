@@ -1,6 +1,8 @@
 /* css/layout.css - app shell: header, main, footer */
 
 .app-header {
+  position: relative;            /* anchors the small-screen menu panel */
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -14,11 +16,126 @@
   font-weight: 700;
   font-size: var(--font-size-lg);
   color: var(--color-text);
+  white-space: nowrap;
 }
 
 .app-nav {
   display: flex;
+  align-items: center;
   gap: var(--space-4);
+}
+
+/* Labels like "To review" / "120 credits" must never break mid-label. */
+.app-nav a,
+.app-nav__auth a { white-space: nowrap; }
+
+/* ── Menu toggle (hidden on wide screens) ─────────────────────────────── */
+
+.app-menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: calc(var(--space-2) * -1);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text);
+}
+.app-menu-toggle:hover { background: var(--color-surface-raised); }
+
+/* Three bars drawn with one span + two pseudo-elements; they fold into
+   an X while the menu is open. */
+.app-menu-toggle__bars,
+.app-menu-toggle__bars::before,
+.app-menu-toggle__bars::after {
+  display: block;
+  width: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: transform var(--transition-base), background-color var(--transition-fast);
+}
+.app-menu-toggle__bars { position: relative; }
+.app-menu-toggle__bars::before,
+.app-menu-toggle__bars::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+.app-menu-toggle__bars::before { top: -6px; }
+.app-menu-toggle__bars::after { top: 6px; }
+
+.is-menu-open .app-menu-toggle__bars { background: transparent; }
+.is-menu-open .app-menu-toggle__bars::before { transform: translateY(6px) rotate(45deg); }
+.is-menu-open .app-menu-toggle__bars::after { transform: translateY(-6px) rotate(-45deg); }
+
+/* ── Small screens: nav collapses into a drop-down panel ──────────────── */
+/* The full signed-in nav needs ~1205px; below this it would overflow.
+   Keep in sync with DESKTOP_QUERY in js/core/nav-menu.js. */
+@media (max-width: 1240px) {
+  .app-menu-toggle { display: inline-flex; }
+
+  .app-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    max-height: calc(100vh - 64px);
+    max-height: calc(100dvh - 64px);
+    overflow-y: auto;
+    padding: var(--space-2) var(--space-4) var(--space-4);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.18);
+  }
+  .is-menu-open .app-nav { display: flex; }
+
+  .app-nav > a,
+  .app-nav__auth > a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-sm);
+  }
+  .app-nav > a:hover,
+  .app-nav__auth > a:hover {
+    background: var(--color-surface-raised);
+    text-decoration: none;
+  }
+
+  /* Account section: separated from the page links, stacked the same way.
+     Scoped under .app-header so it outranks the base .app-nav__auth /
+     .app-nav__logout rules in forms.css, which load after this file. */
+  .app-header .app-nav__auth {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin-top: var(--space-2);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-border);
+  }
+  .app-header .app-nav__auth:empty { display: none; }
+  .app-header .app-nav__logout {
+    min-height: 44px;
+    margin-top: var(--space-2);
+    padding: 0 var(--space-3);
+    font-size: var(--font-size-base);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-menu-toggle__bars,
+  .app-menu-toggle__bars::before,
+  .app-menu-toggle__bars::after { transition: none; }
 }
 
 .app-main {

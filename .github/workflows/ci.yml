@@ -1,7 +1,8 @@
 # .github/workflows/ci.yml
 # Runs on every push and pull request against main.
 # Checks:
-#   1. Syntax validation — every JS file in server/ and tests/ passes node --check
+#   1. Syntax validation — every JS file in server/, api/ and tests/ passes
+#      node --check; every file in public/js/ passes the ES-module check
 #   2. Unit + integration tests — npm test (node:test, no npm install required)
 #
 # There is no live Supabase project yet, so end-to-end API tests are not
@@ -33,10 +34,19 @@ jobs:
       # The tests/ directory uses CommonJS (require()), so --check is correct.
       - name: Check server JS files
         run: |
-          find server -name '*.js' | sort | while read f; do
+          find server api -name '*.js' | sort | while read f; do
             node --check "$f" || { echo "FAIL: $f"; exit 1; }
           done
           echo "All server JS files pass syntax check."
+
+      # Browser code is ES modules - checked as modules, piped via stdin so
+      # the CommonJS package "type" doesn't apply.
+      - name: Check frontend JS files (ES modules)
+        run: |
+          find public/js -name '*.js' | sort | while read f; do
+            node --input-type=module --check < "$f" || { echo "FAIL: $f"; exit 1; }
+          done
+          echo "All frontend JS files pass syntax check."
 
       - name: Check test JS files
         run: |

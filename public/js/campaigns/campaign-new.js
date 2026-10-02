@@ -24,8 +24,9 @@ export async function init() {
   for (const t of TASK_TYPES) form.task_type.append(new Option(t.label, t.value));
 
   try {
-    const { balance } = await api.credits.balance();
-    balanceHint.textContent = `Your balance: ${balance} credits.`;
+    // GET /api/credits/balance responds { credits } (credit.controller.js).
+    const { credits } = await api.credits.balance();
+    balanceHint.textContent = `Your balance: ${credits} credits.`;
   } catch {
     balanceHint.textContent = '';
   }

@@ -7,6 +7,20 @@
 
 const REQUIRED = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
 
+// Public base URL of the site (CORS origin, auth email redirect links).
+// APP_URL wins when set; on Vercel it falls back to the system variables
+// Vercel injects at runtime, so a missing APP_URL no longer silently means
+// "http://localhost:3000" in production.
+function resolveAppUrl() {
+  const strip = (url) => url.replace(/\/+$/, '');
+  if (process.env.APP_URL) return strip(process.env.APP_URL);
+  if (process.env.VERCEL_ENV === 'production' && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return 'http://localhost:3000';
+}
+
 function readConfig() {
   const env = process.env.NODE_ENV || 'development';
   const missing = REQUIRED.filter((key) => !process.env[key]);
@@ -29,7 +43,7 @@ function readConfig() {
 
   return {
     port: Number(process.env.PORT) || 3000,
-    appUrl: process.env.APP_URL || 'http://localhost:3000',
+    appUrl: resolveAppUrl(),
     nodeEnv: env,
     isProduction: env === 'production',
     supabaseUrl: process.env.SUPABASE_URL || '',

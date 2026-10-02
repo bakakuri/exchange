@@ -27,6 +27,7 @@ const ErrorCodes = {
 
   TIMEOUT: 'TIMEOUT',               // 503 — request took too long to process
   INTERNAL: 'INTERNAL',             // 500 — unexpected server error
+  DB_ERROR: 'DB_ERROR',             // 500 — a database query failed (details logged, never sent)
 };
 
 const STATUS_BY_CODE = {
@@ -53,6 +54,7 @@ const STATUS_BY_CODE = {
 
   TIMEOUT: 503,
   INTERNAL: 500,
+  DB_ERROR: 500,
 };
 
 class AppError extends Error {

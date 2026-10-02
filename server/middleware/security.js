@@ -46,25 +46,20 @@ function applySecurity(app) {
       // isolation, and enabling it would require every static asset to
       // send CORP headers, which is unnecessary overhead for this stack.
       crossOriginEmbedderPolicy: false,
-
-      // Permissions-Policy: disable browser features the app never uses.
-      // Helmet 7 exposes this via permittedCrossDomainPolicies; the actual
-      // Permissions-Policy header is controlled by the permissionsPolicy
-      // option (added in Helmet 7).
-      permissionsPolicy: {
-        features: {
-          camera: [],
-          microphone: [],
-          geolocation: [],
-          payment: [],
-          usb: [],
-          // Allow full-screen from own origin (useful for future video
-          // content, negligible risk to allow).
-          fullscreen: ["'self'"],
-        },
-      },
     })
   );
+
+  // Permissions-Policy: disable browser features the app never uses.
+  // Helmet has no option for this header (an unknown `permissionsPolicy`
+  // key is silently ignored), so it is set here directly. Full-screen stays
+  // allowed for our own origin (future video content, negligible risk).
+  app.use((req, res, next) => {
+    res.setHeader('Permissions-Policy', PERMISSIONS_POLICY);
+    next();
+  });
 }
 
-module.exports = { applySecurity };
+const PERMISSIONS_POLICY =
+  'camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self)';
+
+module.exports = { applySecurity, PERMISSIONS_POLICY };

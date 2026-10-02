@@ -48,7 +48,7 @@ async function listUsers({ search, limit, before } = {}) {
   }
 
   const { data, error } = await query;
-  if (error) throw new AppError(ErrorCodes.NOT_FOUND, error.message);
+  if (error) throw new AppError(ErrorCodes.DB_ERROR, error.message);
 
   return {
     users: data,
@@ -75,19 +75,13 @@ async function getUser(userId) {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId);
 
+  // Review status lives on task_completions (task_verifications only holds
+  // the proof), so "pending verifications" = this user's pending completions.
   const { count: pendingCount } = await supabaseAdmin
-    .from('task_verifications')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'pending')
-    .in(
-      'completion_id',
-      (
-        await supabaseAdmin
-          .from('task_completions')
-          .select('id')
-          .eq('user_id', userId)
-      ).data?.map((r) => r.id) || []
-    );
+    .from('task_completions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('status', 'pending');
 
   return {
     ...profile,
@@ -137,7 +131,7 @@ async function getStats() {
     supabaseAdmin.from('profiles').select('*', { count: 'exact', head: true }),
     supabaseAdmin.from('campaigns').select('*', { count: 'exact', head: true }),
     supabaseAdmin.from('campaigns').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-    supabaseAdmin.from('task_verifications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabaseAdmin.from('task_completions').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabaseAdmin.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'open'),
     supabaseAdmin.from('task_completions').select('*', { count: 'exact', head: true }),
   ]);
@@ -159,14 +153,14 @@ async function listAudit({ limit, before } = {}) {
 
   let query = supabaseAdmin
     .from('audit_logs')
-    .select('id, actor_id, action, entity_type, entity_id, before, after, reason, created_at')
+    .select('id, actor_id, action, target_type, target_id, before_data, after_data, reason, created_at')
     .order('created_at', { ascending: false })
     .limit(pageSize);
 
   if (before) query = query.lt('created_at', before);
 
   const { data, error } = await query;
-  if (error) throw new AppError(ErrorCodes.NOT_FOUND, error.message);
+  if (error) throw new AppError(ErrorCodes.DB_ERROR, error.message);
 
   // Enrich each entry with the actor's username for display.
   const actorIds = [...new Set(data.map((e) => e.actor_id).filter(Boolean))];

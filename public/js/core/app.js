@@ -4,6 +4,7 @@ import './routes-manifest.js';
 import { authGuard } from './route-guards.js';
 import { initAuth } from '../auth/auth.js';
 import { initAuthNav } from '../auth/auth-nav.js';
+import { initNavMenu } from './nav-menu.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Session must be hydrated before the first route renders, so a
@@ -13,5 +14,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initAuth();
   setRouteGuard(authGuard);
   initAuthNav();
+  initNavMenu();
   initRouter();
 });

@@ -47,7 +47,7 @@ async function submitReport(userId, { report_type, description, related_task_id,
     .select('id, report_type, status, created_at')
     .single();
 
-  if (error) throw new AppError('DB_ERROR', error.message);
+  if (error) throw new AppError(ErrorCodes.DB_ERROR, error.message);
   return data;
 }
 
@@ -67,7 +67,7 @@ async function listMine(userId, { before, limit: rawLimit } = {}) {
   if (before) query = query.lt('created_at', before);
 
   const { data, error } = await query;
-  if (error) throw new AppError('DB_ERROR', error.message);
+  if (error) throw new AppError(ErrorCodes.DB_ERROR, error.message);
 
   const hasMore = data.length > limit;
   const reports = hasMore ? data.slice(0, limit) : data;

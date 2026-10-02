@@ -6,9 +6,17 @@
 // merged), so the frontend never has to know Supabase's raw auth user
 // shape is different from our profiles row.
 
-const { supabaseAnon, supabaseAdmin, getClientForUser } = require('../config/supabase');
+const { createAuthClient, supabaseAdmin, getClientForUser } = require('../config/supabase');
+const { config } = require('../config/env');
 const { AppError, ErrorCodes } = require('../utils/errors');
 const PROFILE_FIELDS = require('../constants/profile-fields');
+
+// NOTE on supabase-js v2: a client built by getClientForUser() carries the
+// user's token only as a global Authorization header - it has no stored
+// session. auth.getUser() and PostgREST/RPC calls work with that, but
+// auth.updateUser() throws "Auth session missing" and auth.signOut() is a
+// silent no-op. Anything that changes the auth user therefore goes
+// through the admin API below, after the token has been verified.
 
 function mapAuthError(error) {
   const message = error?.message || 'Authentication failed';
@@ -36,60 +44,130 @@ async function buildUserPayload(authUser) {
   return { id: authUser.id, email: authUser.email, ...profile };
 }
 
+// claim_referral() resolves the caller from auth.uid(), so it can only run
+// with the user's own token. Failures never block sign-up/sign-in - a bad
+// or self referral code becomes a warning the caller can show.
+async function claimReferral(accessToken, code) {
+  const client = getClientForUser(accessToken);
+  const { error } = await client.rpc('claim_referral', { p_code: code });
+  return error ? error.message : undefined;
+}
+
 async function register({ email, password, username, referral_code }) {
-  const { data, error } = await supabaseAnon.auth.signUp({ email, password });
+  const code = referral_code ? String(referral_code).trim().toUpperCase() : undefined;
+
+  // With email confirmation on (Supabase's default) signUp returns no
+  // session, so a referral code can't be claimed yet. It is parked in the
+  // user's metadata and claimed on first sign-in (see login()).
+  const { data, error } = await createAuthClient().auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${config.appUrl}/login`,
+      data: code ? { pending_referral_code: code } : {},
+    },
+  });
   if (error) throw mapAuthError(error);
 
-  // handle_new_user() (001/011_*.sql) has already created the profile
-  // row by this point - it runs as a trigger on the auth.users insert
-  // that signUp performs. If the caller chose a username or has a
-  // referral code, apply those now as the freshly created user.
-  let referralWarning;
+  // handle_new_user() (001/011_*.sql) has already created the profile row
+  // by this point - it runs as a trigger on the auth.users insert that
+  // signUp performs.
+  //
+  // Only touch the profile when this really is a brand-new account:
+  //  - an already-confirmed email comes back as an obfuscated user with an
+  //    empty identities list;
+  //  - an existing but still-unconfirmed email comes back as the REAL user
+  //    (identities included), so also require that the account was created
+  //    just now - otherwise a re-sign-up could rename someone's pending
+  //    account.
+  const createdAt = Date.parse(data.user?.created_at || '');
+  const isNewUser = Boolean(data.user?.id)
+    && (data.user.identities?.length ?? 0) > 0
+    && Number.isFinite(createdAt)
+    && Date.now() - createdAt < 60_000;
+  const warnings = {};
 
-  if (data.session && username) {
-    const client = getClientForUser(data.session.access_token);
-    const { error: updateError } = await client.from('profiles').update({ username }).eq('id', data.user.id);
-    if (updateError) throw mapAuthError(updateError);
+  // The username is applied with the admin client because there may be no
+  // session yet. Format was already validated (auth.validator.js); a taken
+  // username keeps the auto-generated one instead of failing a sign-up
+  // whose account already exists.
+  if (isNewUser && username) {
+    const { error: updateError } = await supabaseAdmin
+      .from('profiles').update({ username }).eq('id', data.user.id);
+    if (updateError) {
+      warnings.usernameWarning = /duplicate|unique/i.test(updateError.message)
+        ? 'That username is taken - a default one was assigned. You can change it in your profile.'
+        : 'Could not set that username - a default one was assigned.';
+    }
   }
 
-  if (data.session && referral_code) {
-    const client = getClientForUser(data.session.access_token);
-    const { error: referralError } = await client.rpc('claim_referral', { p_code: referral_code });
-    // A bad/self referral code should not block account creation -
-    // surface it as a warning the caller can show, not a hard failure.
-    if (referralError) referralWarning = referralError.message;
+  if (data.session && code) {
+    warnings.referralWarning = await claimReferral(data.session.access_token, code);
+    await clearPendingReferral(data.user.id);
   }
 
   const user = data.session ? await buildUserPayload(data.user) : null;
-  return { user, session: data.session, referralWarning };
+  return { user, session: data.session, ...warnings };
+}
+
+async function clearPendingReferral(userId) {
+  // GoTrue merges user_metadata keys; null removes the key.
+  await supabaseAdmin.auth.admin.updateUserById(userId, {
+    user_metadata: { pending_referral_code: null },
+  });
 }
 
 async function login({ email, password }) {
-  const { data, error } = await supabaseAnon.auth.signInWithPassword({ email, password });
+  const { data, error } = await createAuthClient().auth.signInWithPassword({ email, password });
   if (error) throw mapAuthError(error);
-  return { user: await buildUserPayload(data.user), session: data.session };
+
+  // First sign-in after an email-confirmed sign-up: claim the referral
+  // code that register() parked in metadata, then clear it so this runs
+  // at most once whatever the outcome.
+  let referralWarning;
+  const pending = data.user?.user_metadata?.pending_referral_code;
+  if (pending && data.session) {
+    referralWarning = await claimReferral(data.session.access_token, pending);
+    await clearPendingReferral(data.user.id);
+  }
+
+  return { user: await buildUserPayload(data.user), session: data.session, referralWarning };
 }
 
 async function logout(accessToken) {
-  const client = getClientForUser(accessToken);
-  const { error } = await client.auth.signOut();
+  // admin.signOut() revokes the refresh tokens behind this access token
+  // (scope 'global' = every device), which client.auth.signOut() can't do
+  // without a stored session.
+  const { error } = await supabaseAdmin.auth.admin.signOut(accessToken, 'global');
   if (error) throw mapAuthError(error);
 }
 
 async function refresh(refreshToken) {
-  const { data, error } = await supabaseAnon.auth.refreshSession({ refresh_token: refreshToken });
+  const { data, error } = await createAuthClient().auth.refreshSession({ refresh_token: refreshToken });
   if (error) throw mapAuthError(error);
   return { user: await buildUserPayload(data.user), session: data.session };
 }
 
 async function requestPasswordReset(email) {
-  const { error } = await supabaseAnon.auth.resetPasswordForEmail(email);
+  // The emailed link must land on /password-reset - that page reads the
+  // #access_token=...&type=recovery fragment and shows the new-password
+  // form. Without redirectTo Supabase sends people to the Site URL root,
+  // where nothing handles the token. (The URL must also be allowed under
+  // Supabase -> Authentication -> URL Configuration -> Redirect URLs.)
+  const { error } = await createAuthClient().auth.resetPasswordForEmail(email, {
+    redirectTo: `${config.appUrl}/password-reset`,
+  });
   if (error) throw mapAuthError(error);
 }
 
 async function confirmPasswordReset(accessToken, password) {
-  const client = getClientForUser(accessToken);
-  const { error } = await client.auth.updateUser({ password });
+  // Verify the recovery token with Supabase first (signature + expiry);
+  // only then change the password of exactly that user via the admin API.
+  const { data, error: tokenError } = await createAuthClient().auth.getUser(accessToken);
+  if (tokenError || !data?.user) {
+    throw new AppError(ErrorCodes.UNAUTHORIZED, 'This reset link is invalid or has expired', 401);
+  }
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(data.user.id, { password });
   if (error) throw mapAuthError(error);
 }
 
@@ -98,8 +176,9 @@ async function confirmPasswordReset(accessToken, password) {
 // single source of truth for authorization, never a JWT claim the
 // client could be stale or wrong about.
 async function getUserFromToken(accessToken) {
-  const client = getClientForUser(accessToken);
-  const { data, error } = await client.auth.getUser();
+  // Passing the JWT explicitly verifies it against GoTrue on every
+  // supabase-js v2 release (the header-only form needs a newer auth-js).
+  const { data, error } = await createAuthClient().auth.getUser(accessToken);
   if (error || !data?.user) return null;
   return buildUserPayload(data.user);
 }

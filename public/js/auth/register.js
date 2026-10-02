@@ -31,12 +31,19 @@ export function init() {
         referral_code: form.referral_code.value.trim() || undefined,
       });
 
-      if (result.session) {
+      // Non-fatal notes from the server (taken username, bad referral code).
+      const notes = [result.usernameWarning, result.referralWarning].filter(Boolean).join(' ');
+
+      if (result.session && !notes) {
         navigate('/');
+      } else if (result.session) {
+        successEl.textContent = `Account created. ${notes}`;
+        successEl.hidden = false;
+        setTimeout(() => navigate('/'), 3000);
       } else {
         // Project has email confirmation enabled - there's no session
         // yet, so send them to sign in once they've confirmed.
-        successEl.textContent = 'Account created. Check your email to confirm it, then sign in.';
+        successEl.textContent = `Account created. Check your email to confirm it, then sign in.${notes ? ` ${notes}` : ''}`;
         successEl.hidden = false;
         form.reset();
       }

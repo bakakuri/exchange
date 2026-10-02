@@ -16,7 +16,11 @@
 
 'use strict';
 
-const { isProduction } = require('../config/env');
+// env.js exports { config } only - read the flag from there (destructuring
+// a non-existent `isProduction` export left this permanently undefined, so
+// production never switched to JSON lines).
+const { config } = require('../config/env');
+const { isProduction } = config;
 
 function timestamp() {
   return new Date().toISOString();
