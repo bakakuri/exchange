@@ -1,83 +1,60 @@
-/* css/achievements.css - the /achievements page, and the "Achievements"
-   section achievements-list.js adds to the /u/:username profile page. */
-
-.achievements-page {
-  max-width: 640px;
-}
-
-.achievements-level {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-1) var(--space-3);
-  margin: var(--space-2) 0 var(--space-6);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.achievements-level dt {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-}
-
-.achievements-level dd {
-  margin: 0;
-  font-weight: 700;
-}
+/* css/achievements.css - /achievements, and the achievements section that
+   achievements-list.js adds to /u/:username. The level panel comes from
+   base.css. Achievements are collectible objects, so (unlike records)
+   they are shown as a grid of tiles. */
 
 .achievement-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: var(--space-3);
 }
 
 .achievement-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
   padding: var(--space-4);
-  opacity: 0.55;
+  background: var(--color-bg);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
 }
 
+/* Unlocked: solid outline, full ink - locked ones stay dashed and quiet. */
 .achievement-card--unlocked {
-  opacity: 1;
-  border-color: var(--color-accent);
+  border-style: solid;
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
 }
 
 .achievement-card__header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
 }
+.achievement-card__header > :first-child { font-weight: 500; }
+.achievement-card--unlocked .achievement-card__header > :first-child { color: var(--color-ink); }
 
 .achievement-card__status {
   flex-shrink: 0;
+  color: var(--color-text-subtle);
   font-size: var(--font-size-xs);
-  font-weight: 600;
-  color: var(--color-text-muted);
 }
-
-.achievement-card--unlocked .achievement-card__status {
-  color: var(--color-success);
-}
+.achievement-card--unlocked .achievement-card__status { color: var(--color-success); }
 
 .achievement-card__description {
   margin: var(--space-1) 0 0;
-  color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
 
 .achievement-card__date {
   margin: var(--space-2) 0 0;
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
   font-size: var(--font-size-xs);
 }
 
+/* Compact badges on a public profile */
 .profile-view__achievements {
   list-style: none;
   margin: 0;
@@ -88,8 +65,8 @@
 }
 
 .profile-view__achievement-badge {
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
   font-size: var(--font-size-sm);
 }

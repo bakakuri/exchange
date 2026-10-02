@@ -1,15 +1,12 @@
-/* css/referrals.css - /referrals page */
+/* css/referrals.css - /referrals. List container and status chip come
+   from base.css. */
 
-.referrals-page {
-  max-width: 640px;
-}
-
-/* ── share section ────────────────────────────────────────────────────── */
-
-.referral-share {
-  margin-bottom: var(--space-6);
+/* Share + claim panels */
+.referral-share,
+.referral-claim {
+  margin-bottom: var(--space-5);
   padding: var(--space-5);
-  background: var(--color-surface);
+  background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
 }
@@ -17,9 +14,10 @@
 .referral-share__heading,
 .referral-claim__heading,
 .referral-history__heading {
-  margin: 0 0 var(--space-2);
-  font-size: var(--font-size-lg);
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-base);
 }
+.referral-history__heading { margin: var(--space-6) 0 var(--space-3); font-size: var(--font-size-lg); }
 
 .referral-share__hint,
 .referral-claim__hint {
@@ -28,146 +26,72 @@
   font-size: var(--font-size-sm);
 }
 
+/* The code itself is the thing people copy - set it large and spaced. */
 .referral-share__code {
-  display: inline-block;
-  padding: var(--space-2) var(--space-4);
-  margin-bottom: var(--space-3);
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  margin-bottom: var(--space-4);
+  color: var(--color-ink);
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   font-variant-numeric: tabular-nums;
-  color: var(--color-accent-strong);
   user-select: all;
 }
 
-.referral-share__link-row {
+.referral-share__link-row,
+.referral-claim__row {
   display: flex;
+  align-items: stretch;
   gap: var(--space-2);
-  align-items: center;
 }
 
 .referral-share__link-input {
   flex: 1;
   min-width: 0;
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-surface-raised);
+  min-height: 40px;
+  padding: 0 12px;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
   font-family: inherit;
-  cursor: default;
+  font-size: var(--font-size-sm);
 }
 
-/* ── claim section ────────────────────────────────────────────────────── */
+.referral-claim__form { display: flex; flex-direction: column; gap: var(--space-3); }
 
-.referral-claim {
-  margin-bottom: var(--space-6);
-  padding: var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.referral-claim__row {
-  display: flex;
-  gap: var(--space-2);
-  align-items: flex-start;
-}
-
-.referral-claim__input {
-  width: 10ch;
+.referral-claim__input.form-input {
+  width: 13ch;
+  min-height: 40px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
   font-variant-numeric: tabular-nums;
-  font-size: var(--font-size-lg);
 }
 
-/* ── history section ──────────────────────────────────────────────────── */
+.referral-share .btn--sm,
+.referral-claim .btn--sm { min-height: 40px; }
 
-.referral-history {
-  margin-bottom: var(--space-5);
-}
+/* History */
+.referral-list__empty { color: var(--color-text-muted); font-size: var(--font-size-sm); }
 
-.referral-history__heading {
-  margin-bottom: var(--space-4);
-}
-
-.referral-list {
-  list-style: none;
-  margin: 0 0 var(--space-4);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.referral-list__empty {
-  color: var(--color-text-muted);
-}
-
-.referral-list__load-more {
-  margin-top: var(--space-2);
-}
-
-/* ── referral item card ────────────────────────────────────────────────── */
-
-.referral-item {
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
+.referral-item { padding: 14px var(--space-4); }
 
 .referral-item__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  margin-bottom: var(--space-1);
+  margin-bottom: 2px;
 }
 
-.referral-item__direction {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
+.referral-item__direction { color: var(--color-text-muted); font-size: var(--font-size-sm); }
 
-.referral-item__status {
-  flex-shrink: 0;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-}
+.referral-item__status--pending { --dot: var(--color-warning); }
+.referral-item__status--rewarded { --dot: var(--color-success); }
 
-.referral-item__status--pending {
-  color: var(--color-warning);
-  background: rgba(244, 183, 64, 0.12);
-}
-
-.referral-item__status--rewarded {
-  color: var(--color-success);
-  background: rgba(62, 207, 142, 0.12);
-}
-
-.referral-item__user {
-  margin: 0 0 var(--space-1);
-  font-weight: 600;
-}
+.referral-item__user { margin: 0; color: var(--color-ink); font-weight: 500; }
 
 .referral-item__date {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-/* ── success message ─────────────────────────────────────────────────── */
-
-.form-success {
-  color: var(--color-success);
-  font-size: var(--font-size-sm);
-  margin: var(--space-3) 0 0;
+  margin: 2px 0 0;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
 }

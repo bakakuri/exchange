@@ -1235,6 +1235,39 @@ not `.nvmrc`).
 
 ---
 
+## Design system (Mono Minimal)
+
+Black and white, hairline borders, one quiet blue (`--color-accent`) used only
+for links, focus rings and the current page. All values live in
+`public/css/variables.css`; no other stylesheet hard-codes a color.
+
+| | Light | Dark |
+|---|---|---|
+| Canvas / surface | `#FFFFFF` / `#FAFAFA` | `#000000` / `#0A0A0A` |
+| Hairline / form-field border | `#EAEAEA` / `#8F8F8F` (3:1) | `#262626` / `#616161` (3:1) |
+| Text / muted | `#000000` / `#666666` | `#EDEDED` / `#A1A1A1` |
+| Accent | `#2563EB` (5.2:1) | `#3B82F6` (5.7:1) |
+
+- **Type:** FiraGO (SIL OFL, `public/fonts/`), self-hosted and subset to
+  Latin + Georgian (about 30 KB per weight; 400/500/600) so Georgian names
+  and titles render in the same voice as Latin. Tabular figures for credits.
+- **Themes:** `js/core/theme-init.js` (a classic script at the top of
+  `<head>`, since the CSP forbids inline scripts) sets `<html data-theme>`
+  before first paint: the stored choice, else the device setting.
+  `js/core/theme.js` runs the header ☀/☾ button. A choice is stored only
+  while it differs from the device, so switching back follows the device
+  again.
+- **Shared patterns (`base.css`):** record lists are one hairline-bordered
+  container with divided rows; summaries (`<dl>`) are label/value rows;
+  statuses are neutral pills with a colored dot (modifiers only set `--dot`).
+- **Header:** two rows on screens wider than 820px (brand + account +
+  theme, then page tabs); below that, a single row with a drop-down menu.
+- **Home:** visitors see the explainer (hero, ledger "ticket", how it
+  works, platforms); signed-in people see a dashboard (credits, level,
+  unread, open tasks).
+
+---
+
 ## Post-deploy fixes
 
 Found after the first real deployment (Vercel + a fresh Supabase project):
@@ -1350,3 +1383,4 @@ error handler has a chance to log it.
 - [x] 18. CI/CD (GitHub Actions: syntax check + node:test on every push/PR; Vercel: CDN serves public/, api/index.js runs Express for /api/*; Node 22 pinned — see "CI/CD (Stage 18)")
 - [x] 19. Production readiness (structured JSON logging, request timeout middleware, graceful SIGTERM/SIGINT shutdown, uncaughtException/unhandledRejection handlers, health check enriched with node version + uptime — see "Production readiness (Stage 19)")
 - [x] Post-deploy fixes (blank page on Vercel, auth email flows, admin queries, mobile nav — see "Post-deploy fixes")
+- [x] Design system: Mono Minimal light/dark themes, FiraGO (Latin + Georgian), new home page — see "Design system (Mono Minimal)"

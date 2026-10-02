@@ -6,7 +6,7 @@
 //  2. History list — cursor-paginated list of the caller's own reports.
 
 import { api } from '../shared/api.js';
-import { qs } from '../shared/dom.js';
+import { qs, escapeHtml } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
 
 // ── submit form ─────────────────────────────────────────────────────────────
@@ -89,10 +89,10 @@ function renderReportItem(report) {
 
   li.innerHTML = `
     <div class="report-item__header">
-      <span class="report-item__type">${typeLabel}</span>
-      <span class="report-item__status ${statusClass}">${statusLabel}</span>
+      <span class="report-item__type">${escapeHtml(typeLabel)}</span>
+      <span class="report-item__status ${escapeHtml(statusClass)}">${escapeHtml(statusLabel)}</span>
     </div>
-    <p class="report-item__description">${report.description}</p>
+    <p class="report-item__description">${escapeHtml(report.description)}</p>
     <p class="report-item__date">${date}</p>
   `.trim();
 

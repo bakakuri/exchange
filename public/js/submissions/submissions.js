@@ -8,9 +8,9 @@
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
-import { taskPlatformLabel } from '../shared/task-platforms.js';
-import { taskTypeLabel } from '../shared/task-types.js';
+
 import { statusLabel } from './status.js';
+import { taskActionLabel } from '../shared/task-label.js';
 
 function renderSubmissions(listEl, completions, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
@@ -26,7 +26,7 @@ function renderSubmissions(listEl, completions, { append = false } = {}) {
         createEl('strong', {}, c.campaign_title),
         createEl('span', { class: `submission-status submission-status--${c.status}` }, statusLabel(c.status)),
       ]),
-      createEl('p', { class: 'submission-card__meta' }, `${taskPlatformLabel(c.platform)} · ${taskTypeLabel(c.task_type)} · ${c.reward_amount} credits`),
+      createEl('p', { class: 'submission-card__meta' }, `${taskActionLabel(c.task_type, c.platform)}, ${c.reward_amount} credits`),
     ];
 
     if (c.status === 'rejected' && c.review_notes) {

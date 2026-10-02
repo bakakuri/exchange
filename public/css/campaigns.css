@@ -1,51 +1,15 @@
 /* css/campaigns.css - /campaigns (list), /campaigns/new (create) and
-   /campaigns/:id (manage). */
+   /campaigns/:id (manage). List container, stat panel, page width and the
+   status chip come from base.css. */
 
-.campaigns-page,
-.campaign-new-page,
-.campaign-detail-page {
-  max-width: 640px;
-}
+/* ── Campaign rows ────────────────────────────────────────────────────── */
 
-.campaigns-page__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-bottom: var(--space-5);
-}
-
-.campaign-new__intro {
-  color: var(--color-text-muted);
-  margin-top: 0;
-}
-
-.campaign-new__total {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  margin: calc(-1 * var(--space-2)) 0 0;
-}
-
-.campaign-list {
-  list-style: none;
-  margin: 0 0 var(--space-5);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.campaign-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  transition: border-color var(--transition-fast);
-}
-.campaign-card:hover { border-color: var(--color-accent); }
+.campaign-card { transition: background-color var(--transition-fast); }
+.campaign-card:hover { background: var(--color-hover); }
 
 .campaign-card__link {
   display: block;
-  padding: var(--space-4);
+  padding: 14px var(--space-4);
   color: var(--color-text);
 }
 .campaign-card__link:hover { text-decoration: none; }
@@ -56,75 +20,61 @@
   justify-content: space-between;
   gap: var(--space-3);
 }
+.campaign-card__header strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-ink);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .campaign-card__meta,
 .campaign-card__progress {
-  margin: var(--space-1) 0 0;
+  margin: 2px 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
 
-.campaign-list__empty {
+/* Status chip dots (chip itself: base.css) */
+.campaign-status--active { --dot: var(--color-success); }
+.campaign-status--paused { --dot: var(--color-warning); }
+.campaign-status--completed { --dot: var(--color-accent); }
+.campaign-status--cancelled { --dot: var(--color-danger); }
+
+/* ── New campaign ─────────────────────────────────────────────────────── */
+
+.campaign-new__total {
+  margin: calc(var(--space-2) * -1) 0 0;
   color: var(--color-text-muted);
-}
-
-.campaign-status {
-  flex-shrink: 0;
   font-size: var(--font-size-sm);
-  font-weight: 600;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
+  font-variant-numeric: tabular-nums;
 }
+.campaign-new-page .form { max-width: 520px; }
+.campaign-new-page .form .btn--primary { align-self: flex-start; }
 
-.campaign-status--active { color: var(--color-success); background: rgba(62, 207, 142, 0.12); }
-.campaign-status--paused { color: var(--color-text-muted); background: var(--color-surface-raised); }
-.campaign-status--completed { color: var(--color-accent); background: rgba(124, 108, 255, 0.12); }
-.campaign-status--cancelled { color: var(--color-danger); background: rgba(244, 87, 79, 0.12); }
+/* ── Campaign detail ──────────────────────────────────────────────────── */
 
 .campaign-detail__header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
+.campaign-detail__header h1 { margin-bottom: var(--space-4); }
 
-.campaign-detail__loading {
-  color: var(--color-text-muted);
-}
-
-.campaign-detail__stats {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-1) var(--space-3);
-  margin: var(--space-4) 0 var(--space-6);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.campaign-detail__stats dt {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-}
-
-.campaign-detail__stats dd {
-  margin: 0;
-  font-weight: 600;
-}
-
-.campaign-detail__meta {
-  color: var(--color-text-muted);
-  margin-top: 0;
-}
+.campaign-detail__loading { color: var(--color-text-muted); }
 
 .campaign-detail__instructions {
+  max-width: 62ch;
   white-space: pre-wrap;
 }
 
 .campaign-detail__edit-form {
+  max-width: 520px;
   margin-top: var(--space-6);
-  max-width: none;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
 }
 
 .campaign-detail__actions {
@@ -132,26 +82,14 @@
   flex-direction: column;
   gap: var(--space-3);
   margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
 }
-
-.campaign-detail__actions > .btn {
-  align-self: flex-start;
-  margin-right: var(--space-3);
-}
+.campaign-detail__actions > .btn { align-self: flex-start; }
 
 .campaign-detail__cancel-form {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  max-width: 360px;
-}
-
-.campaign-detail__cancel-form textarea {
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-family: inherit;
-  resize: vertical;
+  max-width: 420px;
 }

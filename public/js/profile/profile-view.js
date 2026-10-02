@@ -107,8 +107,8 @@ async function renderSocial(container, username) {
       social_profiles.map((p) =>
         createEl('li', { class: 'social-list__item' }, [
           createEl('a', { href: p.profile_url, target: '_blank', rel: 'noopener noreferrer' }, [
-            createEl('strong', {}, platformLabel(p.platform)),
-            ` — ${p.display_name || p.username}`,
+            createEl('span', { class: 'social-list__name' }, p.display_name || p.username),
+            createEl('span', { class: 'social-list__platform' }, platformLabel(p.platform)),
           ]),
         ])
       )

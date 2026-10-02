@@ -1,5 +1,100 @@
-<section class="home-hero">
-  <h1>Exchange</h1>
-  <p>Complete tasks to earn credits, then spend credits promoting what matters to you.</p>
-  <div data-home-actions></div>
-</section>
+<!-- "/" - home.js shows exactly one of the two views below:
+     visitors get the explainer, signed-in people get their dashboard. -->
+<div class="home" data-home>
+
+  <section class="home-hero" data-home-visitor hidden>
+    <div class="home-hero__copy">
+      <h1 class="home-hero__title">Grow your pages by helping others grow theirs.</h1>
+      <p class="home-hero__lede">
+        Follow, like and subscribe for other creators to earn credits.
+        Spend credits on a campaign, and real people do the same for you.
+      </p>
+      <div class="home-hero__actions">
+        <a class="btn btn--primary" href="/register" data-link>Create account</a>
+        <a class="btn" href="/login" data-link>Sign in</a>
+      </div>
+    </div>
+
+    <figure class="ticket" aria-label="Example of how credits move">
+      <ol class="ticket__rows">
+        <li class="ticket__row">
+          <span class="ticket__what">Follow @tamuna.ceramics on Instagram</span>
+          <span class="ticket__amount ticket__amount--in">+12</span>
+        </li>
+        <li class="ticket__row">
+          <span class="ticket__what">Subscribe to a cooking channel on YouTube</span>
+          <span class="ticket__amount ticket__amount--in">+20</span>
+        </li>
+        <li class="ticket__row">
+          <span class="ticket__what">Like a TikTok filmed in Batumi</span>
+          <span class="ticket__amount ticket__amount--in">+5</span>
+        </li>
+        <li class="ticket__row ticket__row--total">
+          <span class="ticket__what">Earned</span>
+          <span class="ticket__amount">37 credits</span>
+        </li>
+        <li class="ticket__row ticket__row--spend">
+          <span class="ticket__what">Campaign: 3 people follow your page, 12 credits each</span>
+          <span class="ticket__amount ticket__amount--out">&minus;36</span>
+        </li>
+      </ol>
+      <figcaption class="ticket__caption">An example. Each campaign's creator sets its reward.</figcaption>
+    </figure>
+  </section>
+
+  <section class="home-steps" data-home-visitor hidden aria-labelledby="home-steps-title">
+    <h2 id="home-steps-title">How it works</h2>
+    <ol class="steps">
+      <li class="steps__item">
+        <h3>Link your accounts</h3>
+        <p>Add the Instagram, TikTok or YouTube pages you want to grow.</p>
+      </li>
+      <li class="steps__item">
+        <h3>Complete tasks</h3>
+        <p>Follow, like or subscribe, send proof, and earn credits once the creator approves it.</p>
+      </li>
+      <li class="steps__item">
+        <h3>Launch a campaign</h3>
+        <p>Set a reward and how many people you want. Credits are held when you launch and returned if you cancel.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="home-platforms" data-home-visitor hidden aria-labelledby="home-platforms-title">
+    <h2 id="home-platforms-title">Works with</h2>
+    <ul class="platform-list" data-home-platforms></ul>
+  </section>
+
+  <section class="dashboard" data-home-member hidden>
+    <h1 class="dashboard__title" data-home-greeting>Welcome back</h1>
+
+    <div class="home-stats">
+      <a class="home-stat" href="/credits" data-link>
+        <span class="home-stat__label">Credits</span>
+        <span class="home-stat__value" data-home-credits>&ndash;</span>
+      </a>
+      <a class="home-stat" href="/achievements" data-link>
+        <span class="home-stat__label">Level</span>
+        <span class="home-stat__value" data-home-level>&ndash;</span>
+        <span class="home-stat__note" data-home-xp></span>
+      </a>
+      <a class="home-stat" href="/notifications" data-link>
+        <span class="home-stat__label">Unread</span>
+        <span class="home-stat__value" data-home-unread>&ndash;</span>
+      </a>
+    </div>
+
+    <div class="dashboard__actions">
+      <a class="btn btn--primary" href="/tasks" data-link>Find tasks</a>
+      <a class="btn" href="/campaigns/new" data-link>New campaign</a>
+    </div>
+
+    <div class="dashboard__section-head">
+      <h2>Open tasks</h2>
+      <a href="/tasks" data-link>See all tasks</a>
+    </div>
+    <ul class="home-task-list" data-home-tasks></ul>
+    <p class="form-error" data-home-error role="alert" hidden></p>
+  </section>
+
+</div>

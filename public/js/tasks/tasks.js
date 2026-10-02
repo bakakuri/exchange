@@ -4,8 +4,9 @@
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
-import { TASK_PLATFORMS, taskPlatformLabel } from '../shared/task-platforms.js';
-import { TASK_TYPES, taskTypeLabel } from '../shared/task-types.js';
+import { TASK_PLATFORMS } from '../shared/task-platforms.js';
+import { TASK_TYPES } from '../shared/task-types.js';
+import { taskActionLabel } from '../shared/task-label.js';
 
 function renderTasks(listEl, tasks, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
@@ -23,7 +24,7 @@ function renderTasks(listEl, tasks, { append = false } = {}) {
             createEl('strong', {}, task.campaign_title),
             createEl('span', { class: 'task-card__reward' }, `${task.reward} credits`),
           ]),
-          createEl('p', { class: 'task-card__meta' }, `${taskPlatformLabel(task.platform)} · ${taskTypeLabel(task.task_type)}`),
+          createEl('p', { class: 'task-card__meta' }, taskActionLabel(task.task_type, task.platform)),
         ]),
       ])
     );

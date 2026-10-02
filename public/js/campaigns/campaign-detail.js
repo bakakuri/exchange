@@ -11,9 +11,9 @@
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
-import { taskPlatformLabel } from '../shared/task-platforms.js';
-import { taskTypeLabel } from '../shared/task-types.js';
+
 import { campaignStatusLabel } from './status.js';
+import { taskActionLabel } from '../shared/task-label.js';
 
 export async function init(params) {
   const container = qs('[data-campaign-detail-content]');
@@ -58,7 +58,7 @@ function render(container, campaign) {
     const task = campaign.task;
     container.append(
       createEl('h2', {}, 'Task'),
-      createEl('p', { class: 'campaign-detail__meta' }, `${taskPlatformLabel(task.platform)} · ${taskTypeLabel(task.task_type)}`),
+      createEl('p', { class: 'campaign-detail__meta' }, taskActionLabel(task.task_type, task.platform)),
       createEl('a', { href: task.target_url, target: '_blank', rel: 'noopener noreferrer' }, task.target_url)
     );
     if (task.instructions) {

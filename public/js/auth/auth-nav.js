@@ -20,6 +20,7 @@ function render() {
     const creditsLink = document.createElement('a');
     creditsLink.href = '/credits';
     creditsLink.setAttribute('data-link', '');
+    creditsLink.className = 'app-nav__credits';
     creditsLink.textContent = `${user.credits} credits`;
 
     const profileLink = document.createElement('a');

@@ -6,9 +6,9 @@
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
-import { taskPlatformLabel } from '../shared/task-platforms.js';
-import { taskTypeLabel } from '../shared/task-types.js';
+
 import { campaignStatusLabel } from './status.js';
+import { taskActionLabel } from '../shared/task-label.js';
 
 function renderCampaigns(listEl, campaigns, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
@@ -30,13 +30,13 @@ function renderCampaigns(listEl, campaigns, { append = false } = {}) {
             'p',
             { class: 'campaign-card__meta' },
             c.task
-              ? `${taskPlatformLabel(c.task.platform)} · ${taskTypeLabel(c.task.task_type)} · ${c.reward} credits`
+              ? `${taskActionLabel(c.task.task_type, c.task.platform)}, ${c.reward} credits each`
               : `${c.reward} credits`
           ),
           createEl(
             'p',
             { class: 'campaign-card__progress' },
-            `${c.completed_count}/${c.desired_completions} completed · ${c.remaining_budget} credits remaining`
+            `${c.completed_count} of ${c.desired_completions} done, ${c.remaining_budget} credits left`
           ),
         ]),
       ])

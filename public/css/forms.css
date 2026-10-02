@@ -1,134 +1,223 @@
-/* css/forms.css - form controls, buttons, and the auth pages/header nav
-   that use them. Kept separate from layout.css because it's about
-   interactive controls, not page structure. */
+/* css/forms.css - form controls, buttons, messages and the auth pages.
+   Two markup conventions exist and both are styled here:
+     .field > label + input|select|textarea           (most pages)
+     .form-row > .form-label + .form-input            (reports, admin)
+   Controls use --color-control-border (3:1) so they read as controls;
+   decorative hairlines elsewhere stay lighter. */
 
 .form {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  max-width: 360px;
+  max-width: 440px;
 }
 
-.field {
+/* Buttons keep their natural width inside column forms. */
+.form > .btn,
+.form > button { align-self: flex-start; }
+
+.field,
+.form-row {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 6px;
 }
 
-.field label {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-.field input,
-.field textarea,
-.field select {
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
+.field label,
+.form-label {
   color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* ── Inputs ───────────────────────────────────────────────────────────── */
+
+.field input:not([type="checkbox"]):not([type="radio"]),
+.field textarea,
+.field select,
+.form-input,
+.submission-card__reject-form textarea,
+.campaign-detail__cancel-form textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
   font-family: inherit;
+  font-size: var(--font-size-base); /* 16px: stops iOS zooming on focus */
+  line-height: 1.4;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.field textarea,
+textarea.form-input,
+.submission-card__reject-form textarea,
+.campaign-detail__cancel-form textarea {
+  min-height: 96px;
   resize: vertical;
 }
 
+.field input::placeholder,
+.field textarea::placeholder,
+.form-input::placeholder,
+textarea::placeholder { color: var(--color-text-subtle); }
+
+.field input:hover,
+.field textarea:hover,
+.field select:hover,
+.form-input:hover { border-color: var(--color-text-muted); }
+
 .field input:focus-visible,
 .field textarea:focus-visible,
-.field select:focus-visible {
-  border-color: var(--color-accent);
+.field select:focus-visible,
+.form-input:focus-visible,
+.submission-card__reject-form textarea:focus-visible,
+.campaign-detail__cancel-form textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 28%, transparent);
 }
+
+/* Native select with a drawn chevron that follows the theme. */
+.field select,
+select.form-input {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+    linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-ink);
+}
+
+.form-hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.form-hint code {
+  padding: 1px 5px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+/* .btn alone is the secondary button; --primary is ink-filled (black in
+   light, white in dark). Color is reserved for success/danger outcomes. */
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-3) var(--space-5);
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  text-decoration: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
 }
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn:hover:not(:disabled) { background: var(--color-hover); text-decoration: none; }
+.btn:active:not(:disabled) { transform: translateY(0.5px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .btn--primary {
-  background: var(--color-accent);
-  color: #ffffff;
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+  border-color: var(--color-ink);
 }
-.btn--primary:hover:not(:disabled) { background: var(--color-accent-strong); }
+.btn--primary:hover:not(:disabled) { background: var(--color-ink); opacity: 0.86; }
 
-/* Used since Stage 6 (credits/tasks "Load more") but never actually
-   defined until now - those buttons were rendering as unstyled browser
-   defaults. */
 .btn--ghost {
   background: transparent;
-  border-color: var(--color-border);
-  color: var(--color-text);
+  border-color: var(--color-border-strong);
+  color: var(--color-ink);
 }
-.btn--ghost:hover:not(:disabled) { border-color: var(--color-accent); }
+
+.btn--sm {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-sm);
+}
 
 .btn--danger {
   background: transparent;
-  border-color: var(--color-danger);
   color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
 }
-.btn--danger:hover:not(:disabled) { background: var(--color-danger); color: #ffffff; }
+.btn--danger:hover:not(:disabled) { background: color-mix(in srgb, var(--color-danger) 8%, transparent); }
+
+.btn--success {
+  background: transparent;
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 40%, transparent);
+}
+.btn--success:hover:not(:disabled) { background: color-mix(in srgb, var(--color-success) 8%, transparent); }
+
+/* ── Messages ─────────────────────────────────────────────────────────── */
+
+.form-error,
+.form-success {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+}
 
 .form-error {
   color: var(--color-danger);
-  font-size: var(--font-size-sm);
+  background: color-mix(in srgb, var(--color-danger) 7%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 25%, transparent);
 }
 
 .form-success {
   color: var(--color-success);
-  font-size: var(--font-size-sm);
+  background: color-mix(in srgb, var(--color-success) 7%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
 }
+
+/* ── Auth pages (sign in, create account, reset password) ─────────────── */
 
 .auth-page {
-  max-width: 360px;
+  max-width: 400px;
+  padding-top: var(--space-5);
 }
+
+.auth-page .form { max-width: none; }
+.auth-page .btn--primary { width: 100%; min-height: 44px; margin-top: var(--space-2); }
 
 .auth-page__alt {
-  margin-top: var(--space-4);
-  font-size: var(--font-size-sm);
+  margin: var(--space-4) 0 0;
   color: var(--color-text-muted);
-}
-
-.home-hero__actions {
-  display: flex;
-  gap: var(--space-3);
-  margin-top: var(--space-5);
-}
-
-.home-hero__actions a {
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-}
-
-.home-hero__actions a:first-child {
-  background: var(--color-accent);
-  color: #ffffff;
-  border-color: transparent;
-}
-
-.app-nav__auth {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.app-nav__logout {
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
   font-size: var(--font-size-sm);
 }
-.app-nav__logout:hover { border-color: var(--color-accent); }
+.auth-page__alt + .auth-page__alt { margin-top: var(--space-2); }
+
+/* Load-more buttons sit under their list. */
+[id$="load-more"],
+[data-referral-load-more],
+[data-report-load-more],
+[data-admin-load-more],
+[data-admin-reports-load-more] { margin-bottom: var(--space-5); }

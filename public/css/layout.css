@@ -1,60 +1,179 @@
-/* css/layout.css - app shell: header, main, footer */
+/* css/layout.css - app shell: header, nav, theme switch, main, footer.
+
+   Wide screens (> 820px): a two-row header. Row one holds the brand,
+   account items and the theme switch; row two is a tab bar of page links
+   with the current page underlined in the accent blue.
+   Small screens: one row (brand + theme + menu buttons) and #main-menu
+   becomes a drop-down panel holding both link groups.
+
+   Header and footer content is inset to line up with the main column. */
+
+:root {
+  --shell-inset: max(var(--space-5), calc((100% - var(--wide-width)) / 2 + var(--space-5)));
+  --tabs-height: 44px;
+}
+
+/* ── Header frame ─────────────────────────────────────────────────────── */
 
 .app-header {
-  position: relative;            /* anchors the small-screen menu panel */
-  z-index: 20;
-  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: var(--header-height) var(--tabs-height);
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
+  column-gap: var(--space-4);
+  padding: 0 var(--shell-inset);
+  padding-top: env(safe-area-inset-top);
+  background: var(--color-scrim);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
 }
 
 .app-header__brand {
-  font-weight: 700;
-  font-size: var(--font-size-lg);
-  color: var(--color-text);
+  grid-row: 1;
+  grid-column: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-ink);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
+.app-header__brand:hover { text-decoration: none; }
+.app-header__mark { flex-shrink: 0; }
+
+/* On wide screens the wrapper disappears and its two children become
+   grid items of the header. */
+.app-menu { display: contents; }
+
+/* ── Row two: page tabs ───────────────────────────────────────────────── */
 
 .app-nav {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  align-self: stretch;
+  display: flex;
+  gap: 2px;
+  margin-left: -10px; /* first label lines up with the brand */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.app-nav::-webkit-scrollbar { display: none; }
+
+.app-nav a {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  padding: 0 10px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  transition: color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.app-nav a:hover { color: var(--color-ink); text-decoration: none; }
+
+/* Current page: ink text + the accent as a tab underline. */
+.app-nav a[aria-current="page"] {
+  color: var(--color-ink);
+  box-shadow: inset 0 -2px 0 var(--color-accent);
 }
 
-/* Labels like "To review" / "120 credits" must never break mid-label. */
-.app-nav a,
-.app-nav__auth a { white-space: nowrap; }
+/* ── Row one: account items ───────────────────────────────────────────── */
 
-/* ── Menu toggle (hidden on wide screens) ─────────────────────────────── */
+.app-header .app-nav__auth {
+  grid-row: 1;
+  grid-column: 2;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.app-header .app-nav__auth:empty { display: none; }
 
-.app-menu-toggle {
-  display: none;
+.app-header .app-nav__auth a {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+.app-header .app-nav__auth a:hover {
+  color: var(--color-ink);
+  background: var(--color-hover);
+  text-decoration: none;
+}
+.app-header .app-nav__auth a[aria-current="page"] { color: var(--color-ink); }
+
+.app-header .app-nav__credits {
+  margin-right: var(--space-1);
+  padding: 4px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+}
+.app-header .app-nav__auth a.app-nav__credits { color: var(--color-text); padding: 4px 12px; border-radius: var(--radius-pill); }
+
+.app-header .app-nav__logout {
+  margin-left: var(--space-1);
+  height: 32px;
+  padding: 0 var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+.app-header .app-nav__logout:hover { background: var(--color-hover); }
+
+/* ── Row one: theme switch + menu button ──────────────────────────────── */
+
+.app-header__actions {
+  grid-row: 1;
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: calc(var(--space-2) * -1);
+}
+
+.icon-button {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  margin-right: calc(var(--space-2) * -1);
+  width: 40px;
+  height: 40px;
   padding: 0;
   background: transparent;
   border: 0;
   border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
   cursor: pointer;
-  color: var(--color-text);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
 }
-.app-menu-toggle:hover { background: var(--color-surface-raised); }
+.icon-button:hover { color: var(--color-ink); background: var(--color-hover); }
 
-/* Three bars drawn with one span + two pseudo-elements; they fold into
-   an X while the menu is open. */
+/* Show the current theme's icon. */
+:root[data-theme="dark"] .app-theme-toggle__sun,
+:root:not([data-theme="dark"]) .app-theme-toggle__moon { display: none; }
+
+.app-menu-toggle { display: none; color: var(--color-ink); }
+
+/* Three bars from one span + two pseudo-elements; they fold into an X. */
 .app-menu-toggle__bars,
 .app-menu-toggle__bars::before,
 .app-menu-toggle__bars::after {
   display: block;
-  width: 20px;
-  height: 2px;
+  width: 18px;
+  height: 1.5px;
   border-radius: 2px;
   background: currentColor;
   transition: transform var(--transition-base), background-color var(--transition-fast);
@@ -73,48 +192,63 @@
 .is-menu-open .app-menu-toggle__bars::before { transform: translateY(6px) rotate(45deg); }
 .is-menu-open .app-menu-toggle__bars::after { transform: translateY(-6px) rotate(-45deg); }
 
-/* ── Small screens: nav collapses into a drop-down panel ──────────────── */
-/* The full signed-in nav needs ~1205px; below this it would overflow.
-   Keep in sync with DESKTOP_QUERY in js/core/nav-menu.js. */
-@media (max-width: 1240px) {
-  .app-menu-toggle { display: inline-flex; }
+/* ── Small screens: one row + drop-down panel ─────────────────────────── */
+/* Keep in sync with DESKTOP_QUERY in js/core/nav-menu.js. */
+@media (max-width: 820px) {
+  .app-header {
+    display: flex;
+    align-items: center;
+    height: var(--header-height);
+  }
 
-  .app-nav {
+  .app-menu-toggle { display: inline-flex; }
+  .app-header__actions { margin-left: auto; }
+
+  .app-menu {
     display: none;
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
     flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    max-height: calc(100vh - 64px);
-    max-height: calc(100dvh - 64px);
+    max-height: calc(100vh - var(--header-height));
+    max-height: calc(100dvh - var(--header-height));
     overflow-y: auto;
-    padding: var(--space-2) var(--space-4) var(--space-4);
-    background: var(--color-surface);
+    padding: var(--space-2) var(--shell-inset) var(--space-5);
+    background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--shadow-pop);
   }
-  .is-menu-open .app-nav { display: flex; }
+  .is-menu-open .app-menu { display: flex; }
 
-  .app-nav > a,
-  .app-nav__auth > a {
+  .app-nav {
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    overflow: visible;
+  }
+
+  .app-nav a,
+  .app-header .app-nav__auth a,
+  .app-header .app-nav__auth a.app-nav__credits {
     display: flex;
     align-items: center;
     min-height: 44px;
+    margin: 0;
     padding: 0 var(--space-3);
+    border: 0;
     border-radius: var(--radius-sm);
+    color: var(--color-text);
+    font-size: var(--font-size-base);
   }
-  .app-nav > a:hover,
-  .app-nav__auth > a:hover {
-    background: var(--color-surface-raised);
-    text-decoration: none;
+  .app-nav a:hover { background: var(--color-hover); }
+
+  .app-nav a[aria-current="page"],
+  .app-header .app-nav__auth a[aria-current="page"] {
+    background: var(--color-hover);
+    box-shadow: inset 2px 0 0 var(--color-accent);
   }
 
-  /* Account section: separated from the page links, stacked the same way.
-     Scoped under .app-header so it outranks the base .app-nav__auth /
-     .app-nav__logout rules in forms.css, which load after this file. */
   .app-header .app-nav__auth {
     flex-direction: column;
     align-items: stretch;
@@ -123,37 +257,43 @@
     padding-top: var(--space-2);
     border-top: 1px solid var(--color-border);
   }
-  .app-header .app-nav__auth:empty { display: none; }
+
   .app-header .app-nav__logout {
-    min-height: 44px;
-    margin-top: var(--space-2);
-    padding: 0 var(--space-3);
+    height: 44px;
+    margin: var(--space-3) 0 0;
     font-size: var(--font-size-base);
   }
+}
+
+/* ── Main + footer ────────────────────────────────────────────────────── */
+
+.app-main {
+  max-width: var(--wide-width);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-5) var(--space-10);
+  min-height: calc(100vh - var(--header-height) - var(--tabs-height) - 72px);
+}
+
+.app-footer {
+  padding: var(--space-5) var(--shell-inset);
+  padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+}
+.app-footer p { margin: 0; }
+
+@media (max-width: 640px) {
+  :root { --shell-inset: var(--space-4); }
+  .app-main {
+    padding: var(--space-6) var(--space-4) var(--space-8);
+    min-height: calc(100vh - var(--header-height) - 72px);
+  }
+  h1 { font-size: 1.75rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .app-menu-toggle__bars,
   .app-menu-toggle__bars::before,
   .app-menu-toggle__bars::after { transition: none; }
-}
-
-.app-main {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-5);
-  min-height: calc(100vh - 140px);
-}
-
-.app-footer {
-  padding: var(--space-5);
-  text-align: center;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  border-top: 1px solid var(--color-border);
-}
-
-@media (max-width: 640px) {
-  .app-header { padding: var(--space-3) var(--space-4); }
-  .app-main { padding: var(--space-5) var(--space-4); }
 }

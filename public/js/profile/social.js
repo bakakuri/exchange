@@ -24,8 +24,8 @@ function renderList(listEl, socialProfiles, onRemove) {
     listEl.append(
       createEl('li', { class: 'social-list__item' }, [
         createEl('a', { href: profile.profile_url, target: '_blank', rel: 'noopener noreferrer' }, [
-          createEl('strong', {}, platformLabel(profile.platform)),
-          ` — ${profile.display_name || profile.username}`,
+          createEl('span', { class: 'social-list__name' }, profile.display_name || profile.username),
+          createEl('span', { class: 'social-list__platform' }, platformLabel(profile.platform)),
         ]),
         removeBtn,
       ])

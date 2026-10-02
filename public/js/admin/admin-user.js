@@ -6,7 +6,7 @@
 
 import { api } from '../shared/api.js';
 import { navigate } from '../core/router.js';
-import { qs, createEl } from '../shared/dom.js';
+import { qs, createEl, escapeHtml } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
 
 // ── profile rendering ───────────────────────────────────────────────────────
@@ -14,27 +14,27 @@ import { ApiError } from '../shared/errors.js';
 function renderProfile(el, user) {
   const statsSection = user._stats
     ? `<p class="admin-user-detail__stats">
-         ${user._stats.total_completions} completions · ${user._stats.pending_verifications} pending verifications
+         ${Number(user._stats.total_completions)} completions, ${Number(user._stats.pending_verifications)} pending review
        </p>`
     : '';
 
   el.innerHTML = `
     <div class="admin-user-detail__header">
       <div>
-        <h2 class="admin-user-detail__name">${user.display_name || user.username || '(no name)'}</h2>
-        <p class="admin-user-detail__username">@${user.username || '—'}</p>
+        <h2 class="admin-user-detail__name">${escapeHtml(user.display_name || user.username || '(no name)')}</h2>
+        <p class="admin-user-detail__username">@${escapeHtml(user.username || '—')}</p>
         ${statsSection}
       </div>
       <div class="admin-user-detail__badges">
-        <span class="admin-user-role admin-user-role--${user.role}">${user.role}</span>
-        <span class="admin-user-status admin-user-status--${user.status}">${user.status}</span>
+        <span class="admin-user-role admin-user-role--${escapeHtml(user.role)}">${escapeHtml(user.role)}</span>
+        <span class="admin-user-status admin-user-status--${escapeHtml(user.status)}">${escapeHtml(user.status)}</span>
       </div>
     </div>
     <dl class="admin-user-detail__meta">
-      <dt>Credits</dt><dd>${user.credits}</dd>
-      <dt>XP / Level</dt><dd>${user.xp} XP (level ${user.level})</dd>
+      <dt>Credits</dt><dd>${Number(user.credits)}</dd>
+      <dt>Level</dt><dd>${Number(user.level)} (${Number(user.xp)} XP)</dd>
       <dt>Joined</dt><dd>${new Date(user.created_at).toLocaleDateString()}</dd>
-      <dt>Referral code</dt><dd>${user.referral_code || '—'}</dd>
+      <dt>Referral code</dt><dd>${escapeHtml(user.referral_code || '—')}</dd>
     </dl>
   `.trim();
 }

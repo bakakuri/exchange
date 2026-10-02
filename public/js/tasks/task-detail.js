@@ -13,7 +13,8 @@ import { store } from '../core/state.js';
 import { qs, createEl } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
 import { taskPlatformLabel } from '../shared/task-platforms.js';
-import { taskTypeLabel } from '../shared/task-types.js';
+
+import { taskActionLabel } from '../shared/task-label.js';
 
 const STATUS_LABELS = {
   pending: 'Your submission is pending review.',
@@ -57,7 +58,7 @@ function render(container, task) {
       createEl('h1', {}, campaign.title),
       createEl('span', { class: 'task-detail__reward' }, `${campaign.reward} credits`),
     ]),
-    createEl('p', { class: 'task-detail__meta' }, `${taskPlatformLabel(task.platform)} · ${taskTypeLabel(task.task_type)}`)
+    createEl('p', { class: 'task-detail__meta' }, taskActionLabel(task.task_type, task.platform))
   );
 
   if (campaign.description) {
@@ -69,7 +70,7 @@ function render(container, task) {
   }
 
   container.append(
-    createEl('a', { href: task.target_url, target: '_blank', rel: 'noopener noreferrer', class: 'btn btn--primary' }, 'Open target')
+    createEl('a', { href: task.target_url, target: '_blank', rel: 'noopener noreferrer', class: 'btn btn--primary task-detail__open' }, task.platform && task.platform !== 'other' ? `Open on ${taskPlatformLabel(task.platform)}` : 'Open link')
   );
 
   if (isOwn) {

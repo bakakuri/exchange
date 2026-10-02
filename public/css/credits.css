@@ -1,44 +1,13 @@
-/* css/credits.css - the /credits page: balance + transaction history. */
-
-.credits-page {
-  max-width: 560px;
-}
+/* css/credits.css - /credits: balance, per-type summary, transaction
+   history. The summary panel and list container come from base.css. */
 
 .credits-balance {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  margin: var(--space-2) 0 var(--space-6);
-}
-
-.credits-summary {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-1) var(--space-3);
-  margin: var(--space-2) 0 var(--space-6);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.credits-summary dt {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-}
-
-.credits-summary dd {
-  margin: 0;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.ledger-list {
-  list-style: none;
-  margin: 0 0 var(--space-5);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  margin: calc(var(--space-3) * -1) 0 var(--space-6);
+  color: var(--color-ink);
+  font-size: clamp(2.5rem, 7vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-display);
 }
 
 .ledger-item {
@@ -46,23 +15,16 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.ledger-item--empty {
-  color: var(--color-text-muted);
-  justify-content: flex-start;
+  padding: 14px var(--space-4);
 }
 
 .ledger-item__main {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 2px;
   min-width: 0;
 }
+.ledger-item__main > :first-child { color: var(--color-ink); font-weight: 500; }
 
 .ledger-item__description {
   margin: 0;
@@ -71,15 +33,13 @@
 }
 
 .ledger-item__date {
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
   font-size: var(--font-size-xs);
 }
 
 .ledger-amount {
   flex-shrink: 0;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
-
 .ledger-amount--positive { color: var(--color-success); }
-.ledger-amount--negative { color: var(--color-danger); }
+.ledger-amount--negative { color: var(--color-ink); }

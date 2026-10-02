@@ -1,48 +1,8 @@
-/* css/verification.css - task-detail's submission form, and the
-   /submissions and /submissions/review pages. */
+/* css/verification.css - /submissions and /submissions/review.
+   List container, filters, page width and status chip come from base.css;
+   the submit-proof form on a task lives in tasks.css. */
 
-.task-detail__submit-form {
-  margin-top: var(--space-5);
-  max-width: none;
-}
-
-.task-detail__submit-hint {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  margin: 0;
-}
-
-.submissions-page,
-.review-queue-page {
-  max-width: 640px;
-}
-
-.review-queue__intro {
-  color: var(--color-text-muted);
-  margin-top: 0;
-}
-
-.submissions-filter {
-  display: flex;
-  gap: var(--space-4);
-  margin-bottom: var(--space-5);
-}
-
-.submission-list {
-  list-style: none;
-  margin: 0 0 var(--space-5);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.submission-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  padding: var(--space-4);
-}
+.submission-card { padding: 14px var(--space-4); }
 
 .submission-card__header {
   display: flex;
@@ -50,75 +10,61 @@
   justify-content: space-between;
   gap: var(--space-3);
 }
+.submission-card__header strong,
+.submission-card__header a {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.submission-card__header strong { color: var(--color-ink); }
 
 .submission-card__meta {
-  margin: var(--space-1) 0 0;
+  margin: 2px 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
 
+/* Proof: quoted with a hairline rule, like an attachment. */
 .submission-card__proof {
   margin-top: var(--space-3);
+  padding: var(--space-2) 0 var(--space-2) var(--space-3);
+  border-left: 2px solid var(--color-border-strong);
+  font-size: var(--font-size-sm);
   word-break: break-word;
 }
-
-.submission-card__proof-text {
-  white-space: pre-wrap;
-  color: var(--color-text);
-}
+.submission-card__proof p { margin: 0; }
+.submission-card__proof p + p { margin-top: var(--space-1); }
+.submission-card__proof-text { white-space: pre-wrap; color: var(--color-text); }
 
 .submission-card__notes {
-  margin-top: var(--space-3);
+  margin: var(--space-3) 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
 
-.submission-list__empty {
-  color: var(--color-text-muted);
-}
-
-.submission-status {
-  flex-shrink: 0;
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-}
-
-.submission-status--pending { color: var(--color-text-muted); background: var(--color-surface-raised); }
-.submission-status--approved { color: var(--color-success); background: rgba(62, 207, 142, 0.12); }
+/* Status chip dots */
+.submission-status--pending { --dot: var(--color-warning); }
+.submission-status--approved { --dot: var(--color-success); }
 .submission-status--rejected,
-.submission-status--expired { color: var(--color-danger); background: rgba(244, 87, 79, 0.12); }
+.submission-status--expired { --dot: var(--color-danger); }
 
 .submission-card__actions {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2);
   margin-top: var(--space-4);
-}
-
-.submission-card__actions > .btn {
-  align-self: flex-start;
-  margin-right: var(--space-3);
 }
 
 .submission-card__reject-form {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-}
-
-.submission-card__reject-form textarea {
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-family: inherit;
-  resize: vertical;
+  flex-basis: 100%;
 }
 
 .submission-card__reject-actions {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }

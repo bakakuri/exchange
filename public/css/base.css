@@ -1,6 +1,14 @@
-/* css/base.css - resets and base element styles */
+/* css/base.css - resets, typography, and the two shared patterns every
+   page uses: hairline row lists and status chips. Page stylesheets only
+   add what is specific to them. */
 
 *, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-height) + var(--space-4));
+}
 
 html, body {
   margin: 0;
@@ -13,15 +21,43 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans);
   font-size: var(--font-size-base);
-  line-height: 1.5;
+  line-height: var(--leading-body);
+  font-kerning: normal;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Type ─────────────────────────────────────────────────────────────── */
+
+h1, h2, h3, h4 {
+  color: var(--color-ink);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+h1 { font-size: var(--font-size-2xl); margin: 0 0 var(--space-5); }
+h2 { font-size: var(--font-size-lg); margin: var(--space-8) 0 var(--space-4); }
+h3 { font-size: var(--font-size-base); margin: var(--space-5) 0 var(--space-2); }
+h2:first-child, h3:first-child { margin-top: 0; }
+
+p { text-wrap: pretty; }
+
+strong, b { font-weight: 600; }
+
 a {
-  color: var(--color-accent-strong);
+  color: var(--color-accent);
   text-decoration: none;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
 a:hover { text-decoration: underline; }
+
+code {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875em;
+}
 
 img, svg { max-width: 100%; display: block; }
 
@@ -31,6 +67,199 @@ button, input, select, textarea {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+::selection { background: color-mix(in srgb, var(--color-accent) 24%, transparent); }
+
+/* The `hidden` attribute must win over component display rules. */
+[hidden] { display: none !important; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── Row lists ────────────────────────────────────────────────────────── */
+/* Every list of records is one hairline-bordered container with divided
+   rows - a list is one object, so it gets one outline, not a stack of
+   identical cards. Item classes keep their own inner layout. */
+
+:is(.task-list, .campaign-list, .submission-list, .ledger-list, .notification-list,
+    .referral-list, .report-list, .admin-user-list, .admin-report-list, .social-list,
+    .activity-list, .home-task-list) {
+  list-style: none;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+:is(.task-list, .campaign-list, .submission-list, .ledger-list, .notification-list,
+    .referral-list, .report-list, .admin-user-list, .admin-report-list, .social-list,
+    .activity-list, .home-task-list):empty { display: none; }
+
+:is(.task-list, .campaign-list, .submission-list, .ledger-list, .notification-list,
+    .referral-list, .report-list, .admin-user-list, .admin-report-list, .social-list,
+    .activity-list, .home-task-list) > li {
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+:is(.task-list, .campaign-list, .submission-list, .ledger-list, .notification-list,
+    .referral-list, .report-list, .admin-user-list, .admin-report-list, .social-list,
+    .activity-list, .home-task-list) > li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+/* Empty-state rows: an invitation to act, not a dead end. */
+:is(.task-list__empty, .campaign-list__empty, .submission-list__empty, .ledger-item--empty,
+    .notification-list__empty, .social-list__empty, .home-task-list__empty) {
+  padding: var(--space-5) var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Status chips ─────────────────────────────────────────────────────── */
+/* Neutral pill + a 6px dot in the status color. Modifiers only set --dot
+   (in each page stylesheet). Labels are shown in sentence case. */
+
+:is(.campaign-status, .submission-status, .referral-item__status, .report-item__status,
+    .admin-report-status, .admin-user-status, .admin-user-role) {
+  --dot: var(--color-text-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 1px 10px 1px 8px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  line-height: 1.7;
+  letter-spacing: 0;
+  /* Values are single words ("open", "admin") - capitalize = sentence case. */
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+:is(.campaign-status, .submission-status, .referral-item__status, .report-item__status,
+    .admin-report-status, .admin-user-status, .admin-user-role)::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dot);
+}
+
+/* ── Page shells ──────────────────────────────────────────────────────── */
+/* Every page reads at the same comfortable width, left-aligned. */
+
+:is(.tasks-page, .task-detail-page, .campaigns-page, .campaign-new-page, .campaign-detail-page,
+    .submissions-page, .review-queue-page, .credits-page, .notifications-page, .achievements-page,
+    .referrals-page, .reports-page, .profile-page) {
+  max-width: var(--content-width);
+}
+
+:is(.admin-page, .admin-user-page, .admin-reports-page) { max-width: 880px; }
+
+/* Title + one action on the same line (My campaigns / New campaign). */
+:is(.campaigns-page__header, .notifications-page__header) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+:is(.campaigns-page__header, .notifications-page__header) h1 { margin: 0; }
+
+/* Intro line under a page title. */
+:is(.review-queue__intro, .campaign-new__intro, .task-detail__meta, .campaign-detail__meta) {
+  margin: calc(var(--space-3) * -1) 0 var(--space-5);
+  color: var(--color-text-muted);
+}
+
+/* Filter rows above lists. */
+:is(.tasks-filter, .submissions-filter, .admin-reports-filter) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  max-width: none;
+  margin-bottom: var(--space-5);
+}
+:is(.tasks-filter, .submissions-filter) .field { flex: 1 1 140px; max-width: 260px; }
+
+/* ── Stat panels ──────────────────────────────────────────────────────── */
+/* <dl> summaries: label left, value right, one hairline per row - the
+   same reading as the credit ledger. */
+
+:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+    .campaign-detail__stats, .admin-user-detail__meta) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin: 0 0 var(--space-6);
+  padding: 0;
+  overflow: hidden;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+    .campaign-detail__stats, .admin-user-detail__meta):empty { display: none; }
+
+:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+    .campaign-detail__stats, .admin-user-detail__meta) :is(dt, dd) {
+  margin: 0;
+  padding: 12px var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+    .campaign-detail__stats, .admin-user-detail__meta) :is(dt:first-of-type, dt:first-of-type + dd) {
+  border-top: 0;
+}
+
+:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+    .campaign-detail__stats, .admin-user-detail__meta) dt {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  white-space: normal;
+}
+
+:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+    .campaign-detail__stats, .admin-user-detail__meta) dd {
+  color: var(--color-ink);
+  font-weight: 500;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tabular figures wherever credits are shown, so columns line up. */
+:is(.task-card__reward, .task-detail__reward, .ledger-amount, .credits-balance,
+    .credits-summary dd, .admin-stat-tile__value, .home-stat__value, .app-nav__credits) {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

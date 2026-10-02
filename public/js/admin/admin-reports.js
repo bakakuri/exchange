@@ -4,7 +4,7 @@
 // has inline Resolve / Dismiss buttons that call POST /api/admin/reports/:id/resolve.
 
 import { api } from '../shared/api.js';
-import { qs } from '../shared/dom.js';
+import { qs, escapeHtml } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
 
 const TYPE_LABELS = {
@@ -36,13 +36,13 @@ function renderReportRow(report, listEl) {
 
   li.innerHTML = `
     <div class="admin-report-row__header">
-      <span class="admin-report-type">${typeLabel}</span>
-      <span class="admin-report-status admin-report-status--${report.status}">${report.status}</span>
+      <span class="admin-report-type">${escapeHtml(typeLabel)}</span>
+      <span class="admin-report-status admin-report-status--${escapeHtml(report.status)}">${escapeHtml(report.status)}</span>
       <span class="admin-report-row__date">${date}</span>
     </div>
-    <p class="admin-report-row__reporter">Reporter: ${reporter}</p>
-    ${targetParts.length ? `<p class="admin-report-row__target">${targetParts.join(' · ')}</p>` : ''}
-    <p class="admin-report-row__description">${report.description}</p>
+    <p class="admin-report-row__reporter">Reporter: ${escapeHtml(reporter)}</p>
+    ${targetParts.length ? `<p class="admin-report-row__target">${escapeHtml(targetParts.join(', '))}</p>` : ''}
+    <p class="admin-report-row__description">${escapeHtml(report.description)}</p>
     ${report.status === 'open' ? `
       <div class="admin-report-row__actions">
         <button class="btn btn--sm btn--success" data-resolve="resolved">Resolve</button>

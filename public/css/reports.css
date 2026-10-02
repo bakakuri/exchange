@@ -1,312 +1,137 @@
-/* css/reports.css — Report submission and moderation styles (Stage 15) */
+/* css/reports.css - /reports (submit + my reports) and /admin/reports
+   (moderation). Page width, list containers, filters and status chips
+   come from base.css; form controls from forms.css. */
 
-/* ── User-facing reports page ───────────────────────────────────────────── */
-
-.reports-page {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-4);
-}
-
-.reports-page h1 {
-  font-size: var(--font-size-xl);
-  margin-bottom: var(--space-6);
-}
-
-/* Submit section */
+/* ── Submit a report ──────────────────────────────────────────────────── */
 
 .report-submit {
-  background: var(--color-surface);
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--space-5);
-  margin-bottom: var(--space-8);
 }
 
-.report-submit__heading {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  margin: 0 0 var(--space-2);
-}
+.report-submit__heading { margin: 0 0 var(--space-1); font-size: var(--font-size-base); }
 
 .report-submit__hint {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
   margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
 }
 
 .report-form {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  max-width: 520px;
 }
+.report-form > .btn { align-self: flex-start; }
 
-.form-input--textarea {
-  resize: vertical;
-  min-height: 96px;
-}
+/* ── My reports ───────────────────────────────────────────────────────── */
 
-.form-hint {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  margin: var(--space-1) 0 0;
-}
+.report-history__heading { margin: var(--space-6) 0 var(--space-3); }
 
-.form-hint code {
-  font-family: monospace;
-  background: var(--color-surface-raised);
-  padding: 1px 4px;
-  border-radius: 3px;
-}
-
-/* Report history list */
-
-.report-history {
-  margin-top: var(--space-4);
-}
-
-.report-history__heading {
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  margin: 0 0 var(--space-4);
-}
-
-.report-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.report-list__empty {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  padding: var(--space-5) 0;
-}
-
+.report-list__empty,
 .report-list__loading {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
 
 .report-item {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  padding: 14px var(--space-4);
 }
 
 .report-item__header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
 }
 
-.report-item__type {
-  font-weight: 600;
-  font-size: var(--font-size-sm);
-}
+.report-item__type { color: var(--color-ink); font-weight: 500; }
 
-.report-item__status {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.report-item__status--open {
-  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
-  color: var(--color-warning);
-}
-
-.report-item__status--resolved {
-  background: color-mix(in srgb, var(--color-success) 15%, transparent);
-  color: var(--color-success);
-}
-
-.report-item__status--dismissed {
-  background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
-  color: var(--color-text-muted);
-}
+.report-item__status--open { --dot: var(--color-warning); }
+.report-item__status--resolved { --dot: var(--color-success); }
+.report-item__status--dismissed { --dot: var(--color-text-subtle); }
 
 .report-item__description {
-  font-size: var(--font-size-sm);
-  color: var(--color-text);
   margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .report-item__date {
+  margin: 0;
+  color: var(--color-text-subtle);
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  margin: 0;
 }
 
-/* ── Admin reports page ─────────────────────────────────────────────────── */
+/* ── Admin: moderation queue ──────────────────────────────────────────── */
 
-.admin-reports-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-4);
-}
-
-.admin-reports-page h1 {
-  font-size: var(--font-size-xl);
-  margin-bottom: var(--space-4);
-}
-
-.admin-reports-filter {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-5);
-}
-
-.admin-reports-filter__select {
-  width: auto;
-  min-width: 160px;
-}
-
-.admin-report-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
+.admin-reports-filter .form-label { color: var(--color-text-muted); }
+.admin-reports-filter__select.form-input { width: auto; min-width: 180px; }
 
 .admin-report-row {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  padding: var(--space-4);
 }
 
 .admin-report-row__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  flex-wrap: wrap;
 }
 
-.admin-report-type {
-  font-weight: 600;
-  font-size: var(--font-size-sm);
-}
+.admin-report-type { color: var(--color-ink); font-weight: 500; }
 
-.admin-report-status {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.admin-report-status--open {
-  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
-  color: var(--color-warning);
-}
-
-.admin-report-status--resolved {
-  background: color-mix(in srgb, var(--color-success) 15%, transparent);
-  color: var(--color-success);
-}
-
-.admin-report-status--dismissed {
-  background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
-  color: var(--color-text-muted);
-}
+.admin-report-status--open { --dot: var(--color-warning); }
+.admin-report-status--resolved { --dot: var(--color-success); }
+.admin-report-status--dismissed { --dot: var(--color-text-subtle); }
 
 .admin-report-row__date {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
   margin-left: auto;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
 }
 
 .admin-report-row__reporter,
 .admin-report-row__target {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
   margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  word-break: break-word;
 }
 
+/* The reported text, quoted. */
 .admin-report-row__description {
-  font-size: var(--font-size-sm);
+  margin: var(--space-1) 0 0;
+  padding: var(--space-2) 0 var(--space-2) var(--space-3);
+  border-left: 2px solid var(--color-border-strong);
   color: var(--color-text);
+  font-size: var(--font-size-sm);
   white-space: pre-wrap;
   word-break: break-word;
-  background: var(--color-surface-raised);
-  border-radius: var(--radius-sm);
-  padding: var(--space-3);
-  margin: 0;
 }
 
 .admin-report-row__actions {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--color-border);
   flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
-.admin-report-row__error {
-  margin: 0;
-  font-size: var(--font-size-sm);
-}
-
-/* Success/danger action button variants */
-
-.btn--success {
-  background: color-mix(in srgb, var(--color-success) 20%, transparent);
-  color: var(--color-success);
-  border: 1px solid color-mix(in srgb, var(--color-success) 40%, transparent);
-}
-
-.btn--success:hover {
-  background: color-mix(in srgb, var(--color-success) 30%, transparent);
-}
-
-.btn--danger {
-  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
-  color: var(--color-danger);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
-}
-
-.btn--danger:hover {
-  background: color-mix(in srgb, var(--color-danger) 25%, transparent);
-}
+.admin-report-row__error { flex-basis: 100%; }
 
 /* Clickable stat tile (admin dashboard "Open reports") */
-
-.admin-stat-tile--link {
-  cursor: pointer;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
-}
-
-.admin-stat-tile--link:hover {
-  border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-surface-raised));
-}
-
-.admin-stat-tile--link:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
+.admin-stat-tile--link { cursor: pointer; }
+.admin-stat-tile--link:hover { background: var(--color-hover); }
