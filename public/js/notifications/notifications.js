@@ -9,12 +9,33 @@
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
+import { icon } from '../shared/icons.js';
+import { emptyState } from '../shared/empty-state.js';
+import { refreshNavBadges } from '../core/nav-badges.js';
+import { timeAgo, fullDateTime } from '../shared/time.js';
+
+const NOTIFICATION_ICONS = {
+  verification_approved: 'i-badge-check',
+  verification_rejected: 'i-circle-alert',
+  reward_received: 'i-coins',
+  campaign_completed: 'i-megaphone',
+  campaign_cancelled: 'i-megaphone',
+  refund: 'i-repeat',
+  achievement_unlocked: 'i-award',
+  referral_reward: 'i-users',
+  admin_message: 'i-shield',
+};
 
 function renderNotifications(listEl, notifications, onRead, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
 
   if (notifications.length === 0 && listEl.children.length === 0) {
-    listEl.append(createEl('li', { class: 'notification-list__empty' }, 'No notifications yet.'));
+    listEl.append(emptyState({
+      iconId: 'i-bell',
+      title: "You're all caught up",
+      text: 'Approvals, rewards and campaign updates will show up here.',
+      className: 'notification-list__empty',
+    }));
     return;
   }
 
@@ -22,17 +43,21 @@ function renderNotifications(listEl, notifications, onRead, { append = false } =
     const children = [
       createEl('div', { class: 'notification-item__main' }, [
         createEl('strong', {}, n.title),
-        createEl('time', { class: 'notification-item__date' }, new Date(n.created_at).toLocaleString()),
+        createEl('time', { class: 'notification-item__date', datetime: n.created_at, title: fullDateTime(n.created_at) }, timeAgo(n.created_at)),
       ]),
     ];
     if (n.body) children.push(createEl('p', { class: 'notification-item__body' }, n.body));
 
-    const item = createEl('li', { class: `notification-item${n.read_at ? '' : ' notification-item--unread'}` }, children);
+    const body = createEl('div', { class: 'notification-item__content' }, children);
+    const item = createEl('li', { class: `notification-item${n.read_at ? '' : ' notification-item--unread'}` }, [
+      createEl('span', { class: 'row-icon' }, [icon(NOTIFICATION_ICONS[n.type] || 'i-bell', { size: 18 })]),
+      body,
+    ]);
 
     if (!n.read_at) {
       const readBtn = createEl('button', { type: 'button', class: 'btn btn--ghost notification-item__read-btn' }, 'Mark read');
       readBtn.addEventListener('click', () => onRead(n.id, item, readBtn));
-      item.append(readBtn);
+      body.append(readBtn);
     }
 
     listEl.append(item);
@@ -71,6 +96,7 @@ export async function init() {
     readBtn.disabled = true;
     try {
       await api.notifications.markRead(id);
+      refreshNavBadges();
       item.classList.remove('notification-item--unread');
       readBtn.remove();
     } catch (err) {
@@ -86,6 +112,7 @@ export async function init() {
     markAllBtn.disabled = true;
     try {
       await api.notifications.markAllRead();
+      refreshNavBadges();
       await loadPage({ reset: true });
     } catch (err) {
       errorEl.textContent = err instanceof ApiError ? err.message : 'Could not mark all as read.';

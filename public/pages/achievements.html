@@ -1,6 +1,21 @@
 <section class="achievements-page">
   <h1>Achievements</h1>
-  <dl class="achievements-level" data-achievements-level></dl>
+  <p class="page-intro">Unlocked by completing tasks and running campaigns.</p>
+
+  <div class="panel achievements-hero" data-achievements-level hidden>
+    <div class="achievements-hero__level">
+      <span class="panel__label"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trending-up" /></svg>Level</span>
+      <p class="achievements-hero__value" data-achievements-level-value>&ndash;</p>
+      <span class="progress" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="1000" data-achievements-xp-bar>
+        <span class="progress__bar" style="width: 0%"></span>
+      </span>
+      <p class="achievements-hero__note" data-achievements-xp></p>
+    </div>
+    <div class="achievements-hero__count">
+      <span class="panel__label"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-award" /></svg>Unlocked</span>
+      <p class="achievements-hero__value" data-achievements-count>&ndash;</p>
+    </div>
+  </div>
 
   <ul class="achievement-list" data-achievement-list></ul>
   <p class="form-error" id="achievements-error" role="alert" hidden></p>

@@ -1,6 +1,6 @@
 // js/core/theme.js
 // Light/dark theme. By default the site follows the device setting (and
-// keeps following it if that changes). The header button (#theme-toggle)
+// keeps following it if that changes). Any [data-theme-toggle] button
 // switches theme; the choice is remembered only while it differs from the
 // device - switching back to the device's own theme forgets the override,
 // so "follow my phone" is always one tap away.
@@ -37,14 +37,17 @@ function apply(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   document.querySelector('meta[name="theme-color"]')
     ?.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff');
-  const toggle = document.getElementById('theme-toggle');
-  toggle?.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+    toggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  });
 }
 
 export function initTheme() {
   apply(storedTheme() || deviceTheme());
 
-  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+  // Every [data-theme-toggle] (top bar, sidebar user row) switches theme.
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-theme-toggle]')) return;
     const next = currentTheme() === 'dark' ? 'light' : 'dark';
     remember(next);
     apply(next);

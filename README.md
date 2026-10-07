@@ -1249,22 +1249,39 @@ for links, focus rings and the current page. All values live in
 | Accent | `#2563EB` (5.2:1) | `#3B82F6` (5.7:1) |
 
 - **Type:** FiraGO (SIL OFL, `public/fonts/`), self-hosted and subset to
-  Latin + Georgian (about 30 KB per weight; 400/500/600) so Georgian names
-  and titles render in the same voice as Latin. Tabular figures for credits.
+  Latin + Georgian (about 30 KB per weight; 400/500/600/700) so Georgian
+  names and titles render in the same voice as Latin. Tabular figures for
+  credits.
+- **Depth:** `--shadow-xs/sm/lg` and `--highlight` (a 1px inner top light)
+  raise panels, buttons and the hero "ticket"; `--color-tile` fills icon
+  tiles. Dark theme has its own values, not inverted light ones.
 - **Themes:** `js/core/theme-init.js` (a classic script at the top of
   `<head>`, since the CSP forbids inline scripts) sets `<html data-theme>`
-  before first paint: the stored choice, else the device setting.
-  `js/core/theme.js` runs the header ☀/☾ button. A choice is stored only
-  while it differs from the device, so switching back follows the device
-  again.
+  and `<html data-auth>` before first paint: the stored theme choice, else
+  the device setting. Any `[data-theme-toggle]` button switches theme
+  (`js/core/theme.js`). A choice is stored only while it differs from the
+  device, so switching back follows the device again.
+- **Icons:** one inline SVG sprite in `index.html` — UI icons from Lucide
+  (`#i-*`, ISC) and platform logos from Simple Icons (`#p-*`, CC0); licences
+  in `public/img/ICONS-LICENSES.txt`. `js/shared/icons.js` builds `<use>`
+  references (`icon()`, `platformTile()`, `avatar()`); no icon font, no
+  external requests.
+- **App shell:** signed-out visitors get a slim top bar. Signed-in members
+  get a fixed sidebar on screens ≥1024px (navigation with icons and unread /
+  to-review counts from `js/core/nav-badges.js`, credits card, account row)
+  and, on phones and tablets, a top bar plus a bottom tab bar (Home, Tasks,
+  Campaigns, Alerts, Menu) whose Menu opens the full navigation as a drawer.
 - **Shared patterns (`base.css`):** record lists are one hairline-bordered
-  container with divided rows; summaries (`<dl>`) are label/value rows;
-  statuses are neutral pills with a colored dot (modifiers only set `--dot`).
-- **Header:** two rows on screens wider than 820px (brand + account +
-  theme, then page tabs); below that, a single row with a drop-down menu.
-- **Home:** visitors see the explainer (hero, ledger "ticket", how it
-  works, platforms); signed-in people see a dashboard (credits, level,
-  unread, open tasks).
+  container with divided rows, each anchored by a platform tile or row icon;
+  panels (`.panel`) for summaries; progress bars; reward chips; empty states
+  with an icon and a next step (`js/shared/empty-state.js`); loading
+  skeletons; statuses are neutral pills with a colored dot.
+- **Home:** visitors see the landing page (headline, a live-looking ledger
+  "ticket", how it works with mini interface previews, the fairness rules
+  the server enforces, closing call to action). Signed-in members see a
+  dashboard: balance with a sparkline of the real ledger and the 7-day
+  change, level progress and achievements, open tasks, an inbox (to review,
+  unread) and recent activity.
 
 ---
 

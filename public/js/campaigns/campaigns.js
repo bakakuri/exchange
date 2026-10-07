@@ -9,12 +9,20 @@ import { ApiError } from '../shared/errors.js';
 
 import { campaignStatusLabel } from './status.js';
 import { taskActionLabel } from '../shared/task-label.js';
+import { platformTile } from '../shared/icons.js';
+import { emptyState } from '../shared/empty-state.js';
 
 function renderCampaigns(listEl, campaigns, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
 
   if (campaigns.length === 0 && listEl.children.length === 0) {
-    listEl.append(createEl('li', { class: 'campaign-list__empty' }, 'No campaigns yet — create one to get started.'));
+    listEl.append(emptyState({
+      iconId: 'i-megaphone',
+      title: 'No campaigns yet',
+      text: 'A campaign asks other members to follow, like or subscribe to your page. You set the reward per person and how many people you want.',
+      action: { href: '/campaigns/new', label: 'Create a campaign' },
+      className: 'campaign-list__empty',
+    }));
     return;
   }
 
@@ -22,6 +30,8 @@ function renderCampaigns(listEl, campaigns, { append = false } = {}) {
     listEl.append(
       createEl('li', { class: 'campaign-card' }, [
         createEl('a', { href: `/campaigns/${c.id}`, 'data-link': '', class: 'campaign-card__link' }, [
+          platformTile(c.task?.platform || 'other'),
+          createEl('span', { class: 'campaign-card__body' }, [
           createEl('div', { class: 'campaign-card__header' }, [
             createEl('strong', {}, c.title),
             createEl('span', { class: `campaign-status campaign-status--${c.status}` }, campaignStatusLabel(c.status)),
@@ -33,11 +43,17 @@ function renderCampaigns(listEl, campaigns, { append = false } = {}) {
               ? `${taskActionLabel(c.task.task_type, c.task.platform)}, ${c.reward} credits each`
               : `${c.reward} credits`
           ),
+          createEl('span', { class: 'progress', role: 'progressbar', 'aria-valuemin': '0',
+            'aria-valuemax': String(c.desired_completions), 'aria-valuenow': String(c.completed_count),
+            'aria-label': 'Completions' }, [
+            createEl('span', { class: 'progress__bar', style: `width: ${Math.min(100, Math.round((c.completed_count / Math.max(1, c.desired_completions)) * 100))}%` }),
+          ]),
           createEl(
             'p',
             { class: 'campaign-card__progress' },
             `${c.completed_count} of ${c.desired_completions} done, ${c.remaining_budget} credits left`
           ),
+          ]),
         ]),
       ])
     );

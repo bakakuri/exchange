@@ -2,7 +2,13 @@
    List container, filters, page width and status chip come from base.css;
    the submit-proof form on a task lives in tasks.css. */
 
-.submission-card { padding: 14px var(--space-4); }
+.submission-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: var(--space-4);
+}
+.submission-card__body { flex: 1; min-width: 0; }
 
 .submission-card__header {
   display: flex;
@@ -18,7 +24,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.submission-card__header strong { color: var(--color-ink); }
+.submission-card__header strong { color: var(--color-ink); font-weight: 600; }
 
 .submission-card__meta {
   margin: 2px 0 0;

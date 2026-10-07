@@ -1,100 +1,221 @@
 <!-- "/" - home.js shows exactly one of the two views below:
-     visitors get the explainer, signed-in people get their dashboard. -->
+     visitors get the explainer, signed-in members get their dashboard.
+     Icons reference the inline sprite in index.html (#i-*, #p-*). -->
 <div class="home" data-home>
 
-  <section class="home-hero" data-home-visitor hidden>
-    <div class="home-hero__copy">
-      <h1 class="home-hero__title">Grow your pages by helping others grow theirs.</h1>
-      <p class="home-hero__lede">
+  <!-- ═══ Visitor ═════════════════════════════════════════════════════ -->
+
+  <section class="hero" data-home-visitor hidden>
+    <h1 class="hero__title">Grow your pages by helping others grow theirs.</h1>
+    <div class="hero__copy">
+      <p class="hero__lede">
         Follow, like and subscribe for other creators to earn credits.
         Spend credits on a campaign, and real people do the same for you.
       </p>
-      <div class="home-hero__actions">
-        <a class="btn btn--primary" href="/register" data-link>Create account</a>
-        <a class="btn" href="/login" data-link>Sign in</a>
+      <div class="hero__actions">
+        <a class="btn btn--primary btn--lg" href="/register" data-link>Create account</a>
+        <a class="btn btn--lg" href="/login" data-link>Sign in</a>
+      </div>
+      <div class="hero__platforms">
+        <span>Works with</span>
+        <ul class="logo-row" data-home-logos aria-label="Supported platforms"></ul>
       </div>
     </div>
 
-    <figure class="ticket" aria-label="Example of how credits move">
-      <ol class="ticket__rows">
-        <li class="ticket__row">
-          <span class="ticket__what">Follow @tamuna.ceramics on Instagram</span>
-          <span class="ticket__amount ticket__amount--in">+12</span>
-        </li>
-        <li class="ticket__row">
-          <span class="ticket__what">Subscribe to a cooking channel on YouTube</span>
-          <span class="ticket__amount ticket__amount--in">+20</span>
-        </li>
-        <li class="ticket__row">
-          <span class="ticket__what">Like a TikTok filmed in Batumi</span>
-          <span class="ticket__amount ticket__amount--in">+5</span>
-        </li>
-        <li class="ticket__row ticket__row--total">
-          <span class="ticket__what">Earned</span>
-          <span class="ticket__amount">37 credits</span>
-        </li>
-        <li class="ticket__row ticket__row--spend">
-          <span class="ticket__what">Campaign: 3 people follow your page, 12 credits each</span>
-          <span class="ticket__amount ticket__amount--out">&minus;36</span>
-        </li>
-      </ol>
-      <figcaption class="ticket__caption">An example. Each campaign's creator sets its reward.</figcaption>
+    <figure class="hero__visual" aria-label="Example: credits earned from three tasks, then spent on a campaign">
+      <div class="ticket-back" aria-hidden="true"></div>
+      <div class="ticket">
+        <ol class="ticket__rows">
+          <li class="ticket__row">
+            <span class="platform-tile platform-tile--sm"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" role="img" aria-label="Instagram"><use href="#p-instagram" /></svg></span>
+            <span class="ticket__what"><strong>Follow @tamuna.ceramics</strong><small>Instagram</small></span>
+            <span class="ticket__amount ticket__amount--in">+12</span>
+          </li>
+          <li class="ticket__row">
+            <span class="platform-tile platform-tile--sm"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" role="img" aria-label="YouTube"><use href="#p-youtube" /></svg></span>
+            <span class="ticket__what"><strong>Subscribe to Lela's Kitchen</strong><small>YouTube</small></span>
+            <span class="ticket__amount ticket__amount--in">+20</span>
+          </li>
+          <li class="ticket__row">
+            <span class="platform-tile platform-tile--sm"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" role="img" aria-label="TikTok"><use href="#p-tiktok" /></svg></span>
+            <span class="ticket__what"><strong>Like a video filmed in Batumi</strong><small>TikTok</small></span>
+            <span class="ticket__amount ticket__amount--in">+5</span>
+          </li>
+          <li class="ticket__row ticket__row--total">
+            <span class="ticket__what"><strong>Earned</strong></span>
+            <span class="ticket__amount">37 credits</span>
+          </li>
+          <li class="ticket__row ticket__row--spend">
+            <span class="row-icon"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-megaphone" /></svg></span>
+            <span class="ticket__what">
+              <strong>Your campaign</strong>
+              <small>3 people follow your page, 12 credits each</small>
+              <span class="progress"><span class="progress__bar ticket__progress"></span></span>
+            </span>
+            <span class="ticket__amount">&minus;36</span>
+          </li>
+        </ol>
+        <figcaption class="ticket__caption">An example. Each campaign's creator sets its reward.</figcaption>
+      </div>
+      <div class="toast-chip" aria-hidden="true">
+        <svg class="icon" width="16" height="16" viewBox="0 0 24 24"><use href="#i-badge-check" /></svg>
+        Proof approved <b>+12</b>
+      </div>
     </figure>
   </section>
 
-  <section class="home-steps" data-home-visitor hidden aria-labelledby="home-steps-title">
-    <h2 id="home-steps-title">How it works</h2>
+  <section class="home-section" data-home-visitor hidden aria-labelledby="home-steps-title">
+    <div class="section-head">
+      <h2 id="home-steps-title">How it works</h2>
+      <p>Three steps, and the loop keeps going.</p>
+    </div>
     <ol class="steps">
-      <li class="steps__item">
+      <li class="step">
+        <div class="step__visual" aria-hidden="true">
+          <div class="mini-row">
+            <span class="platform-tile platform-tile--sm"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><use href="#p-instagram" /></svg></span>
+            <span class="mini-row__text"><b>tamuna.ceramics</b><small>Instagram</small></span>
+            <span class="mini-check"><svg class="icon" width="14" height="14" viewBox="0 0 24 24"><use href="#i-check" /></svg>Linked</span>
+          </div>
+          <div class="mini-row mini-row--faded">
+            <span class="platform-tile platform-tile--sm"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><use href="#p-tiktok" /></svg></span>
+            <span class="mini-row__text"><b>@tamuna.clay</b><small>TikTok</small></span>
+          </div>
+        </div>
         <h3>Link your accounts</h3>
         <p>Add the Instagram, TikTok or YouTube pages you want to grow.</p>
       </li>
-      <li class="steps__item">
+      <li class="step">
+        <div class="step__visual" aria-hidden="true">
+          <div class="mini-row">
+            <span class="platform-tile platform-tile--sm"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><use href="#p-youtube" /></svg></span>
+            <span class="mini-row__text"><b>Subscribe to Lela's Kitchen</b><small>Proof sent</small></span>
+            <span class="reward-chip">+20</span>
+          </div>
+          <div class="mini-proof"><svg class="icon" width="14" height="14" viewBox="0 0 24 24"><use href="#i-link" /></svg>youtube.com/@lelaskitchen</div>
+        </div>
         <h3>Complete tasks</h3>
         <p>Follow, like or subscribe, send proof, and earn credits once the creator approves it.</p>
       </li>
-      <li class="steps__item">
+      <li class="step">
+        <div class="step__visual" aria-hidden="true">
+          <div class="mini-row">
+            <span class="row-icon"><svg class="icon" width="16" height="16" viewBox="0 0 24 24"><use href="#i-megaphone" /></svg></span>
+            <span class="mini-row__text"><b>Grow my ceramics page</b><small>8 of 20 followers</small></span>
+          </div>
+          <span class="progress"><span class="progress__bar" style="width: 40%"></span></span>
+        </div>
         <h3>Launch a campaign</h3>
         <p>Set a reward and how many people you want. Credits are held when you launch and returned if you cancel.</p>
       </li>
     </ol>
   </section>
 
-  <section class="home-platforms" data-home-visitor hidden aria-labelledby="home-platforms-title">
-    <h2 id="home-platforms-title">Works with</h2>
-    <ul class="platform-list" data-home-platforms></ul>
+  <section class="home-section" data-home-visitor hidden aria-labelledby="home-fair-title">
+    <div class="section-head">
+      <h2 id="home-fair-title">Built to be fair</h2>
+      <p>These rules are enforced by the server, so nobody has to take anyone's word for it.</p>
+    </div>
+    <ul class="fair-grid">
+      <li>
+        <svg class="icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-badge-check" /></svg>
+        <h3>Proof before payment</h3>
+        <p>Credits move only after the campaign's creator approves your proof.</p>
+      </li>
+      <li>
+        <svg class="icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-lock" /></svg>
+        <h3>Budgets are held, not lost</h3>
+        <p>Launching a campaign holds its budget. Anything unspent comes back if you cancel.</p>
+      </li>
+      <li>
+        <svg class="icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-eye-off" /></svg>
+        <h3>No paying yourself</h3>
+        <p>You can't complete your own tasks, so every follow comes from someone else.</p>
+      </li>
+      <li>
+        <svg class="icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-repeat" /></svg>
+        <h3>One reward per person</h3>
+        <p>Each member can complete a task once, so the numbers stay honest.</p>
+      </li>
+    </ul>
   </section>
 
+  <section class="cta-band" data-home-visitor hidden>
+    <h2>Start with one task.</h2>
+    <p>Earn your first credits today, then put them to work for your own page.</p>
+    <a class="btn btn--primary btn--lg" href="/register" data-link>Create account</a>
+  </section>
+
+  <!-- ═══ Member dashboard ════════════════════════════════════════════ -->
+
   <section class="dashboard" data-home-member hidden>
-    <h1 class="dashboard__title" data-home-greeting>Welcome back</h1>
+    <header class="dashboard__head">
+      <div>
+        <h1 class="dashboard__title" data-home-greeting>Welcome back</h1>
+        <p class="dashboard__date" data-home-date></p>
+      </div>
+      <div class="dashboard__actions">
+        <a class="btn btn--primary" href="/tasks" data-link>
+          <svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search" /></svg>Find tasks
+        </a>
+        <a class="btn" href="/campaigns/new" data-link>
+          <svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-plus" /></svg>New campaign
+        </a>
+      </div>
+    </header>
 
-    <div class="home-stats">
-      <a class="home-stat" href="/credits" data-link>
-        <span class="home-stat__label">Credits</span>
-        <span class="home-stat__value" data-home-credits>&ndash;</span>
-      </a>
-      <a class="home-stat" href="/achievements" data-link>
-        <span class="home-stat__label">Level</span>
-        <span class="home-stat__value" data-home-level>&ndash;</span>
-        <span class="home-stat__note" data-home-xp></span>
-      </a>
-      <a class="home-stat" href="/notifications" data-link>
-        <span class="home-stat__label">Unread</span>
-        <span class="home-stat__value" data-home-unread>&ndash;</span>
-      </a>
-    </div>
+    <div class="dashboard__grid">
+      <article class="panel balance-card">
+        <div class="panel__head">
+          <span class="panel__label"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-coins" /></svg>Balance</span>
+          <a href="/credits" data-link>History</a>
+        </div>
+        <p class="balance-card__value"><span data-home-credits>&ndash;</span> <small>credits</small></p>
+        <p class="balance-card__delta" data-home-delta></p>
+        <div class="spark" data-home-spark aria-hidden="true"></div>
+      </article>
 
-    <div class="dashboard__actions">
-      <a class="btn btn--primary" href="/tasks" data-link>Find tasks</a>
-      <a class="btn" href="/campaigns/new" data-link>New campaign</a>
-    </div>
+      <article class="panel level-card">
+        <div class="panel__head">
+          <span class="panel__label"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-award" /></svg>Level</span>
+          <a href="/achievements" data-link>Achievements</a>
+        </div>
+        <p class="level-card__value" data-home-level>&ndash;</p>
+        <span class="progress" role="progressbar" aria-label="Progress to next level" aria-valuemin="0" aria-valuemax="1000" data-home-xp-bar>
+          <span class="progress__bar" style="width: 0%"></span>
+        </span>
+        <p class="level-card__note" data-home-xp></p>
+        <a class="level-card__badges" href="/achievements" data-link data-home-badges hidden>
+          <span class="row-icon"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-award" /></svg></span>
+          <span><b data-home-badge-count></b> achievements unlocked</span>
+        </a>
+      </article>
 
-    <div class="dashboard__section-head">
-      <h2>Open tasks</h2>
-      <a href="/tasks" data-link>See all tasks</a>
+      <section class="panel tasks-panel" aria-labelledby="home-open-tasks">
+        <div class="panel__head">
+          <h2 id="home-open-tasks">Open tasks</h2>
+          <a href="/tasks" data-link>See all</a>
+        </div>
+        <ul class="home-task-list" data-home-tasks></ul>
+        <p class="form-error" data-home-error role="alert" hidden></p>
+      </section>
+
+      <section class="panel inbox-panel" aria-labelledby="home-inbox">
+        <div class="panel__head"><h2 id="home-inbox">Inbox</h2></div>
+        <a class="inbox-row" href="/submissions/review" data-link>
+          <span class="row-icon"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-clipboard-check" /></svg></span>
+          <span class="inbox-row__text"><b>To review</b><small data-home-review>&ndash;</small></span>
+          <svg class="icon row-chevron" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+        </a>
+        <a class="inbox-row" href="/notifications" data-link>
+          <span class="row-icon"><svg class="icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-bell" /></svg></span>
+          <span class="inbox-row__text"><b>Notifications</b><small data-home-unread>&ndash;</small></span>
+          <svg class="icon row-chevron" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+        </a>
+        <h2 class="inbox-panel__sub">Recent activity</h2>
+        <ul class="activity-feed" data-home-activity></ul>
+      </section>
     </div>
-    <ul class="home-task-list" data-home-tasks></ul>
-    <p class="form-error" data-home-error role="alert" hidden></p>
   </section>
 
 </div>

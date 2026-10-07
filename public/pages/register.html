@@ -1,25 +1,32 @@
 <section class="auth-page">
-  <h1>Create account</h1>
-  <form id="register-form" class="form" novalidate>
-    <div class="field">
-      <label for="register-email">Email</label>
-      <input id="register-email" name="email" type="email" autocomplete="email" required />
-    </div>
-    <div class="field">
-      <label for="register-username">Username</label>
-      <input id="register-username" name="username" type="text" autocomplete="username" minlength="3" maxlength="30" />
-    </div>
-    <div class="field">
-      <label for="register-password">Password</label>
-      <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="8" required />
-    </div>
-    <div class="field">
-      <label for="register-referral">Referral code (optional)</label>
-      <input id="register-referral" name="referral_code" type="text" autocomplete="off" />
-    </div>
-    <p class="form-error" id="register-error" role="alert" hidden></p>
-    <p class="form-success" id="register-success" role="status" hidden></p>
-    <button type="submit" class="btn btn--primary">Create account</button>
-  </form>
+  <div class="auth-card">
+    <span class="brand__mark auth-card__mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h14.5M15 5l3.5 3.5L15 12" /><path d="M20 15.5H5.5M9 12l-3.5 3.5L9 19" /></svg>
+    </span>
+    <h1>Create account</h1>
+    <p class="auth-card__sub">Free to join. Earn credits by helping others, then spend them on your own page.</p>
+    <form id="register-form" class="form" novalidate>
+      <div class="field">
+        <label for="register-email">Email</label>
+        <input id="register-email" name="email" type="email" autocomplete="email" required />
+      </div>
+      <div class="field">
+        <label for="register-username">Username</label>
+        <input id="register-username" name="username" type="text" autocomplete="username" minlength="3" maxlength="30" />
+      </div>
+      <div class="field">
+        <label for="register-password">Password</label>
+        <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="8" required />
+      </div>
+      <div class="field">
+        <label for="register-referral">Referral code (optional)</label>
+        <input id="register-referral" name="referral_code" type="text" autocomplete="off" />
+      </div>
+      <p class="form-error" id="register-error" role="alert" hidden></p>
+      <p class="form-success" id="register-success" role="status" hidden></p>
+      <button type="submit" class="btn btn--primary">Create account</button>
+    </form>
+  </div>
+
   <p class="auth-page__alt">Already have an account? <a href="/login" data-link>Sign in</a></p>
 </section>

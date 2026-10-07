@@ -17,6 +17,7 @@ html, body {
 }
 
 body {
+  overflow-x: clip; /* full-bleed decorations never cause sideways scroll */
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
@@ -37,7 +38,7 @@ h1, h2, h3, h4 {
   text-wrap: balance;
 }
 
-h1 { font-size: var(--font-size-2xl); margin: 0 0 var(--space-5); }
+h1 { font-size: var(--font-size-2xl); font-weight: 700; letter-spacing: -0.03em; margin: 0 0 var(--space-5); }
 h2 { font-size: var(--font-size-lg); margin: var(--space-8) 0 var(--space-4); }
 h3 { font-size: var(--font-size-base); margin: var(--space-5) 0 var(--space-2); }
 h2:first-child, h3:first-child { margin-top: 0; }
@@ -102,12 +103,35 @@ button, input, select, textarea {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs), var(--highlight);
   overflow: hidden;
 }
 
+/* While a list is still empty (first load), show skeleton rows; once the
+   page has rendered rows or an empty-state row this no longer matches.
+   If loading failed (the error message after it is visible), hide it. */
 :is(.task-list, .campaign-list, .submission-list, .ledger-list, .notification-list,
-    .referral-list, .report-list, .admin-user-list, .admin-report-list, .social-list,
-    .activity-list, .home-task-list):empty { display: none; }
+    .referral-list, .report-list, .admin-user-list, .admin-report-list,
+    .home-task-list):empty {
+  display: block;
+  height: 216px;
+  background:
+    linear-gradient(90deg, transparent, var(--color-hover) 40%, transparent 80%) -60% 0 / 60% 100% no-repeat,
+    repeating-linear-gradient(to bottom,
+      transparent 0 20px, var(--color-tile) 20px 32px, transparent 32px 40px,
+      var(--color-tile) 40px 48px, transparent 48px 71px, var(--color-border) 71px 72px)
+      var(--space-4) 0 / 55% 100% no-repeat,
+    var(--color-bg);
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+:is(.task-list, .campaign-list, .submission-list, .ledger-list, .notification-list,
+    .referral-list, .report-list, .admin-user-list, .admin-report-list,
+    .home-task-list):empty:has(~ .form-error:not([hidden])) { display: none; }
+.social-list:empty, .activity-list:empty { display: none; }
+
+@keyframes skeleton-sweep {
+  to { background-position: 160% 0, var(--space-4) 0, 0 0; }
+}
 
 :is(.task-list, .campaign-list, .submission-list, .ledger-list, .notification-list,
     .referral-list, .report-list, .admin-user-list, .admin-report-list, .social-list,
@@ -188,7 +212,7 @@ button, input, select, textarea {
 :is(.campaigns-page__header, .notifications-page__header) h1 { margin: 0; }
 
 /* Intro line under a page title. */
-:is(.review-queue__intro, .campaign-new__intro, .task-detail__meta, .campaign-detail__meta) {
+:is(.page-intro, .review-queue__intro, .campaign-new__intro, .task-detail__meta, .campaign-detail__meta) {
   margin: calc(var(--space-3) * -1) 0 var(--space-5);
   color: var(--color-text-muted);
 }
@@ -208,7 +232,7 @@ button, input, select, textarea {
 /* <dl> summaries: label left, value right, one hairline per row - the
    same reading as the credit ledger. */
 
-:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+:is(.profile-stats, .profile-view__stats, .credits-summary,
     .campaign-detail__stats, .admin-user-detail__meta) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -218,31 +242,32 @@ button, input, select, textarea {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs), var(--highlight);
   font-size: var(--font-size-sm);
 }
-:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+:is(.profile-stats, .profile-view__stats, .credits-summary,
     .campaign-detail__stats, .admin-user-detail__meta):empty { display: none; }
 
-:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+:is(.profile-stats, .profile-view__stats, .credits-summary,
     .campaign-detail__stats, .admin-user-detail__meta) :is(dt, dd) {
   margin: 0;
   padding: 12px var(--space-4);
   border-top: 1px solid var(--color-border);
 }
 
-:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+:is(.profile-stats, .profile-view__stats, .credits-summary,
     .campaign-detail__stats, .admin-user-detail__meta) :is(dt:first-of-type, dt:first-of-type + dd) {
   border-top: 0;
 }
 
-:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+:is(.profile-stats, .profile-view__stats, .credits-summary,
     .campaign-detail__stats, .admin-user-detail__meta) dt {
   color: var(--color-text-muted);
   font-weight: 400;
   white-space: normal;
 }
 
-:is(.profile-stats, .profile-view__stats, .credits-summary, .achievements-level,
+:is(.profile-stats, .profile-view__stats, .credits-summary,
     .campaign-detail__stats, .admin-user-detail__meta) dd {
   color: var(--color-ink);
   font-weight: 500;
@@ -262,4 +287,213 @@ button, input, select, textarea {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ── Icons ────────────────────────────────────────────────────────────── */
+/* UI icons inherit stroke settings from here (sprite symbols set none);
+   platform logos carry their own solid fill. */
+
+.icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+.icon {
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Platform tiles + avatars ─────────────────────────────────────────── */
+
+.platform-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--color-tile);
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+.platform-tile--sm { width: 32px; height: 32px; border-radius: 8px; }
+.platform-tile--lg { width: 48px; height: 48px; border-radius: 12px; }
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.avatar--sm { width: 28px; height: 28px; font-size: 0.6875rem; }
+.avatar--lg { width: 56px; height: 56px; font-size: 1.125rem; }
+
+/* ── Badges ───────────────────────────────────────────────────────────── */
+
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.nav-badge--dot {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 16px);
+  min-width: 8px;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  margin: 0;
+  box-shadow: 0 0 0 2px var(--color-bg);
+}
+
+/* ── Visitor / member visibility (html[data-auth]) ────────────────────── */
+
+:root[data-auth="in"] .visitor-only,
+:root:not([data-auth="in"]) .member-only { display: none !important; }
+
+/* ── Empty states ─────────────────────────────────────────────────────── */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+.empty-state .icon { color: var(--color-text-subtle); margin-bottom: var(--space-1); }
+.empty-state strong { color: var(--color-ink); font-size: var(--font-size-base); font-weight: 600; }
+.empty-state p { margin: 0; max-width: 46ch; }
+.empty-state .btn { margin-top: var(--space-2); }
+
+/* ── Skip link ────────────────────────────────────────────────────────── */
+
+.skip-link {
+  position: absolute;
+  left: var(--space-3);
+  top: -100px;
+  z-index: 100;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+  border-radius: var(--radius-sm);
+}
+.skip-link:focus { top: var(--space-3); }
+
+/* ── Page enter ───────────────────────────────────────────────────────── */
+/* The router swaps #app-root's children; each new page eases in once. */
+
+.app-main > * { animation: page-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── Row parts ────────────────────────────────────────────────────────── */
+
+/* Earned credits: tinted pill, the one place green carries meaning. */
+.reward-chip {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-success) 11%, var(--color-bg));
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Leading icon tile for rows without a platform (ledger, notifications). */
+.row-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--color-tile);
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.row-chevron {
+  color: var(--color-text-subtle);
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+a:hover > .row-chevron { color: var(--color-ink); transform: translateX(2px); }
+
+/* Thin progress track (campaign completions, level XP). */
+.progress {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-tile);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+.progress__bar {
+  display: block;
+  height: 100%;
+  min-width: 6px;
+  border-radius: inherit;
+  background: var(--color-ink);
+}
+
+/* ── Panels ───────────────────────────────────────────────────────────── */
+/* Raised containers for summaries (dashboard cards, credits balance). */
+
+.panel {
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm), var(--highlight);
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.panel__head h2 { margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
+.panel__head a { font-size: 0.8125rem; font-weight: 500; }
+
+.panel__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
 }

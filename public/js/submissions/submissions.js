@@ -11,12 +11,20 @@ import { ApiError } from '../shared/errors.js';
 
 import { statusLabel } from './status.js';
 import { taskActionLabel } from '../shared/task-label.js';
+import { platformTile } from '../shared/icons.js';
+import { emptyState } from '../shared/empty-state.js';
 
 function renderSubmissions(listEl, completions, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
 
   if (completions.length === 0 && listEl.children.length === 0) {
-    listEl.append(createEl('li', { class: 'submission-list__empty' }, 'No submissions yet.'));
+    listEl.append(emptyState({
+      iconId: 'i-inbox',
+      title: 'No submissions yet',
+      text: 'When you complete a task and send proof, it shows up here until the campaign owner reviews it.',
+      action: { href: '/tasks', label: 'Find a task' },
+      className: 'submission-list__empty',
+    }));
     return;
   }
 
@@ -33,7 +41,10 @@ function renderSubmissions(listEl, completions, { append = false } = {}) {
       children.push(createEl('p', { class: 'submission-card__notes' }, `Reviewer notes: ${c.review_notes}`));
     }
 
-    listEl.append(createEl('li', { class: 'submission-card' }, children));
+    listEl.append(createEl('li', { class: 'submission-card' }, [
+      platformTile(c.platform, { size: 'sm' }),
+      createEl('div', { class: 'submission-card__body' }, children),
+    ]));
   }
 }
 

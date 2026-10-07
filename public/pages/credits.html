@@ -1,6 +1,17 @@
 <section class="credits-page">
   <h1>Credits</h1>
-  <p class="credits-balance" data-credits-balance>Loading&hellip;</p>
+  <p class="page-intro">Everything you have earned and spent, newest first.</p>
+
+  <div class="panel credits-hero">
+    <div>
+      <span class="panel__label"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-coins" /></svg>Balance</span>
+      <p class="credits-balance" data-credits-balance>&nbsp;</p>
+    </div>
+    <div class="credits-hero__actions">
+      <a class="btn btn--primary" href="/tasks" data-link>Earn credits</a>
+      <a class="btn" href="/campaigns/new" data-link>Spend on a campaign</a>
+    </div>
+  </div>
 
   <h2>Summary</h2>
   <dl class="credits-summary" data-credits-summary></dl>

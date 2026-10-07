@@ -30,8 +30,15 @@
 }
 @font-face {
   font-family: "FiraGO";
+  src: url("/fonts/FiraGO-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "FiraGO";
   src: url("/fonts/FiraGO-SemiBold.woff2") format("woff2");
-  font-weight: 600 700;
+  font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
@@ -60,6 +67,14 @@
   --color-danger: #dc2626;
   --color-scrim: rgba(255, 255, 255, 0.82); /* frosted header */
   --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --color-tile: #f4f4f5;            /* icon tiles, avatars */
+  --color-grid: rgba(0, 0, 0, 0.075);  /* hero dot texture */
+  --color-glow: rgba(0, 0, 0, 0.045);  /* hero light falloff */
+  /* Depth: hairline + soft shadow; the inner highlight only shows in dark */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 32px 64px -24px rgba(0, 0, 0, 0.22), 0 12px 24px -12px rgba(0, 0, 0, 0.08);
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0);
 
   /* ── Typography ─────────────────────────────────────────────────────── */
   --font-sans: "FiraGO", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Georgian", sans-serif;
@@ -95,6 +110,9 @@
   --content-width: 720px;
   --wide-width: 1040px;
   --header-height: 64px;
+  --sidebar-width: 248px;
+  --tabbar-height: 64px;
+  --radius-xl: 20px;     /* product shots, feature panels */
 
   /* ── Motion ─────────────────────────────────────────────────────────── */
   --transition-fast: 120ms ease;
@@ -126,6 +144,13 @@
   --color-danger: #f87171;
   --color-scrim: rgba(0, 0, 0, 0.78);
   --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --color-tile: #161616;
+  --color-grid: rgba(255, 255, 255, 0.085);
+  --color-glow: rgba(255, 255, 255, 0.07);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 32px 64px -24px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -137,7 +162,7 @@
     --color-hover: #161616;
     --color-border: #262626;
     --color-border-strong: #3f3f3f;
-  --color-control-border: #616161;
+    --color-control-border: #616161;
     --color-ink: #ffffff;
     --color-on-ink: #000000;
     --color-text: #ededed;
@@ -151,5 +176,12 @@
     --color-danger: #f87171;
     --color-scrim: rgba(0, 0, 0, 0.78);
     --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.6);
+    --color-tile: #161616;
+    --color-grid: rgba(255, 255, 255, 0.085);
+    --color-glow: rgba(255, 255, 255, 0.07);
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 32px 64px -24px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.02);
+    --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 }

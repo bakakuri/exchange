@@ -1,22 +1,32 @@
 /* css/credits.css - /credits: balance, per-type summary, transaction
    history. The summary panel and list container come from base.css. */
 
+.credits-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+.credits-hero__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
 .credits-balance {
-  margin: calc(var(--space-3) * -1) 0 var(--space-6);
+  margin: 6px 0 0;
   color: var(--color-ink);
-  font-size: clamp(2.5rem, 7vw, 3.5rem);
-  font-weight: 600;
+  font-size: clamp(2.5rem, 6vw, 3.25rem);
+  font-weight: 700;
   line-height: 1.05;
-  letter-spacing: var(--tracking-display);
+  letter-spacing: -0.045em;
 }
 
 .ledger-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
+  gap: 14px;
   padding: 14px var(--space-4);
 }
+.ledger-item__main { flex: 1; }
 
 .ledger-item__main {
   display: flex;

@@ -12,21 +12,26 @@
 
 .notification-item {
   position: relative;
-  padding: 14px var(--space-4) 14px calc(var(--space-4) + 14px);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: var(--space-4);
 }
+.notification-item__content { flex: 1; min-width: 0; }
 
-/* Unread: a small accent dot, the same language as the status chips. */
-.notification-item::before {
+/* Unread: a blue dot on the icon tile + bold title. */
+.notification-item--unread .row-icon { position: relative; }
+.notification-item--unread .row-icon::after {
   content: "";
   position: absolute;
-  left: var(--space-4);
-  top: 22px;
-  width: 6px;
-  height: 6px;
+  top: -3px;
+  right: -3px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: transparent;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-bg);
 }
-.notification-item--unread::before { background: var(--color-accent); }
 .notification-item--unread .notification-item__main > :first-child { color: var(--color-ink); font-weight: 600; }
 
 .notification-item__main {

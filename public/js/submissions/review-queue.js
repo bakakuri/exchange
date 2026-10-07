@@ -13,6 +13,9 @@ import { ApiError } from '../shared/errors.js';
 
 import { statusLabel } from './status.js';
 import { taskActionLabel } from '../shared/task-label.js';
+import { platformTile } from '../shared/icons.js';
+import { emptyState } from '../shared/empty-state.js';
+import { refreshNavBadges } from '../core/nav-badges.js';
 
 function renderProof(c) {
   const parts = [];
@@ -45,6 +48,7 @@ function renderActions(c, card, onDecided) {
     confirmRejectBtn.disabled = true;
     try {
       await api.verification.review(c.id, { decision, review_notes });
+      refreshNavBadges();
       onDecided();
     } catch (err) {
       errorEl.textContent = err instanceof ApiError ? err.message : 'Could not record that decision.';
@@ -74,7 +78,12 @@ function renderList(listEl, completions, reload, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
 
   if (completions.length === 0 && listEl.children.length === 0) {
-    listEl.append(createEl('li', { class: 'submission-list__empty' }, 'Nothing to review right now.'));
+    listEl.append(emptyState({
+      iconId: 'i-clipboard-check',
+      title: 'Nothing to review',
+      text: 'When someone completes a task from one of your campaigns, their proof appears here for you to approve or reject.',
+      className: 'submission-list__empty',
+    }));
     return;
   }
 
@@ -94,10 +103,11 @@ function renderList(listEl, completions, reload, { append = false } = {}) {
       children.push(createEl('p', { class: 'submission-card__notes' }, `Your notes: ${c.review_notes}`));
     }
 
-    const card = createEl('li', { class: 'submission-card' }, children);
+    const body = createEl('div', { class: 'submission-card__body' }, children);
+    const card = createEl('li', { class: 'submission-card' }, [platformTile(c.platform, { size: 'sm' }), body]);
 
     if (c.status === 'pending') {
-      card.append(renderActions(c, card, reload));
+      body.append(renderActions(c, card, reload));
     }
 
     listEl.append(card);

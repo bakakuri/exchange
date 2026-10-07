@@ -7,12 +7,20 @@ import { ApiError } from '../shared/errors.js';
 import { TASK_PLATFORMS } from '../shared/task-platforms.js';
 import { TASK_TYPES } from '../shared/task-types.js';
 import { taskActionLabel } from '../shared/task-label.js';
+import { icon, platformTile } from '../shared/icons.js';
+import { emptyState } from '../shared/empty-state.js';
 
 function renderTasks(listEl, tasks, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
 
   if (tasks.length === 0 && listEl.children.length === 0) {
-    listEl.append(createEl('li', { class: 'task-list__empty' }, 'No open tasks right now — check back soon.'));
+    listEl.append(emptyState({
+      iconId: 'i-list-checks',
+      title: 'No open tasks right now',
+      text: 'New tasks appear here as soon as someone launches a campaign. Try another platform or type, or start a campaign of your own.',
+      action: { href: '/campaigns/new', label: 'Start a campaign' },
+      className: 'task-list__empty',
+    }));
     return;
   }
 
@@ -20,11 +28,13 @@ function renderTasks(listEl, tasks, { append = false } = {}) {
     listEl.append(
       createEl('li', { class: 'task-card' }, [
         createEl('a', { href: `/tasks/${task.id}`, 'data-link': '', class: 'task-card__link' }, [
-          createEl('div', { class: 'task-card__header' }, [
-            createEl('strong', {}, task.campaign_title),
-            createEl('span', { class: 'task-card__reward' }, `${task.reward} credits`),
+          platformTile(task.platform),
+          createEl('span', { class: 'task-card__body' }, [
+            createEl('strong', { class: 'task-card__title' }, task.campaign_title),
+            createEl('span', { class: 'task-card__meta' }, taskActionLabel(task.task_type, task.platform)),
           ]),
-          createEl('p', { class: 'task-card__meta' }, taskActionLabel(task.task_type, task.platform)),
+          createEl('span', { class: 'reward-chip', title: `${task.reward} credits` }, `+${task.reward}`),
+          icon('i-chevron-right', { size: 16, className: 'row-chevron' }),
         ]),
       ])
     );

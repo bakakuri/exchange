@@ -4,6 +4,9 @@
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
+import { icon } from '../shared/icons.js';
+import { emptyState } from '../shared/empty-state.js';
+import { shortDateTime, fullDateTime } from '../shared/time.js';
 
 const TYPE_LABELS = {
   task_reward: 'Task reward',
@@ -26,6 +29,18 @@ function formatAmount(amount) {
 // total_amount desending so the biggest sources of (or drains on)
 // credits lead, rather than whatever order the database happens to
 // return groups in.
+// One icon per kind of credit movement, matching the notifications page.
+const TYPE_ICONS = {
+  task_reward: 'i-coins',
+  campaign_reservation: 'i-megaphone',
+  campaign_refund: 'i-repeat',
+  referral_reward: 'i-users',
+  signup_bonus: 'i-sparkles',
+  admin_adjustment: 'i-shield',
+  reversal: 'i-repeat',
+  penalty: 'i-circle-alert',
+};
+
 function renderSummary(dl, byType) {
   dl.innerHTML = '';
 
@@ -50,7 +65,7 @@ function renderEntries(listEl, entries, { append = false } = {}) {
   for (const entry of entries) {
     const main = createEl('div', { class: 'ledger-item__main' }, [
       createEl('strong', {}, TYPE_LABELS[entry.type] || entry.type),
-      createEl('time', { class: 'ledger-item__date' }, new Date(entry.created_at).toLocaleString()),
+      createEl('time', { class: 'ledger-item__date', datetime: entry.created_at, title: fullDateTime(entry.created_at) }, shortDateTime(entry.created_at)),
     ]);
     if (entry.description) {
       main.insertBefore(
@@ -61,7 +76,11 @@ function renderEntries(listEl, entries, { append = false } = {}) {
 
     const amountClass = entry.amount > 0 ? 'ledger-amount ledger-amount--positive' : 'ledger-amount ledger-amount--negative';
     listEl.append(
-      createEl('li', { class: 'ledger-item' }, [main, createEl('span', { class: amountClass }, formatAmount(entry.amount))])
+      createEl('li', { class: 'ledger-item' }, [
+        createEl('span', { class: 'row-icon' }, [icon(TYPE_ICONS[entry.type] || 'i-coins', { size: 18 })]),
+        main,
+        createEl('span', { class: amountClass }, formatAmount(entry.amount)),
+      ])
     );
   }
 }
@@ -98,7 +117,13 @@ export async function init() {
       cursor = next_cursor;
       loadMoreBtn.hidden = !cursor;
       if (entries.length === 0 && listEl.children.length === 0) {
-        listEl.append(createEl('li', { class: 'ledger-item ledger-item--empty' }, 'No transactions yet.'));
+        listEl.append(emptyState({
+          iconId: 'i-coins',
+          title: 'No transactions yet',
+          text: 'Credits you earn from tasks and spend on campaigns are listed here, newest first.',
+          action: { href: '/tasks', label: 'Find a task' },
+          className: 'ledger-item--empty',
+        }));
       }
     } catch (err) {
       errorEl.textContent = err instanceof ApiError ? err.message : 'Could not load your transaction history.';

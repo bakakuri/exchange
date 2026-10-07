@@ -146,13 +146,22 @@ input[type="radio"] {
   background: var(--color-ink);
   color: var(--color-on-ink);
   border-color: var(--color-ink);
+  box-shadow: var(--shadow-xs), inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
+.btn:not(.btn--primary):not(.btn--danger):not(.btn--success) { box-shadow: var(--shadow-xs); }
 .btn--primary:hover:not(:disabled) { background: var(--color-ink); opacity: 0.86; }
 
 .btn--ghost {
   background: transparent;
   border-color: var(--color-border-strong);
   color: var(--color-ink);
+}
+
+.btn--lg {
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 10px;
+  font-size: 1rem;
 }
 
 .btn--sm {
@@ -199,21 +208,58 @@ input[type="radio"] {
 }
 
 /* ── Auth pages (sign in, create account, reset password) ─────────────── */
+/* A centered card on the same dot texture as the home hero. */
 
 .auth-page {
-  max-width: 400px;
-  padding-top: var(--space-5);
+  position: relative;
+  isolation: isolate;
+  max-width: 420px;
+  margin: 0 auto;
+  padding-top: var(--space-6);
+}
+.auth-page::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: calc(var(--space-8) * -1);
+  left: 50%;
+  width: 100vw;
+  height: 640px;
+  transform: translateX(-50%);
+  background-image: radial-gradient(var(--color-grid) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse 46% 60% at 50% 30%, #000, transparent 75%);
+  mask-image: radial-gradient(ellipse 46% 60% at 50% 30%, #000, transparent 75%);
+  pointer-events: none;
 }
 
+.auth-card {
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-lg), var(--highlight);
+}
+
+.auth-card__mark { width: 40px; height: 40px; border-radius: 12px; margin-bottom: var(--space-5); }
+.auth-card h1 { margin: 0 0 6px; font-size: 1.625rem; font-weight: 700; letter-spacing: -0.03em; }
+.auth-card__sub { margin: 0 0 var(--space-5); color: var(--color-text-muted); font-size: 0.9375rem; }
+
 .auth-page .form { max-width: none; }
-.auth-page .btn--primary { width: 100%; min-height: 44px; margin-top: var(--space-2); }
+.auth-page .form > .btn--primary { width: 100%; min-height: 46px; margin-top: var(--space-2); align-self: stretch; }
 
 .auth-page__alt {
   margin: var(--space-4) 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  text-align: center;
 }
 .auth-page__alt + .auth-page__alt { margin-top: var(--space-2); }
+
+@media (max-width: 480px) {
+  .auth-page { padding-top: var(--space-2); }
+  .auth-card { padding: var(--space-5); }
+}
 
 /* Load-more buttons sit under their list. */
 [id$="load-more"],

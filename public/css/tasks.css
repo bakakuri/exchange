@@ -7,36 +7,31 @@
 .task-card:hover { background: var(--color-hover); }
 
 .task-card__link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   padding: 14px var(--space-4);
   color: var(--color-text);
 }
 .task-card__link:hover { text-decoration: none; }
 
-.task-card__header {
+.task-card__body {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-4);
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.task-card__header strong {
-  min-width: 0;
+.task-card__title {
   overflow: hidden;
   color: var(--color-ink);
-  font-weight: 500;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.task-card__reward {
-  flex-shrink: 0;
-  color: var(--color-success);
-  font-weight: 600;
-}
-
 .task-card__meta {
-  margin: 2px 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }

@@ -10,78 +10,226 @@ import { qs, qsa, createEl } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
 import { TASK_PLATFORMS } from '../shared/task-platforms.js';
 import { taskActionLabel } from '../shared/task-label.js';
+import { icon, platformIcon, platformTile } from '../shared/icons.js';
+import { emptyState } from '../shared/empty-state.js';
+import { timeAgo, fullDateTime } from '../shared/time.js';
 
 const DASHBOARD_TASKS = 5;
+const DASHBOARD_ACTIVITY = 5;
+const XP_PER_LEVEL = 1000; // calculate_level() in 015_functions.sql
+const SVG_NS = 'http://www.w3.org/2000/svg';
 
 function showView(name) {
   qsa('[data-home-visitor]').forEach((el) => { el.hidden = name !== 'visitor'; });
   qsa('[data-home-member]').forEach((el) => { el.hidden = name !== 'member'; });
 }
 
-// ── Visitor ────────────────────────────────────────────────────────────
-
-function renderVisitor() {
-  showView('visitor');
-  const list = qs('[data-home-platforms]');
-  if (!list || list.children.length) return;
-  for (const p of TASK_PLATFORMS) {
-    if (p.value === 'other') continue;
-    list.append(createEl('li', { class: 'platform-list__item' }, p.label));
-  }
-}
-
-// ── Signed in ──────────────────────────────────────────────────────────
-
 const setText = (sel, text) => {
   const el = qs(sel);
   if (el) el.textContent = text;
 };
 
+// ── Visitor ────────────────────────────────────────────────────────────
+
+function renderVisitor() {
+  showView('visitor');
+  const row = qs('[data-home-logos]');
+  if (!row || row.children.length) return;
+  for (const p of TASK_PLATFORMS) {
+    if (p.value === 'other' || p.value === 'linkedin') continue;
+    row.append(createEl('li', { title: p.label }, [platformIcon(p.value, { size: 20, label: p.label })]));
+  }
+}
+
+// ── Dashboard helpers ──────────────────────────────────────────────────
+
+function greeting(name) {
+  const h = new Date().getHours();
+  const part = h < 5 ? 'Good evening' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  return `${part}, ${name}`;
+}
+
+function formatSigned(n) {
+  if (n > 0) return `+${n}`;
+  if (n < 0) return `−${Math.abs(n)}`;
+  return '0';
+}
+
+// Balance history from the real ledger (balance_after per entry, newest
+// first from the API) drawn as a line + soft area.
+function renderSparkline(el, entries) {
+  el.innerHTML = '';
+  const ordered = [...entries].reverse();
+  if (ordered.length === 0) {
+    el.append(createEl('p', { class: 'spark__empty' }, 'Your balance history appears after your first transaction.'));
+    return;
+  }
+  const values = [ordered[0].balance_after - ordered[0].amount, ...ordered.map((e) => e.balance_after)];
+  const w = 300;
+  const h = 64;
+  const pad = 4;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const x = (i) => (i / (values.length - 1)) * w;
+  const y = (v) => h - pad - ((v - min) / span) * (h - pad * 2);
+  const line = values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('class', 'spark__svg');
+  const area = document.createElementNS(SVG_NS, 'path');
+  area.setAttribute('d', `${line} L${w},${h} L0,${h} Z`);
+  area.setAttribute('class', 'spark__area');
+  const path = document.createElementNS(SVG_NS, 'path');
+  path.setAttribute('d', line);
+  path.setAttribute('class', 'spark__line');
+  path.setAttribute('vector-effect', 'non-scaling-stroke');
+  svg.append(area, path);
+  el.append(svg);
+}
+
+function renderDelta(entries) {
+  const weekAgo = Date.now() - 7 * 86400000;
+  const recent = entries.filter((e) => new Date(e.created_at).getTime() >= weekAgo);
+  const sum = recent.reduce((acc, e) => acc + e.amount, 0);
+  const el = qs('[data-home-delta]');
+  if (!el) return;
+  el.classList.toggle('is-up', sum > 0);
+  el.textContent = recent.length ? `${formatSigned(sum)} in the last 7 days` : 'No movement in the last 7 days';
+}
+
+function renderLevel(user) {
+  const level = user.level ?? 1;
+  const xp = user.xp ?? 0;
+  // XP inside the current level (level = floor(xp / 1000) + 1).
+  const into = ((xp % XP_PER_LEVEL) + XP_PER_LEVEL) % XP_PER_LEVEL;
+  const pct = Math.min(100, Math.round((into / XP_PER_LEVEL) * 100));
+  setText('[data-home-level]', `Level ${level}`);
+  setText('[data-home-xp]', `${into} of ${XP_PER_LEVEL} XP to level ${level + 1}`);
+  const bar = qs('[data-home-xp-bar]');
+  if (bar) {
+    bar.setAttribute('aria-valuenow', String(into));
+    bar.firstElementChild.style.width = `${pct}%`;
+  }
+}
+
 function renderTasks(listEl, tasks) {
   listEl.innerHTML = '';
   if (!tasks.length) {
-    listEl.append(
-      createEl('li', { class: 'home-task-list__empty' }, [
-        'No open tasks right now. ',
-        createEl('a', { href: '/campaigns/new', 'data-link': '' }, 'Start a campaign'),
-        ' so others can find your page.',
-      ])
-    );
+    listEl.append(emptyState({
+      iconId: 'i-list-checks',
+      title: 'No open tasks right now',
+      text: 'New tasks appear as soon as someone launches a campaign.',
+      action: { href: '/campaigns/new', label: 'Start a campaign' },
+      className: 'home-task-list__empty',
+    }));
     return;
   }
   for (const task of tasks.slice(0, DASHBOARD_TASKS)) {
     listEl.append(
       createEl('li', {}, [
         createEl('a', { class: 'home-task', href: `/tasks/${task.id}`, 'data-link': '' }, [
+          platformTile(task.platform, { size: 'sm' }),
           createEl('span', { class: 'home-task__main' }, [
             createEl('span', { class: 'home-task__title' }, task.campaign_title),
             createEl('span', { class: 'home-task__action' }, taskActionLabel(task.task_type, task.platform)),
           ]),
-          createEl('span', { class: 'home-task__reward' }, `+${task.reward}`),
+          createEl('span', { class: 'reward-chip' }, `+${task.reward}`),
         ]),
       ])
     );
   }
 }
 
+const ACTIVITY_ICONS = {
+  task_completed: 'i-circle-check',
+  reward_earned: 'i-coins',
+  campaign_created: 'i-megaphone',
+  campaign_completed: 'i-megaphone',
+  verification_submitted: 'i-inbox',
+  verification_reviewed: 'i-clipboard-check',
+  achievement_unlocked: 'i-award',
+  referral_joined: 'i-users',
+};
+
+function activityLabel(type) {
+  const words = String(type).split('_');
+  return words[0].charAt(0).toUpperCase() + words[0].slice(1) + ' ' + words.slice(1).join(' ');
+}
+
+function renderActivity(listEl, items) {
+  listEl.innerHTML = '';
+  if (!items.length) {
+    listEl.append(createEl('li', { class: 'activity-feed__empty' }, 'Tasks you complete and campaigns you launch will show up here.'));
+    return;
+  }
+  for (const a of items.slice(0, DASHBOARD_ACTIVITY)) {
+    listEl.append(createEl('li', {}, [
+      icon(ACTIVITY_ICONS[a.type] || 'i-sparkles', { size: 16 }),
+      createEl('span', { class: 'activity-feed__label' }, activityLabel(a.type)),
+      createEl('time', { datetime: a.created_at, title: fullDateTime(a.created_at) }, timeAgo(a.created_at)),
+    ]));
+  }
+}
+
+// ── Signed in ──────────────────────────────────────────────────────────
+
 async function renderMember(user) {
   showView('member');
-  setText('[data-home-greeting]', `Welcome back, ${user.display_name || user.username || 'there'}`);
+  const name = user.display_name || user.username || 'there';
+  setText('[data-home-greeting]', greeting(name.split(' ')[0]));
+  setText('[data-home-date]', new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }));
   setText('[data-home-credits]', String(user.credits ?? 0));
-  setText('[data-home-level]', String(user.level ?? 1));
-  setText('[data-home-xp]', `${user.xp ?? 0} XP`);
+  renderLevel(user);
 
   const listEl = qs('[data-home-tasks]');
   const errorEl = qs('[data-home-error]');
 
-  const [balance, unread, tasks] = await Promise.allSettled([
+  const [balance, ledger, unread, review, tasks, activity, catalog, unlocked] = await Promise.allSettled([
     api.credits.balance(),
+    api.credits.ledger(),
     api.notifications.unreadCount(),
+    api.verification.toReview({ status: 'pending' }),
     api.tasks.listOpen(),
+    api.activity.mine(),
+    api.achievements.catalog(),
+    api.achievements.mine(),
   ]);
 
+  if (catalog.status === 'fulfilled' && unlocked.status === 'fulfilled') {
+    const total = (catalog.value.achievements || []).length;
+    const got = (unlocked.value.unlocked || []).length;
+    if (total) {
+      setText('[data-home-badge-count]', `${got} of ${total}`);
+      const badges = qs('[data-home-badges]');
+      if (badges) badges.hidden = false;
+    }
+  }
+
   if (balance.status === 'fulfilled') setText('[data-home-credits]', String(balance.value.credits));
-  setText('[data-home-unread]', unread.status === 'fulfilled' ? String(unread.value.unread_count) : '–');
+
+  const sparkEl = qs('[data-home-spark]');
+  if (ledger.status === 'fulfilled') {
+    const entries = ledger.value.entries || [];
+    renderDelta(entries);
+    if (sparkEl) renderSparkline(sparkEl, entries);
+  } else {
+    setText('[data-home-delta]', '');
+    if (sparkEl) sparkEl.innerHTML = '';
+  }
+
+  if (unread.status === 'fulfilled') {
+    const n = unread.value.unread_count || 0;
+    setText('[data-home-unread]', n ? `${n} unread` : 'All caught up');
+  } else setText('[data-home-unread]', 'Open notifications');
+
+  if (review.status === 'fulfilled') {
+    const { completions = [], next_cursor: more } = review.value;
+    const n = completions.length;
+    setText('[data-home-review]', n ? `${more ? `${n}+` : n} waiting for you` : 'Nothing waiting');
+  } else setText('[data-home-review]', 'Open your review queue');
 
   if (tasks.status === 'fulfilled') {
     renderTasks(listEl, tasks.value.tasks || []);
@@ -91,6 +239,9 @@ async function renderMember(user) {
       : 'Could not load open tasks. Refresh to try again.';
     errorEl.hidden = false;
   }
+
+  const activityEl = qs('[data-home-activity]');
+  if (activityEl) renderActivity(activityEl, activity.status === 'fulfilled' ? activity.value.activity || [] : []);
 }
 
 export function init() {
