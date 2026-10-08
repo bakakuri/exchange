@@ -8,7 +8,7 @@ const { requireAuth } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/admin');
 const { validate } = require('../middleware/validation');
 const { validateUuidParam } = require('../middleware/validate-uuid-param');  // Stage 16
-const { validateUpdateUser, validateCreditAdjustment } = require('../validators/admin.validator');
+const { validateUpdateUser, validateCreditAdjustment, validateDecisionNote } = require('../validators/admin.validator');
 const { validateResolveReport } = require('../validators/reports.validator');
 const controller = require('../controllers/admin.controller');
 
@@ -33,5 +33,9 @@ router.post('/users/:id/credits', validateUuidParam('id'), validate(validateCred
 // Reports (moderation)
 router.get('/reports', controller.listReports);
 router.post('/reports/:id/resolve', validateUuidParam('id'), validate(validateResolveReport), controller.resolveReport);
+
+// Appeals and undone-action reports (021): act on the proof itself.
+router.post('/completions/:id/overturn', validateUuidParam('id'), validate(validateDecisionNote), controller.overturnRejection);
+router.post('/completions/:id/reverse', validateUuidParam('id'), validate(validateDecisionNote), controller.reverseReward);
 
 module.exports = router;

@@ -37,6 +37,12 @@ end $$;
 -- how a real deployment bootstraps its first administrator too).
 update public.profiles set role = 'admin' where id = '00000000-0000-0000-0000-000000000001';
 
+-- Tasks done from an account (follow, like...) need the doer's linked
+-- account for that platform (021_trust_and_economy.sql).
+insert into public.social_profiles (user_id, platform, username, profile_url) values
+  ('00000000-0000-0000-0000-000000000003', 'instagram', 'bob_ig', 'https://instagram.com/bob_ig'),
+  ('00000000-0000-0000-0000-000000000004', 'x', 'carol_x', 'https://x.com/carol_x');
+
 -- ---------------------------------------------------- admin credit grant
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000001', false);
 select public.admin_credit_adjustment('00000000-0000-0000-0000-000000000002', 500, 'seed for testing');
@@ -139,7 +145,8 @@ end $$;
 -- ------------------------------------------------------------- completion
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000003', false); -- bob
 select test_set('completion_id', public.submit_task_verification(
-  test_get('task_id')::uuid, 'https://proof.example/bob.png', null
+  test_get('task_id')::uuid, 'https://proof.example/bob.png', null, null,
+  (select id from public.social_profiles where user_id = '00000000-0000-0000-0000-000000000003' and platform = 'instagram')
 )::text);
 
 do $$
@@ -284,20 +291,22 @@ begin
   raise notice 'PASS: carol claimed bob''s referral code, recorded as pending (no reward yet)';
 end $$;
 
--- carol needs a campaign of someone else's to complete; bob (already
--- funded from the earlier reward) creates one for carol to complete.
+-- carol needs a campaign to complete. Not bob's: since 021 a referrer's
+-- own campaign never earns the referral bonus (that was a free-credit
+-- loop), so alice - unconnected to either - creates one.
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000001', false); -- admin
-select public.admin_credit_adjustment('00000000-0000-0000-0000-000000000003', 100, 'seed for referral test');
-select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000003', false); -- bob
+select public.admin_credit_adjustment('00000000-0000-0000-0000-000000000002', 100, 'seed for referral test');
+select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000002', false); -- alice
 select test_set('ref_campaign_id', public.create_campaign(
   'Referral test campaign', '', 'x', 'like', 'https://x.com/y', '', 'manual_proof', 10, 1
 )::text);
 select test_set('reftask_id', id::text) from public.tasks where campaign_id = test_get('ref_campaign_id')::uuid;
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000004', false); -- carol
 select test_set('ref_completion_id', public.submit_task_verification(
-  test_get('reftask_id')::uuid, 'https://proof.example/carol.png', null
+  test_get('reftask_id')::uuid, 'https://proof.example/carol.png', null, null,
+  (select id from public.social_profiles where user_id = '00000000-0000-0000-0000-000000000004' and platform = 'x')
 )::text);
-select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000003', false); -- bob owns this campaign
+select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000002', false); -- alice owns this campaign
 select public.review_task_verification(test_get('ref_completion_id')::uuid, 'approved', 'ok');
 
 do $$

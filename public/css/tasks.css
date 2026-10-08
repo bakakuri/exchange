@@ -249,3 +249,60 @@
 @media (max-width: 480px) {
   .visit-card__actions .btn { flex: 1 1 100%; }
 }
+
+/* ── Places left (021: proofs waiting for review hold their place) ───── */
+
+.places-left {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.places-left--few { color: var(--color-warning); }
+.task-detail__meta .places-left {
+  margin-left: 10px;
+  padding: 2px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  vertical-align: 1px;
+}
+
+/* ── The account a proof was done from (js/tasks/proof-form.js) ──────── */
+
+.account-field__status { margin: 0; color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.account-field__more {
+  align-self: flex-start;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.account-field__more:hover { color: var(--color-ink); }
+
+/* No linked account yet: a quiet warning with the way to fix it. */
+.account-field--missing {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px 14px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 38%, var(--color-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-warning) 6%, var(--color-bg));
+}
+.account-field--missing > .btn { grid-column: 2; justify-self: start; }
+.account-field__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--color-bg);
+  color: var(--color-warning);
+  box-shadow: inset 0 0 0 1px var(--color-border), var(--shadow-xs);
+}
+.account-field__text { min-width: 0; }
+.account-field__text strong { color: var(--color-ink); font-weight: 600; }
+.account-field__text p { margin: 2px 0 0; color: var(--color-text-muted); font-size: var(--font-size-xs); }

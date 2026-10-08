@@ -10,6 +10,9 @@ const TYPES = {
   inappropriate_content: () => t('Inappropriate content'),
   broken_url: () => t('Broken URL'),
   abuse: () => t('Abuse'),
+  // filed through a submission (021), not the report form
+  proof_appeal: () => t('Appeal of a rejection'),
+  unfollowed: () => t('Undone action'),
 };
 
 const STATUSES = {

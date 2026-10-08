@@ -17,6 +17,12 @@
 // the private "proofs" Storage bucket and hands them out as short-lived
 // signed URLs; runs the 24-hour auto-approval before listing submissions
 // (pg_cron runs it too, where available); and drives link-click tasks.
+//
+// Since 021_trust_and_economy.sql: a proof names the linked account it was
+// done from; every screenshot's SHA-256 is recorded so an image can be
+// used as proof only once; rejected proofs can be appealed and undone
+// actions reported (both go to an admin); reviewers see the member's
+// track record, members their waiting-proof limit.
 
 const crypto = require('node:crypto');
 const { getClientForUser, supabaseAdmin } = require('../config/supabase');
@@ -27,7 +33,9 @@ const COMPLETION_FIELDS =
   'id, task_id, completer_id, status, reward_amount, created_at, reviewed_at, reviewed_by, ' +
   'campaign_id, platform, task_type, target_url, campaign_creator_id, campaign_title, ' +
   'proof_url, proof_text, submitted_at, review_notes, ' +
-  'auto_approved, proof_image_path, link_clicked_at, verification_method';
+  'auto_approved, proof_image_path, link_clicked_at, verification_method, ' +
+  'completer_username, completer_display_name, completer_level, account_username, account_url, ' +
+  'auto_approve_at, expires_at, appeal_status, undo_report_status';
 
 const PROOF_BUCKET = 'proofs';
 const SIGNED_URL_SECONDS = 60 * 60;
@@ -81,6 +89,10 @@ function sniffImage(buffer) {
 // Uploads go through the API (service role) into "<user id>/<random>",
 // so a member can only ever reference screenshots in their own folder -
 // submit_task_verification() checks that folder against auth.uid().
+//
+// Each image's SHA-256 goes into proof_images: an image already used as
+// proof is refused here, before it is stored, and again - race-proof -
+// by submit_task_verification().
 async function uploadProofImage(userId, buffer, contentType) {
   if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
     throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Choose an image to upload', 400);
@@ -90,11 +102,27 @@ async function uploadProofImage(userId, buffer, contentType) {
     throw new AppError(ErrorCodes.VALIDATION_ERROR, 'Screenshots must be JPEG, PNG or WebP images', 400);
   }
 
+  const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+  const { data: used, error: lookupError } = await supabaseAdmin
+    .from('task_verifications')
+    .select('id')
+    .eq('proof_image_sha', sha256)
+    .limit(1);
+  if (lookupError) throw new AppError(ErrorCodes.DB_ERROR, lookupError.message);
+  if (Array.isArray(used) && used.length > 0) {
+    throw new AppError(ErrorCodes.DUPLICATE_PROOF, 'this screenshot was already used as proof');
+  }
+
   const path = `${userId}/${crypto.randomUUID()}.${kind.ext}`;
   const { error } = await supabaseAdmin.storage
     .from(PROOF_BUCKET)
     .upload(path, buffer, { contentType: kind.type, upsert: false, cacheControl: '3600' });
   if (error) throw new AppError(ErrorCodes.INTERNAL, `proof upload failed: ${error.message}`);
+
+  const { error: recordError } = await supabaseAdmin
+    .from('proof_images')
+    .insert({ path, user_id: userId, sha256 });
+  if (recordError) throw new AppError(ErrorCodes.DB_ERROR, recordError.message);
   return { path };
 }
 
@@ -131,7 +159,7 @@ async function runAutoApproval() {
 
 // ── submit / review ──────────────────────────────────────────────────────
 
-async function submit(accessToken, taskId, { proof_url, proof_text, proof_image_path } = {}) {
+async function submit(accessToken, taskId, { proof_url, proof_text, proof_image_path, social_profile_id } = {}) {
   const client = getClientForUser(accessToken);
 
   const { data: completionId, error } = await client.rpc('submit_task_verification', {
@@ -139,6 +167,7 @@ async function submit(accessToken, taskId, { proof_url, proof_text, proof_image_
     p_proof_url: proof_url || null,
     p_proof_text: proof_text || null,
     p_proof_image_path: proof_image_path || null,
+    p_social_profile_id: social_profile_id || null,
   });
 
   if (error) throw mapRpcError(error);
@@ -197,14 +226,68 @@ async function completeLink(accessToken, taskId) {
   return getCompletionById(accessToken, completionId);
 }
 
+// ── appeals and undone actions ───────────────────────────────────────────
+
+// The member asks an admin to look again at a rejected proof (once,
+// within 7 days - appeal_rejection() checks).
+async function appeal(accessToken, completionId, { message } = {}) {
+  const client = getClientForUser(accessToken);
+  const { error } = await client.rpc('appeal_rejection', { p_completion_id: completionId, p_message: message });
+  if (error) throw mapRpcError(error);
+  return getCompletionById(accessToken, completionId);
+}
+
+// The creator reports that the member undid the action they were paid for
+// (once, within 7 days of the approval - report_unfollow() checks).
+async function reportUndone(accessToken, completionId, { message } = {}) {
+  const client = getClientForUser(accessToken);
+  const { error } = await client.rpc('report_unfollow', { p_completion_id: completionId, p_message: message });
+  if (error) throw mapRpcError(error);
+  return getCompletionById(accessToken, completionId);
+}
+
+// ── track records and limits ─────────────────────────────────────────────
+
+// How each member's earlier proofs went (doer_review_stats()), shown to
+// the reviewer. Non-critical: without it the list still loads.
+async function doerStats(client, userIds) {
+  const ids = [...new Set(userIds.filter(Boolean))];
+  if (ids.length === 0) return new Map();
+  const { data, error } = await client.rpc('doer_review_stats', { p_user_ids: ids });
+  if (error || !Array.isArray(data)) return new Map();
+  return new Map(data.map((r) => [r.user_id, {
+    approved: Number(r.approved) || 0,
+    rejected: Number(r.rejected) || 0,
+    reversed: Number(r.reversed) || 0,
+    trusted: r.trusted !== false,
+  }]));
+}
+
+// The caller's waiting proofs against their level's limit. Null on error.
+async function myLimits(client) {
+  const { data, error } = await client.rpc('get_my_proof_limits');
+  if (error || !Array.isArray(data) || !data[0]) return null;
+  const r = data[0];
+  return {
+    pending_count: Number(r.pending_count) || 0,
+    pending_limit: Number(r.pending_limit) || 0,
+    level: Number(r.level) || 1,
+    trusted: r.trusted !== false,
+  };
+}
+
 async function listMine(accessToken, userId, { limit, before, status } = {}) {
   await runAutoApproval();
-  return listByColumn(accessToken, 'completer_id', userId, { limit, before, status });
+  const result = await listByColumn(accessToken, 'completer_id', userId, { limit, before, status });
+  return { ...result, limits: await myLimits(getClientForUser(accessToken)) };
 }
 
 async function listToReview(accessToken, userId, { limit, before, status } = {}) {
   await runAutoApproval();
-  return listByColumn(accessToken, 'campaign_creator_id', userId, { limit, before, status });
+  const result = await listByColumn(accessToken, 'campaign_creator_id', userId, { limit, before, status });
+  const stats = await doerStats(getClientForUser(accessToken), result.completions.map((c) => c.completer_id));
+  const completions = result.completions.map((c) => ({ ...c, completer_stats: stats.get(c.completer_id) || null }));
+  return { ...result, completions };
 }
 
 async function listByColumn(accessToken, column, value, { limit, before, status }) {
@@ -219,7 +302,7 @@ async function listByColumn(accessToken, column, value, { limit, before, status 
     .limit(pageSize);
 
   if (before) query = query.lt('created_at', before);
-  if (status && ['pending', 'approved', 'rejected', 'expired'].includes(status)) query = query.eq('status', status);
+  if (status && ['pending', 'approved', 'rejected', 'expired', 'reversed'].includes(status)) query = query.eq('status', status);
 
   const { data, error } = await query;
   if (error) throw new AppError(ErrorCodes.VALIDATION_ERROR, error.message, 400);
@@ -231,5 +314,6 @@ async function listByColumn(accessToken, column, value, { limit, before, status 
 module.exports = {
   submit, review, getCompletionById, listMine, listToReview,
   uploadProofImage, openLink, completeLink, sniffImage,
+  appeal, reportUndone, withImageUrls, mapRpcError,
   AUTO_APPROVE_HOURS, LINK_CLICK_WAIT_SECONDS,
 };

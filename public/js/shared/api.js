@@ -37,6 +37,7 @@ export const api = {
     balance: () => request('GET', '/credits/balance'),
     ledger: ({ before } = {}) => request('GET', `/credits/ledger${before ? `?before=${encodeURIComponent(before)}` : ''}`),
     summary: () => request('GET', '/credits/summary'),
+    welcomeBonus: () => request('GET', '/credits/welcome-bonus'),
   },
 
   tasks: {
@@ -100,6 +101,8 @@ export const api = {
     uploadProofImage: (file) => request('POST', '/verification/proof-image', { file }),
     openLink: (taskId) => request('POST', `/verification/tasks/${encodeURIComponent(taskId)}/open`, { keepalive: true }),
     completeLink: (taskId) => request('POST', `/verification/tasks/${encodeURIComponent(taskId)}/complete`),
+    appeal: (id, message) => request('POST', `/verification/${encodeURIComponent(id)}/appeal`, { body: { message } }),
+    reportUndone: (id, message) => request('POST', `/verification/${encodeURIComponent(id)}/report-undone`, { body: { message } }),
   },
 
   referrals: {
@@ -134,6 +137,10 @@ export const api = {
       return request('GET', `/admin/reports${suffix}`);
     },
     resolveReport: (id, body) => request('POST', `/admin/reports/${encodeURIComponent(id)}/resolve`, { body }),
+    overturnRejection: (completionId, note) =>
+      request('POST', `/admin/completions/${encodeURIComponent(completionId)}/overturn`, { body: { note } }),
+    reverseReward: (completionId, note) =>
+      request('POST', `/admin/completions/${encodeURIComponent(completionId)}/reverse`, { body: { note } }),
   },
 };
 

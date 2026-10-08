@@ -20,22 +20,30 @@ import { trustLine } from '../shared/creator-trust.js';
 import { renderProofForm } from './proof-form.js';
 import { renderLinkClick } from './link-click.js';
 
-const AUTO_APPROVE_MS = 24 * 60 * 60 * 1000;
-
 function statusNote(completion) {
   switch (completion.status) {
-    case 'pending': {
-      const due = completion.created_at && new Date(new Date(completion.created_at).getTime() + AUTO_APPROVE_MS).toISOString();
-      return due
-        ? t('Your submission is pending review. If nobody reviews it, it’s approved automatically {when}.', { when: timeAgo(due) })
-        : t('Your submission is pending review.');
-    }
+    case 'pending':
+      // auto_approve_at / expires_at come from completion_details (021): members
+      // with many rejected proofs wait for a person, and expire after 3 days.
+      if (completion.auto_approve_at) {
+        return t('Your submission is pending review. If nobody reviews it, it’s approved automatically {when}.',
+          { when: timeAgo(completion.auto_approve_at) });
+      }
+      if (completion.expires_at) {
+        return t('Your submission is waiting for the creator’s review. If nobody reviews it, it expires {when}.',
+          { when: timeAgo(completion.expires_at) });
+      }
+      return t('Your submission is pending review.');
     case 'approved':
       return completion.auto_approved
         ? t('Approved automatically — credits already landed in your balance.')
         : t('Your submission was approved — credits already landed in your balance.');
-    case 'rejected': return t('Your submission was rejected. See your submissions for the reviewer’s notes.');
+    case 'rejected':
+      return completion.appeal_status === 'open'
+        ? t('Your submission was rejected. You appealed - an admin will look at it.')
+        : t('Your submission was rejected. See your submissions for the reviewer’s notes - you can appeal there within 7 days.');
     case 'expired': return t('Your submission expired.');
+    case 'reversed': return t('The reward for this task was taken back - the action was undone.');
     default: return completion.status;
   }
 }
@@ -65,17 +73,19 @@ function render(container, task) {
 
   const campaign = task.campaign;
   const isOwn = store.getState().user?.id === campaign.creator_id;
-  const isOpen =
-    campaign.status === 'active' &&
-    campaign.completed_count < campaign.desired_completions &&
-    campaign.remaining_budget >= campaign.reward;
+  // Proofs waiting for review hold their places (021): places_left counts them.
+  const placesLeft = Number(task.places_left) || 0;
+  const isOpen = campaign.status === 'active' && placesLeft > 0;
 
   container.append(
     createEl('div', { class: 'task-detail__header' }, [
       createEl('h1', {}, campaign.title),
       createEl('span', { class: 'task-detail__reward' }, tn(campaign.reward, '{n} credit', '{n} credits')),
     ]),
-    createEl('p', { class: 'task-detail__meta' }, taskActionLabel(task.task_type, task.platform))
+    createEl('p', { class: 'task-detail__meta' }, [
+      taskActionLabel(task.task_type, task.platform),
+      ...(isOpen ? [createEl('span', { class: 'places-left' }, tn(placesLeft, '{n} place left', '{n} places left'))] : []),
+    ])
   );
   if (task.verification_method !== 'link_click') container.append(trustLine(task.creator_stats));
 

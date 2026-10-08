@@ -135,3 +135,36 @@
 /* Clickable stat tile (admin dashboard "Open reports") */
 .admin-stat-tile--link { cursor: pointer; }
 .admin-stat-tile--link:hover { background: var(--color-hover); }
+
+/* ── Appeals and undone-action reports: the proof, and the decision (021) */
+
+.admin-proof {
+  margin-top: var(--space-3);
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.admin-proof__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.admin-proof__head strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-ink);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-proof__meta { margin: 2px 0 0; color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.admin-proof .submission-card__proof { background: transparent; }
+
+.admin-report-row__actions--proof {
+  flex-direction: column;
+  align-items: stretch;
+  margin-top: var(--space-3);
+}
+.admin-proof__buttons { display: flex; flex-wrap: wrap; gap: var(--space-2); }

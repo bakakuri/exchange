@@ -99,5 +99,83 @@
 
 .submission-card__reject-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+.submission-status--reversed { --dot: var(--color-text-subtle); }
+
+/* ── Who sent it and from which account (021) ─────────────────────────── */
+
+.doer-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 6px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+.doer-line > .icon { flex-shrink: 0; color: var(--color-text-subtle); }
+.doer-line > span:not(.trust-badge)::before { content: '·'; margin-right: 8px; color: var(--color-text-subtle); }
+.doer-line__name { color: var(--color-ink); font-weight: 600; }
+
+.submission-card__proof .proof-account {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.proof-account a { font-weight: 600; overflow-wrap: anywhere; }
+.proof-account .icon { flex-shrink: 0; color: var(--color-success); }
+
+/* ── Waiting-proof limit (top of /submissions) ─────────────────────────── */
+
+.submission-limits {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: var(--space-4);
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.submission-limits[hidden] { display: none; }
+.submission-limits > .icon { flex-shrink: 0; margin-top: 1px; color: var(--color-text-subtle); }
+.submission-limits__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+.submission-limits__text strong { color: var(--color-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.submission-limits--warn {
+  border-color: color-mix(in srgb, var(--color-warning) 38%, var(--color-border));
+  background: color-mix(in srgb, var(--color-warning) 6%, var(--color-bg));
+}
+.submission-limits--warn > .icon { color: var(--color-warning); }
+.submission-limits__warn { color: var(--color-text); }
+
+/* ── Appeal / report an undone action: a short note for an admin ──────── */
+
+.follow-up { margin-top: var(--space-3); }
+.follow-up__open .icon { color: var(--color-text-muted); }
+.follow-up__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.follow-up__form[hidden] { display: none; }
+.follow-up__intro { margin: 0; color: var(--color-text-muted); font-size: var(--font-size-xs); line-height: 1.5; }
+.follow-up__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }

@@ -12,7 +12,8 @@ const TASK_TYPES = require('../constants/task-types');
 
 const OPEN_TASK_FIELDS =
   'id, campaign_id, platform, task_type, target_url, instructions, verification_method, created_at, ' +
-  'creator_id, campaign_title, campaign_description, reward, desired_completions, completed_count, remaining_budget';
+  'creator_id, campaign_title, campaign_description, reward, desired_completions, completed_count, remaining_budget, ' +
+  'reserved_count, places_left';
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
@@ -30,6 +31,14 @@ async function creatorStats(client, creatorIds) {
 }
 
 const statsFor = (stats, creatorId) => stats.get(creatorId) || { approved: 0, rejected: 0 };
+
+// Places still free: proofs waiting for review hold theirs
+// (021_trust_and_economy.sql) - the same sum open_tasks.places_left makes.
+function placesLeft(c) {
+  if (!c || c.status !== 'active' || !(c.reward > 0)) return 0;
+  const held = Number(c.reserved_count) || 0;
+  return Math.max(0, Math.min(c.desired_completions - c.completed_count - held, Math.floor(c.remaining_budget / c.reward) - held));
+}
 
 // public.open_tasks (017_open_tasks_view.sql) already excludes tasks
 // whose campaign is paused/completed/cancelled or out of budget/slots -
@@ -76,7 +85,7 @@ async function getById(accessToken, userId, taskId) {
     .from('tasks')
     .select(
       'id, campaign_id, platform, task_type, target_url, instructions, verification_method, created_at, ' +
-      'campaign:campaigns(id, creator_id, title, description, reward, desired_completions, completed_count, remaining_budget, status)'
+      'campaign:campaigns(id, creator_id, title, description, reward, desired_completions, completed_count, remaining_budget, reserved_count, status)'
     )
     .eq('id', taskId)
     .maybeSingle();
@@ -84,15 +93,23 @@ async function getById(accessToken, userId, taskId) {
   if (error) throw new AppError(ErrorCodes.VALIDATION_ERROR, error.message, 400);
   if (!task) throw new AppError(ErrorCodes.TASK_NOT_FOUND, 'Task not found', 404);
 
+  // Through completion_details (not the bare table) for the review
+  // deadline: approved automatically at auto_approve_at, or - for members
+  // with many rejected proofs - expiring at expires_at (021).
   const { data: myCompletion } = await client
-    .from('task_completions')
-    .select('id, status, reward_amount, created_at, reviewed_at, auto_approved')
+    .from('completion_details')
+    .select('id, status, reward_amount, created_at, reviewed_at, auto_approved, auto_approve_at, expires_at, appeal_status')
     .eq('task_id', taskId)
-    .eq('user_id', userId)
+    .eq('completer_id', userId)
     .maybeSingle();
 
   const stats = await creatorStats(client, [task.campaign?.creator_id]);
-  return { ...task, my_completion: myCompletion || null, creator_stats: statsFor(stats, task.campaign?.creator_id) };
+  return {
+    ...task,
+    places_left: placesLeft(task.campaign),
+    my_completion: myCompletion || null,
+    creator_stats: statsFor(stats, task.campaign?.creator_id),
+  };
 }
 
-module.exports = { listOpen, getById };
+module.exports = { listOpen, getById, placesLeft };

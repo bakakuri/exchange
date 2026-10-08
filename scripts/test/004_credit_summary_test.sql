@@ -36,7 +36,11 @@ select test_set('task_id', id::text) from public.tasks where campaign_id = test_
 
 -- kim completes it and jack approves - kim earns a task_reward.
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000302', false);
-select test_set('completion_id', public.submit_task_verification(test_get('task_id')::uuid, null, 'proof')::text);
+-- a follow task needs the doer's linked account (021)
+insert into public.social_profiles (user_id, platform, username, profile_url)
+values ('00000000-0000-0000-0000-000000000302', 'instagram', 'kim', 'https://instagram.com/kim');
+select test_set('completion_id', public.submit_task_verification(test_get('task_id')::uuid, null, 'proof', null,
+  (select id from public.social_profiles where user_id = auth.uid() and platform = 'instagram'))::text);
 
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000301', false);
 select public.review_task_verification(test_get('completion_id')::uuid, 'approved', null);

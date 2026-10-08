@@ -52,6 +52,14 @@ function render(container, campaign) {
       createEl('dt', {}, t('Reward')), createEl('dd', {}, tn(campaign.reward, '{n} credit', '{n} credits')),
       createEl('dt', {}, t('Progress')), createEl('dd', {}, t('{done} of {total} completed', { done: formatNumber(campaign.completed_count), total: formatNumber(campaign.desired_completions) })),
       createEl('dt', {}, t('Budget')), createEl('dd', {}, t('{left} of {total} credits left', { left: formatNumber(campaign.remaining_budget), total: formatNumber(campaign.total_budget) })),
+      // Proofs waiting for review hold their place and reward (021).
+      ...(campaign.reserved_count > 0 ? [
+        createEl('dt', {}, t('Waiting for review')),
+        createEl('dd', {}, [
+          createEl('a', { href: '/submissions/review', 'data-link': '' },
+            tn(campaign.reserved_count, '{n} proof - its place is held', '{n} proofs - their places are held')),
+        ]),
+      ] : []),
       createEl('dt', {}, t('Created')), createEl('dd', {}, shortDate(campaign.created_at)),
     ])
   );
@@ -142,7 +150,11 @@ function renderActions(campaign, container) {
     const confirmBtn = createEl('button', { type: 'button', class: 'btn btn--danger' }, t('Confirm cancellation'));
     const backBtn = createEl('button', { type: 'button', class: 'btn btn--ghost' }, t('Never mind'));
     const cancelForm = createEl('div', { class: 'campaign-detail__cancel-form', hidden: '' }, [
-      createEl('p', {}, t('Cancelling refunds any remaining budget and can’t be undone.')),
+      createEl('p', {}, campaign.reserved_count > 0
+        ? tn(campaign.reserved_count,
+          'Cancelling refunds the free budget and can’t be undone. The reward for {n} proof already sent is kept until you review it - whatever isn’t paid comes back to you.',
+          'Cancelling refunds the free budget and can’t be undone. The rewards for {n} proofs already sent are kept until you review them - whatever isn’t paid comes back to you.')
+        : t('Cancelling refunds any remaining budget and can’t be undone.')),
       reasonField,
       createEl('div', { class: 'submission-card__reject-actions' }, [confirmBtn, backBtn]),
     ]);

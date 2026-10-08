@@ -2,13 +2,102 @@
 //
 // Shows the admin list of reports filtered by status. Each open report
 // has inline Resolve / Dismiss buttons that call POST /api/admin/reports/:id/resolve.
+//
+// Appeals and undone-action reports (021_trust_and_economy.sql) are about
+// one proof: it is shown with the report, and the decision acts on it -
+// approve and pay a rejected proof, or take a reward back to the creator.
 
 import { api } from '../shared/api.js';
-import { qs, escapeHtml } from '../shared/dom.js';
+import { qs, escapeHtml, createEl } from '../shared/dom.js';
 import { errorMessage } from '../shared/errors.js';
-import { t } from '../core/i18n.js';
+import { icon } from '../shared/icons.js';
+import { t, tn } from '../core/i18n.js';
 import { shortDate } from '../shared/time.js';
 import { reportTypeLabel, reportStatusLabel } from '../shared/report-labels.js';
+import { taskActionLabel } from '../shared/task-label.js';
+import { statusLabel } from '../submissions/status.js';
+import { renderProof } from '../submissions/proof-view.js';
+
+const PROOF_REPORTS = ['proof_appeal', 'unfollowed'];
+
+function setStatus(li, decision) {
+  const statusEl = li.querySelector('.admin-report-status');
+  if (statusEl) {
+    statusEl.className = `admin-report-status admin-report-status--${decision}`;
+    statusEl.textContent = reportStatusLabel(decision);
+  }
+}
+
+// The proof the report is about: campaign, who sent it, the proof itself
+// and the creator's reason for rejecting it.
+function proofPanel(c) {
+  const children = [
+    createEl('div', { class: 'admin-proof__head' }, [
+      createEl('strong', {}, c.campaign_title),
+      createEl('span', { class: `submission-status submission-status--${c.status}` }, statusLabel(c.status)),
+    ]),
+    createEl('p', { class: 'admin-proof__meta' }, [
+      `${taskActionLabel(c.task_type, c.platform)}, ${tn(c.reward_amount, '{n} credit', '{n} credits')} · `,
+      c.completer_username
+        ? createEl('a', { href: `/admin/users/${encodeURIComponent(c.completer_id)}`, 'data-link': '' }, `@${c.completer_username}`)
+        : '',
+    ]),
+  ];
+  const proof = renderProof(c);
+  if (proof) children.push(proof);
+  if (c.review_notes) {
+    children.push(createEl('p', { class: 'submission-card__notes' }, t('Creator’s reason: {notes}', { notes: c.review_notes })));
+  }
+  return createEl('div', { class: 'admin-proof' }, children);
+}
+
+// Decide an appeal (approve and pay / keep the rejection) or an
+// undone-action report (take the reward back / keep it).
+function proofActions(report, li) {
+  const c = report.completion;
+  const appeal = report.report_type === 'proof_appeal';
+  const note = createEl('textarea', { rows: '2', maxlength: '1000',
+    placeholder: appeal ? t('Note (optional) - sent to the member if you keep the rejection')
+      : t('Note (optional) - sent to the creator if you keep the reward') });
+  const yesBtn = createEl('button', { type: 'button', class: `btn btn--sm ${appeal ? 'btn--success' : 'btn--danger'}` },
+    [icon(appeal ? 'i-circle-check' : 'i-undo-2', { size: 16 }), appeal ? t('Approve and pay') : t('Take reward back')]);
+  const noBtn = createEl('button', { type: 'button', class: 'btn btn--sm btn--ghost' },
+    appeal ? t('Keep rejection') : t('Keep reward'));
+  const errorEl = createEl('p', { class: 'form-error', role: 'alert', hidden: '' }, '');
+  const done = createEl('p', { class: 'form-success', role: 'status', hidden: '' }, '');
+  const box = createEl('div', { class: 'admin-report-row__actions admin-report-row__actions--proof' },
+    [note, createEl('div', { class: 'admin-proof__buttons' }, [yesBtn, noBtn]), errorEl, done]);
+
+  async function act(run, decision, message) {
+    errorEl.hidden = true;
+    yesBtn.disabled = true;
+    noBtn.disabled = true;
+    try {
+      const result = await run();
+      setStatus(li, decision);
+      note.remove();
+      yesBtn.parentElement.remove();
+      done.textContent = message(result);
+      done.hidden = false;
+    } catch (err) {
+      errorEl.textContent = errorMessage(err, 'Operation failed.');
+      errorEl.hidden = false;
+      yesBtn.disabled = false;
+      noBtn.disabled = false;
+    }
+  }
+
+  yesBtn.addEventListener('click', () => (appeal
+    ? act(() => api.admin.overturnRejection(c.id, note.value.trim()), 'resolved',
+      () => t('Approved - the member was paid.'))
+    : act(() => api.admin.reverseReward(c.id, note.value.trim()), 'resolved',
+      (r) => tn(r?.taken_back ?? 0, '{n} credit returned to the creator.', '{n} credits returned to the creator.'))));
+  noBtn.addEventListener('click', () => act(
+    () => api.admin.resolveReport(report.id, { decision: 'dismissed', note: note.value.trim() }), 'dismissed',
+    () => (appeal ? t('Rejection kept - the member was told.') : t('Reward kept - the creator was told.'))));
+
+  return box;
+}
 
 // ── render ──────────────────────────────────────────────────────────────────
 
@@ -37,7 +126,7 @@ function renderReportRow(report, listEl) {
     <p class="admin-report-row__reporter">${escapeHtml(t('Reporter: {name}', { name: reporter }))}</p>
     ${targetParts.length ? `<p class="admin-report-row__target">${escapeHtml(targetParts.join(', '))}</p>` : ''}
     <p class="admin-report-row__description">${escapeHtml(report.description)}</p>
-    ${report.status === 'open' ? `
+    ${report.status === 'open' && !(PROOF_REPORTS.includes(report.report_type) && report.completion) ? `
       <div class="admin-report-row__actions">
         <button class="btn btn--sm btn--success" data-resolve="resolved">${escapeHtml(t('Resolve'))}</button>
         <button class="btn btn--sm btn--danger" data-resolve="dismissed">${escapeHtml(t('Dismiss'))}</button>
@@ -72,6 +161,12 @@ function renderReportRow(report, listEl) {
       }
     });
   });
+
+  if (PROOF_REPORTS.includes(report.report_type) && report.completion) {
+    li.classList.add('admin-report-row--proof');
+    li.append(proofPanel(report.completion));
+    if (report.status === 'open') li.append(proofActions(report, li));
+  }
 
   listEl.appendChild(li);
 }

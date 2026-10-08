@@ -53,3 +53,49 @@
 }
 .ledger-amount--positive { color: var(--color-success); }
 .ledger-amount--negative { color: var(--color-ink); }
+
+/* ── Welcome bonus progress (021) ─────────────────────────────────────── */
+
+.welcome-bonus {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px 18px;
+  margin-bottom: var(--space-6);
+}
+.welcome-bonus[hidden] { display: none; }
+.welcome-bonus__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-tile);
+  color: var(--color-ink);
+}
+.welcome-bonus__text strong { color: var(--color-ink); font-weight: 600; }
+.welcome-bonus__text p { margin: 2px 0 0; color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.welcome-bonus__progress { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.welcome-bonus__steps { display: flex; gap: 6px; }
+.welcome-bonus__step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 50%;
+  color: var(--color-text-subtle);
+}
+.welcome-bonus__step.is-done {
+  border: 1px solid color-mix(in srgb, var(--color-success) 45%, transparent);
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-bg));
+  color: var(--color-success);
+}
+.welcome-bonus__count { color: var(--color-text-muted); font-size: var(--font-size-xs); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 560px) {
+  .welcome-bonus { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+  .welcome-bonus__progress { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; }
+}

@@ -4,15 +4,72 @@
 // browser - shared/image-upload.js), a link and/or a note. At least one
 // is needed. The screenshot is uploaded first (POST
 // /api/verification/proof-image), then the submission references it.
+// Tasks done from an account (follow, like... on a social platform) also
+// name the member's linked account, so the creator can check it
+// (021_trust_and_economy.sql); without one, the card points to /profile.
 
 import { api } from '../shared/api.js';
 import { createEl } from '../shared/dom.js';
 import { errorMessage } from '../shared/errors.js';
 import { icon } from '../shared/icons.js';
 import { prepareScreenshot } from '../shared/image-upload.js';
+import { taskPlatformLabel } from '../shared/task-platforms.js';
 import { t, formatNumber } from '../core/i18n.js';
 
 const AUTO_APPROVE_HOURS = 24;
+
+// Mirrors submit_task_verification(): these need the account they were done from.
+const ACCOUNT_TASK_TYPES = ['follow', 'like', 'comment', 'subscribe', 'share', 'repost', 'save', 'join'];
+export const needsAccount = (task) =>
+  Boolean(task.platform) && task.platform !== 'other' && ACCOUNT_TASK_TYPES.includes(task.task_type);
+
+// "Account you used": the member's linked accounts on the task's platform.
+// Loads on its own; until then (and if loading fails) the form still works
+// and the database has the final word.
+function accountField(task, onChange) {
+  const platform = taskPlatformLabel(task.platform);
+  const linkHref = `/profile?link=${encodeURIComponent(task.platform)}`;
+  const field = createEl('div', { class: 'field account-field' }, [
+    createEl('p', { class: 'account-field__status' }, t('Loading your linked accounts…')),
+  ]);
+
+  api.social.mine().then(({ social_profiles: all = [] }) => {
+    const mine = all.filter((a) => a.platform === task.platform);
+    field.innerHTML = '';
+
+    if (mine.length === 0) {
+      if (!needsAccount(task)) { field.remove(); return; }
+      field.classList.add('account-field--missing');
+      field.append(
+        createEl('span', { class: 'account-field__icon' }, [icon('i-link', { size: 20 })]),
+        createEl('div', { class: 'account-field__text' }, [
+          createEl('strong', {}, t('Link your {platform} account first', { platform })),
+          createEl('p', {}, t('The creator checks the task from the account you did it with.')),
+        ]),
+        createEl('a', { href: linkHref, 'data-link': '', class: 'btn btn--sm' }, t('Link account')),
+      );
+      onChange(null, true);
+      return;
+    }
+
+    const select = createEl('select', { id: 'proof-account', name: 'social_profile_id' }, [
+      ...(mine.length > 1 ? [new Option(t('Choose an account'), '')] : []),
+      ...mine.map((a) => new Option(`@${a.username}`, a.id)),
+    ]);
+    select.addEventListener('change', () => onChange(select.value || null, false));
+    field.append(
+      createEl('label', { for: 'proof-account' }, t('{platform} account you used', { platform })),
+      select,
+      createEl('a', { href: linkHref, 'data-link': '', class: 'account-field__more' }, t('Link another account')),
+    );
+    onChange(select.value || null, false);
+  }).catch(() => {
+    field.innerHTML = '';
+    field.append(createEl('p', { class: 'account-field__status' }, t('Could not load linked accounts.')));
+  });
+
+  return field;
+}
 
 function sizeLabel(bytes) {
   return bytes >= 1024 * 1024
@@ -73,17 +130,22 @@ function screenshotPicker(onChange) {
 
 export function renderProofForm(task, onSubmitted) {
   let screenshot = null;
+  let accountId = null;
 
   const urlField = createEl('input', { type: 'url', id: 'proof-url', name: 'proof_url', placeholder: 'https://…', inputmode: 'url' });
   const textField = createEl('textarea', { id: 'proof-text', name: 'proof_text', rows: '3', maxlength: '2000' });
   const errorEl = createEl('p', { class: 'form-error', role: 'alert', hidden: '' }, '');
   const submitBtn = createEl('button', { type: 'submit', class: 'btn btn--primary btn--lg' }, t('Submit proof'));
+  const account = task.platform && task.platform !== 'other'
+    ? accountField(task, (id, missing) => { accountId = id; submitBtn.disabled = missing; })
+    : null;
 
   const form = createEl('form', { class: 'form proof-card', id: 'submit-proof-form', novalidate: '' }, [
     createEl('div', { class: 'proof-card__head' }, [
       createEl('h2', {}, t('Send proof')),
       createEl('p', {}, t('Add at least one: a screenshot, a link or a note.')),
     ]),
+    ...(account ? [account] : []),
     screenshotPicker((blob) => { screenshot = blob; }),
     createEl('div', { class: 'field' }, [createEl('label', { for: 'proof-url' }, t('Proof URL (optional)')), urlField]),
     createEl('div', { class: 'field' }, [createEl('label', { for: 'proof-text' }, t('Proof notes (optional)')), textField]),
@@ -106,6 +168,11 @@ export function renderProofForm(task, onSubmitted) {
       errorEl.hidden = false;
       return;
     }
+    if (needsAccount(task) && !accountId && form.querySelector('#proof-account')) {
+      errorEl.textContent = t('Choose the account you did this task from.');
+      errorEl.hidden = false;
+      return;
+    }
 
     submitBtn.disabled = true;
     try {
@@ -119,6 +186,7 @@ export function renderProofForm(task, onSubmitted) {
         proof_url: proofUrl || undefined,
         proof_text: proofText || undefined,
         proof_image_path: proofImagePath,
+        social_profile_id: accountId || undefined,
       });
       onSubmitted(completion);
     } catch (err) {

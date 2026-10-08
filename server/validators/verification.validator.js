@@ -12,6 +12,9 @@ const PROOF_IMAGE_PATH_RE = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp)$/;
 const MAX_PROOF_TEXT_LEN = 2000;
 const MAX_REVIEW_NOTES_LEN = 1000;
 const DECISIONS = ['approved', 'rejected'];
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MIN_MESSAGE_LEN = 10;
+const MAX_MESSAGE_LEN = 1000;
 
 function validateSubmit(body) {
   const errors = [];
@@ -32,8 +35,20 @@ function validateSubmit(body) {
   if (hasText && String(body.proof_text).length > MAX_PROOF_TEXT_LEN) {
     errors.push(`proof_text must be ${MAX_PROOF_TEXT_LEN} characters or fewer`);
   }
+  if (body.social_profile_id != null && body.social_profile_id !== '' && !UUID_RE.test(String(body.social_profile_id))) {
+    errors.push('Choose one of your linked accounts');
+  }
 
   return errors;
+}
+
+// An appeal (member) or an undone-action report (creator): a short
+// explanation for the admin who decides it.
+function validateMessage(body) {
+  const message = typeof body.message === 'string' ? body.message.trim() : '';
+  if (message.length < MIN_MESSAGE_LEN) return ['Explain in at least 10 characters'];
+  if (message.length > MAX_MESSAGE_LEN) return ['Keep it under 1000 characters'];
+  return [];
 }
 
 function validateReview(body) {
@@ -52,4 +67,4 @@ function validateReview(body) {
   return errors;
 }
 
-module.exports = { validateSubmit, validateReview, PROOF_IMAGE_PATH_RE };
+module.exports = { validateSubmit, validateReview, validateMessage, PROOF_IMAGE_PATH_RE };

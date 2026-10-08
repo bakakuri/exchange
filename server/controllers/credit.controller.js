@@ -19,4 +19,9 @@ const getSummary = asyncHandler(async (req, res) => {
   res.json(result);
 });
 
-module.exports = { getBalance, getLedger, getSummary };
+const getWelcomeBonus = asyncHandler(async (req, res) => {
+  const result = await creditService.getWelcomeBonus(req.accessToken);
+  res.json({ welcome_bonus: result });
+});
+
+module.exports = { getBalance, getLedger, getSummary, getWelcomeBonus };

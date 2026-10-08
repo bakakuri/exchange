@@ -27,8 +27,11 @@ function fakeClient() {
     rpc: async (name, args) => { calls.push(['rpc', name, args]); return rpcResult; },
     from: () => {
       const q = {
-        select: () => q, eq: () => q,
+        select: () => q, eq: () => q, limit: () => q,
         maybeSingle: async () => ({ data: { id: 'c1', proof_image_path: 'u/p.webp' }, error: null }),
+        // the screenshot-fingerprint lookup and record (021): nothing used yet
+        then: (resolve) => resolve({ data: [], error: null }),
+        insert: async () => ({ error: null }),
       };
       return q;
     },

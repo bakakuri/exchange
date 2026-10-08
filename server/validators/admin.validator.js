@@ -31,4 +31,11 @@ function validateCreditAdjustment(body) {
   return errors;
 }
 
-module.exports = { validateUpdateUser, validateCreditAdjustment };
+// Deciding an appeal or an undone-action report: an optional note.
+function validateDecisionNote(body) {
+  if (body.note != null && typeof body.note !== 'string') return ['note must be a string'];
+  if (body.note && body.note.length > 1000) return ['note must be at most 1000 characters'];
+  return [];
+}
+
+module.exports = { validateUpdateUser, validateCreditAdjustment, validateDecisionNote };

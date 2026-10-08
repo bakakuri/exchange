@@ -72,7 +72,11 @@ end $$;
 
 -- ---------------------------------------------- fill campaign B to capacity
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000102', false); -- erin
-select test_set('completion_full', public.submit_task_verification(test_get('task_full')::uuid, null, 'done')::text);
+-- a follow task needs the doer's linked account (021)
+insert into public.social_profiles (user_id, platform, username, profile_url)
+values ('00000000-0000-0000-0000-000000000102', 'instagram', 'erin', 'https://instagram.com/erin');
+select test_set('completion_full', public.submit_task_verification(test_get('task_full')::uuid, null, 'done', null,
+  (select id from public.social_profiles where user_id = auth.uid() and platform = 'instagram'))::text);
 
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000101', false); -- dana reviews
 select public.review_task_verification(test_get('completion_full')::uuid, 'approved', 'looks good');

@@ -25,6 +25,14 @@ const NOTIFICATION_ICONS = {
   achievement_unlocked: 'i-award',
   referral_reward: 'i-users',
   admin_message: 'i-shield',
+  proof_submitted: 'i-clipboard-check',
+  reward_reversed: 'i-undo-2',
+};
+
+// Notifications that ask for something get a way to do it.
+const NOTIFICATION_ACTIONS = {
+  proof_submitted: { href: '/submissions/review', label: () => t('Review proof') },
+  verification_rejected: { href: '/submissions?status=rejected', label: () => t('See submission') },
 };
 
 function renderNotifications(listEl, notifications, onRead, { append = false } = {}) {
@@ -48,6 +56,11 @@ function renderNotifications(listEl, notifications, onRead, { append = false } =
       ]),
     ];
     if (n.body) children.push(createEl('p', { class: 'notification-item__body' }, serverText(n.body)));
+    const action = NOTIFICATION_ACTIONS[n.type];
+    if (action) {
+      children.push(createEl('a', { href: action.href, 'data-link': '', class: 'notification-item__action' },
+        [action.label(), icon('i-arrow-right', { size: 14 })]));
+    }
 
     const body = createEl('div', { class: 'notification-item__content' }, children);
     const item = createEl('li', { class: `notification-item${n.read_at ? '' : ' notification-item--unread'}` }, [

@@ -37,7 +37,9 @@
 .field select,
 .form-input,
 .submission-card__reject-form textarea,
-.campaign-detail__cancel-form textarea {
+.campaign-detail__cancel-form textarea,
+.follow-up__form textarea,
+.admin-report-row__actions--proof textarea {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -54,7 +56,9 @@
 .field textarea,
 textarea.form-input,
 .submission-card__reject-form textarea,
-.campaign-detail__cancel-form textarea {
+.campaign-detail__cancel-form textarea,
+.follow-up__form textarea,
+.admin-report-row__actions--proof textarea {
   min-height: 96px;
   resize: vertical;
 }
@@ -74,7 +78,9 @@ textarea::placeholder { color: var(--color-text-subtle); }
 .field select:focus-visible,
 .form-input:focus-visible,
 .submission-card__reject-form textarea:focus-visible,
-.campaign-detail__cancel-form textarea:focus-visible {
+.campaign-detail__cancel-form textarea:focus-visible,
+.follow-up__form textarea:focus-visible,
+.admin-report-row__actions--proof textarea:focus-visible {
   outline: none;
   border-color: var(--color-ink);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 28%, transparent);

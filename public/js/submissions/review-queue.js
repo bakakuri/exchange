@@ -6,18 +6,64 @@
 // admin may act, no re-reviewing a completion, review_notes required on
 // rejection - all lives in review_task_verification() (015_functions.sql);
 // this file just calls it and reflects the result.
+//
+// Since 021: each proof shows who sent it - level, track record and the
+// account they did it from - and an approved follow/like/... can be
+// reported within 7 days if the member undid it; an admin decides.
 
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
 import { errorMessage } from '../shared/errors.js';
+import { icon } from '../shared/icons.js';
 
 import { statusLabel } from './status.js';
 import { taskActionLabel } from '../shared/task-label.js';
 import { platformTile } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
 import { refreshNavBadges } from '../core/nav-badges.js';
-import { t, tn } from '../core/i18n.js';
-import { renderProof, statusDetail } from './proof-view.js';
+import { t, tn, formatNumber } from '../core/i18n.js';
+import { renderProof, statusDetail, followUpForm, withinFollowUpWindow } from './proof-view.js';
+
+// Visits can't be taken back, so only these can be reported as undone.
+const UNDOABLE = (c) => !['visit', 'view', 'listen'].includes(c.task_type);
+
+// "@dex · Level 3 · 12 approved · 1 rejected" - who sent the proof.
+function doerLine(c) {
+  if (!c.completer_username) return null;
+  const stats = c.completer_stats;
+  const parts = [
+    createEl('a', { href: `/u/${encodeURIComponent(c.completer_username)}`, 'data-link': '', class: 'doer-line__name' },
+      `@${c.completer_username}`),
+    createEl('span', {}, t('Level {level}', { level: formatNumber(c.completer_level || 1) })),
+  ];
+  if (stats) {
+    parts.push(createEl('span', {}, tn(stats.approved, '{n} approved', '{n} approved')));
+    if (stats.rejected + stats.reversed > 0) {
+      parts.push(createEl('span', {}, tn(stats.rejected + stats.reversed, '{n} rejected', '{n} rejected')));
+    }
+  }
+  const line = createEl('p', { class: 'doer-line' }, [icon('i-user', { size: 14 }), ...parts]);
+  if (stats && !stats.trusted) {
+    line.append(createEl('span', { class: 'trust-badge trust-badge--poor' },
+      [icon('i-shield-alert', { size: 12 }), t('Often rejected')]));
+  }
+  return line;
+}
+
+function undoForm(c, reload) {
+  return followUpForm({
+    iconId: 'i-undo-2',
+    buttonLabel: t('Report undone action'),
+    intro: t('Did they unfollow, unlike or delete it after being paid? An admin checks, and can return the reward to you. Once per proof, within 7 days.'),
+    placeholder: t('What was undone, and when did you notice?'),
+    sendLabel: t('Send report'),
+    errorText: (err) => errorMessage(err, 'Could not send the report.'),
+    onSend: async (message) => {
+      await api.verification.reportUndone(c.id, message);
+      reload();
+    },
+  });
+}
 
 function renderActions(c, card, onDecided) {
   const errorEl = createEl('p', { class: 'form-error', role: 'alert', hidden: '' }, '');
@@ -86,20 +132,25 @@ function renderList(listEl, completions, reload, { append = false } = {}) {
       createEl('p', { class: 'submission-card__meta' }, `${taskActionLabel(c.task_type, c.platform)}, ${tn(c.reward_amount, '{n} credit', '{n} credits')}`),
     ];
 
+    const doer = doerLine(c);
+    if (doer) children.push(doer);
     const proof = renderProof(c);
     if (proof) children.push(proof);
-    const detail = statusDetail(c, { reviewer: true });
-    if (detail) children.push(detail);
-
+    // The reviewer's reason first, then where an appeal stands.
     if (c.status === 'rejected' && c.review_notes) {
       children.push(createEl('p', { class: 'submission-card__notes' }, t('Your notes: {notes}', { notes: c.review_notes })));
     }
+    const detail = statusDetail(c, { reviewer: true });
+    if (detail) children.push(detail);
+
 
     const body = createEl('div', { class: 'submission-card__body' }, children);
     const card = createEl('li', { class: 'submission-card' }, [platformTile(c.platform, { size: 'sm' }), body]);
 
     if (c.status === 'pending') {
       body.append(renderActions(c, card, reload));
+    } else if (c.status === 'approved' && UNDOABLE(c) && !c.undo_report_status && withinFollowUpWindow(c.reviewed_at)) {
+      body.append(undoForm(c, reload));
     }
 
     listEl.append(card);

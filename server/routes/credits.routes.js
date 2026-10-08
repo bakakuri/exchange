@@ -13,5 +13,6 @@ const router = express.Router();
 router.get('/balance', requireAuth, controller.getBalance);
 router.get('/ledger', requireAuth, controller.getLedger);
 router.get('/summary', requireAuth, controller.getSummary);
+router.get('/welcome-bonus', requireAuth, controller.getWelcomeBonus);
 
 module.exports = router;

@@ -36,6 +36,11 @@ function renderTasks(listEl, tasks, { append = false } = {}) {
             createEl('span', { class: 'task-card__meta' }, [
               createEl('span', {}, taskActionLabel(task.task_type, task.platform)),
               task.verification_method === 'link_click' ? instantBadge() : trustBadge(task.creator_stats),
+              // Only when it's nearly gone - proofs waiting for review hold places too.
+              ...(task.places_left > 0 && task.places_left <= 3
+                ? [createEl('span', { class: 'places-left places-left--few' },
+                    task.places_left === 1 ? t('Last place') : tn(task.places_left, '{n} place left', '{n} places left'))]
+                : []),
             ]),
           ]),
           createEl('span', { class: 'reward-chip', title: tn(task.reward, '{n} credit', '{n} credits') }, `+${formatNumber(task.reward)}`),

@@ -41,4 +41,16 @@ const completeLink = asyncHandler(async (req, res) => {
   res.status(201).json({ completion });
 });
 
-module.exports = { listMine, listToReview, submit, review, uploadProofImage, openLink, completeLink };
+const appeal = asyncHandler(async (req, res) => {
+  const completion = await verificationService.appeal(req.accessToken, req.params.id, req.body);
+  res.status(201).json({ completion });
+});
+
+const reportUndone = asyncHandler(async (req, res) => {
+  const completion = await verificationService.reportUndone(req.accessToken, req.params.id, req.body);
+  res.status(201).json({ completion });
+});
+
+module.exports = {
+  listMine, listToReview, submit, review, uploadProofImage, openLink, completeLink, appeal, reportUndone,
+};

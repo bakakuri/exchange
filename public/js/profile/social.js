@@ -44,6 +44,17 @@ export async function initSocialSection() {
     form.platform.append(new Option(platform.label, platform.value));
   }
 
+  // Sent here from a task ("Link your Instagram account first"):
+  // /profile?link=instagram picks the platform and brings the form into view.
+  const wanted = new URLSearchParams(location.search).get('link');
+  if (wanted && SOCIAL_PLATFORMS.some((p) => p.value === wanted)) {
+    form.platform.value = wanted;
+    requestAnimationFrame(() => {
+      qs('#linked-accounts')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      form.username.focus({ preventScroll: true });
+    });
+  }
+
   async function load() {
     try {
       const { social_profiles } = await api.social.mine();

@@ -21,6 +21,13 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000904', 'finn@example.com');
 update public.profiles set role = 'admin' where id = '00000000-0000-0000-0000-000000000900';
 
+-- Follow / like tasks need the doer's linked account (021).
+insert into public.social_profiles (user_id, platform, username, profile_url) values
+  ('00000000-0000-0000-0000-000000000902', 'instagram', 'dan', 'https://instagram.com/dan'),
+  ('00000000-0000-0000-0000-000000000903', 'instagram', 'eve', 'https://instagram.com/eve'),
+  ('00000000-0000-0000-0000-000000000903', 'tiktok', 'eve', 'https://tiktok.com/@eve'),
+  ('00000000-0000-0000-0000-000000000904', 'instagram', 'finn', 'https://instagram.com/finn');
+
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000900', false);
 select public.admin_credit_adjustment('00000000-0000-0000-0000-000000000901', 1000, 'seed for 020 tests');
 
@@ -46,7 +53,7 @@ end $$;
 -- ------------------------------------------------------- screenshot proof
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000902', false); -- dan
 select t20_set('dan_a', public.submit_task_verification(t20_get('task_a')::uuid, null, null,
-  '00000000-0000-0000-0000-000000000902/11111111-1111-4111-8111-111111111111.webp')::text);
+  '00000000-0000-0000-0000-000000000902/11111111-1111-4111-8111-111111111111.webp', (select id from public.social_profiles where user_id = auth.uid() and platform = 'instagram'))::text);
 
 do $$
 begin
@@ -89,7 +96,7 @@ begin
   end;
 end $$;
 
-select t20_set('eve_a', public.submit_task_verification(t20_get('task_a')::uuid, null, 'Followed as @eve', null)::text);
+select t20_set('eve_a', public.submit_task_verification(t20_get('task_a')::uuid, null, 'Followed as @eve', null, (select id from public.social_profiles where user_id = auth.uid() and platform = 'instagram'))::text);
 
 -- ------------------------------------------------------------ link clicks
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000902', false); -- dan
@@ -224,7 +231,13 @@ select t20_set('camp_c', public.create_campaign('Like cara', '', 'tiktok', 'like
 select t20_set('task_c', id::text) from public.tasks where campaign_id = t20_get('camp_c')::uuid;
 
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000903', false); -- eve
-select t20_set('eve_c', public.submit_task_verification(t20_get('task_c')::uuid, 'https://tiktok.com/proof', null, null)::text);
+select t20_set('eve_c', public.submit_task_verification(t20_get('task_c')::uuid, 'https://tiktok.com/proof', null, null, (select id from public.social_profiles where user_id = auth.uid() and platform = 'tiktok'))::text);
+
+-- Since 021 a proof sent before a cancellation keeps its place and is still
+-- paid (012 covers that). This checks the expiry path, for a proof that
+-- holds no place - one sent before 021, when places weren't held.
+update public.task_completions set holds_slot = false where id = t20_get('eve_c')::uuid;
+update public.campaigns set reserved_count = 0 where id = t20_get('camp_c')::uuid;
 
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000901', false); -- cara
 select public.cancel_campaign(t20_get('camp_c')::uuid, 'changed my mind');
@@ -247,7 +260,7 @@ end $$;
 
 -- ------------------------------------------------- creator track record
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000904', false); -- finn
-select t20_set('finn_a', public.submit_task_verification(t20_get('task_a')::uuid, null, 'done', null)::text);
+select t20_set('finn_a', public.submit_task_verification(t20_get('task_a')::uuid, null, 'done', null, (select id from public.social_profiles where user_id = auth.uid() and platform = 'instagram'))::text);
 
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000901', false); -- cara
 select public.review_task_verification(t20_get('finn_a')::uuid, 'approved', null);
@@ -278,7 +291,7 @@ begin
   if not has_function_privilege('authenticated', 'public.record_task_link_click(uuid)', 'execute')
      or not has_function_privilege('authenticated', 'public.complete_link_click_task(uuid)', 'execute')
      or not has_function_privilege('authenticated', 'public.creator_review_stats(uuid[])', 'execute')
-     or not has_function_privilege('authenticated', 'public.submit_task_verification(uuid, text, text, text)', 'execute') then
+     or not has_function_privilege('authenticated', 'public.submit_task_verification(uuid, text, text, text, uuid)', 'execute') then
     raise exception 'FAIL: members are missing a grant they need';
   end if;
   if has_table_privilege('authenticated', 'public.task_link_clicks', 'select') then

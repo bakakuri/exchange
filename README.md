@@ -51,8 +51,8 @@ exchange/
                               one auth.*.js and profile.*.js per layer so far
     utils/                     errors.js (canonical error codes), logger.js, async-handler.js
   supabase/
-    migrations/               001-020: full schema, RLS, business-logic functions, views,
-                              verification upgrades (020)
+    migrations/               001-021: full schema, RLS, business-logic functions, views,
+                              verification upgrades (020), trust & economy rules (021)
   scripts/
     i18n-check.js             translation coverage check (see "Languages")
     test/                     Local Postgres validation harness (see below)
@@ -1316,6 +1316,35 @@ same session.
 
 ---
 
+## Trust and economy rules (021)
+
+`supabase/migrations/021_trust_and_economy.sql` - **run it in the
+Supabase SQL editor before deploying this version** (after 020; it runs
+as one transaction and is safe to run again).
+
+| | Rule |
+|---|---|
+| **Referral bonus** | Paid on the friend's first approval made **by a person** who is neither the referrer, nor on the referrer's own campaign, nor on a campaign of someone else the referrer brought in. Automatic approvals (24 h, link click) never count. At most **5 bonuses per referrer per day**. A code can only be claimed **before** one's first approved task. |
+| **Places are held** | Sending proof takes one of the campaign's places and its reward (`campaigns.reserved_count`, `task_completions.holds_slot`), so a campaign never collects more proofs than it can pay; open tasks show "N places left". A rejection or expiry frees the place. **Cancelling** refunds only the free budget - proofs already sent are still reviewed (or auto-approved) and paid from what was kept; whatever they don't use goes back to the creator. Deleting a member frees the places their waiting proofs held. |
+| **Creator notified** | New proof sends the creator one "New proof to review" notification per campaign (not one per proof) with a link to the review queue. |
+| **The account used** | Follow, like, comment, subscribe, share, repost, save and join tasks on a social platform need the member's **linked account** for that platform. The proof form picks it (or sends the member to `/profile?link=<platform>`); the handle is copied onto the proof and shown to the creator. |
+| **Reputation & limits** | Reviewers see the member's **level** and track record (`doer_review_stats()`). A member may have **5 + 5 × level** proofs waiting at once (**30** at most) - shown on `/submissions` and as "Level perks" on `/achievements`. Members with **5+ rejected or reversed** proofs that make up **30%+** of the proofs a person reviewed are **not auto-approved**: their proofs wait for a person and **expire after 72 h**. |
+| **Appeals** | A rejected proof can be appealed **once, within 7 days** (`POST /api/verification/:id/appeal`). An admin sees the proof with the appeal on `/admin/reports` and either **approves and pays** it (`POST /api/admin/completions/:id/overturn` - from a free place, or, when none is left, from the creator who rejected it, as a "penalty" ledger entry) or **keeps the rejection** (the member is told). |
+| **Undone actions** | Within **7 days** of approving a follow/like/… the creator can report that it was undone (`POST /api/verification/:id/report-undone`, once per proof; visits can't be undone). An admin can **take the reward back** (`POST /api/admin/completions/:id/reverse`) - as much as the member still has, never a negative balance - and return it to the creator; the proof becomes **reversed** and loses its XP. |
+| **Reused screenshots** | Every upload's **SHA-256** is recorded (`proof_images`). An image (or image path) already used as proof is refused at upload and, race-proof, by the database at submission. |
+| **Welcome bonus** | **10 credits, once**, after proofs approved by a person from **3 different creators** (none tied to the member through referrals). Progress shows on `/credits`. |
+
+Also in 021: a review locks the proof, so an approval and a rejection
+racing each other can never both land on it, and `log_audit_event()` is
+no longer callable by clients (it had been since 013).
+
+Local validation: `scripts/test/012_trust_economy_test.sql` (51 checks,
+ending with "places, budgets and every balance still add up") runs after
+001-006 and 011 in the same session; the whole suite passes with 021
+applied as a single transaction.
+
+---
+
 ## Languages (ქართული · Русский · English)
 
 The whole site - static pages, everything the scripts render, server and
@@ -1485,3 +1514,4 @@ error handler has a chance to log it.
 - [x] Design system: Mono Minimal light/dark themes, FiraGO (Latin + Cyrillic + Georgian), new home page — see "Design system (Mono Minimal)"
 - [x] Languages: Georgian, Russian, English — automatic by country, switchable, saved to the account — see "Languages"
 - [x] Verification: screenshot proof, 24-hour auto-approval, creator track record, real link-click tasks — see "Verifying completed tasks (020)"
+- [x] Trust & economy: referral-farm fix, places held at submission, creator notice, account on proof, doer reputation and limits, appeals, undone-action reversal, duplicate screenshots, welcome bonus, level perks — see "Trust and economy rules (021)"

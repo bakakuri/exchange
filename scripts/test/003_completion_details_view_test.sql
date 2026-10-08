@@ -36,8 +36,12 @@ select test_set('campaign_id', public.create_campaign(
 select test_set('task_id', id::text) from public.tasks where campaign_id = test_get('campaign_id')::uuid;
 
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000202', false); -- gina
+-- a follow task needs the doer's linked account (021)
+insert into public.social_profiles (user_id, platform, username, profile_url)
+values ('00000000-0000-0000-0000-000000000202', 'instagram', 'gina', 'https://instagram.com/gina');
 select test_set('completion_id', public.submit_task_verification(
-  test_get('task_id')::uuid, null, 'proof of follow'
+  test_get('task_id')::uuid, null, 'proof of follow', null,
+  (select id from public.social_profiles where user_id = auth.uid() and platform = 'instagram')
 )::text);
 
 select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000201', false); -- finn reviews

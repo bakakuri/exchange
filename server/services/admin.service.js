@@ -14,6 +14,14 @@
 const { supabaseAdmin, getClientForUser } = require('../config/supabase');
 const { AppError, ErrorCodes } = require('../utils/errors');
 const PROFILE_FIELDS = require('../constants/profile-fields');
+const { withImageUrls } = require('./verification.service');
+
+// The proof an appeal or undone-action report is about (021), shown to
+// the admin deciding it.
+const REPORT_COMPLETION_FIELDS =
+  'id, task_id, completer_id, status, reward_amount, created_at, reviewed_at, campaign_id, platform, task_type, ' +
+  'target_url, campaign_creator_id, campaign_title, proof_url, proof_text, review_notes, auto_approved, ' +
+  'proof_image_path, completer_username, completer_level, account_username, account_url';
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
@@ -186,7 +194,7 @@ async function listReports({ status = 'open', limit, before } = {}) {
 
   let query = supabaseAdmin
     .from('reports')
-    .select('id, reporter_id, report_type, description, status, related_task_id, related_campaign_id, related_user_id, resolved_by, resolved_at, created_at')
+    .select('id, reporter_id, report_type, description, status, related_task_id, related_campaign_id, related_user_id, related_completion_id, resolved_by, resolved_at, created_at')
     .order('created_at', { ascending: false })
     .limit(pageSize);
 
@@ -207,11 +215,50 @@ async function listReports({ status = 'open', limit, before } = {}) {
     if (reporters) reporterMap = Object.fromEntries(reporters.map((p) => [p.id, p]));
   }
 
-  const reports = data.map((r) => ({ ...r, reporter: reporterMap[r.reporter_id] || null }));
+  // Enrich: the proof behind an appeal / undone-action report.
+  const completionIds = [...new Set(data.map((r) => r.related_completion_id).filter(Boolean))];
+  let completionMap = {};
+  if (completionIds.length) {
+    const { data: completions } = await supabaseAdmin
+      .from('completion_details')
+      .select(REPORT_COMPLETION_FIELDS)
+      .in('id', completionIds);
+    if (Array.isArray(completions)) {
+      completionMap = Object.fromEntries((await withImageUrls(completions)).map((c) => [c.id, c]));
+    }
+  }
+
+  const reports = data.map((r) => ({
+    ...r,
+    reporter: reporterMap[r.reporter_id] || null,
+    completion: completionMap[r.related_completion_id] || null,
+  }));
   return {
     reports,
     next_cursor: data.length === pageSize ? data[data.length - 1].created_at : null,
   };
 }
 
-module.exports = { listUsers, getUser, updateUser, adjustCredits, getStats, listAudit, listReports };
+// ── appeals and undone actions (021) ────────────────────────────────────────
+
+// The rejection was wrong: approve and pay the proof (if its campaign can
+// still pay). Closes the appeal.
+async function overturnRejection(accessToken, completionId, { note }) {
+  const client = getClientForUser(accessToken);
+  const { error } = await client.rpc('admin_overturn_rejection', { p_completion_id: completionId, p_note: note || null });
+  if (error) throw mapRpcError(error);
+}
+
+// The action was undone: take the reward back to the creator. Returns how
+// much was taken (less than the reward if the member already spent it).
+async function reverseReward(accessToken, completionId, { note }) {
+  const client = getClientForUser(accessToken);
+  const { data, error } = await client.rpc('admin_reverse_reward', { p_completion_id: completionId, p_note: note || null });
+  if (error) throw mapRpcError(error);
+  return { taken_back: Number(data) || 0 };
+}
+
+module.exports = {
+  listUsers, getUser, updateUser, adjustCredits, getStats, listAudit, listReports,
+  overturnRejection, reverseReward,
+};

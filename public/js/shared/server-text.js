@@ -13,6 +13,11 @@ const PATTERNS = [
       'Your submission was approved and you earned {n} credits.')],
   [/^(.+) has reached its completion target\.$/s,
     (m) => t('{title} has reached its completion target.', { title: m[1] })],
+  [/^Someone sent proof for (.+)\. Review it within 24 hours or it is approved automatically\.$/s,
+    (m) => t('Someone sent proof for {title}. Review it within 24 hours or it is approved automatically.', { title: m[1] })],
+  [/^An admin confirmed the action was undone\. (\d+) credits? were returned to you\.$/,
+    (m) => tn(Number(m[1]), 'An admin confirmed the action was undone. {n} credit was returned to you.',
+      'An admin confirmed the action was undone. {n} credits were returned to you.')],
 ];
 
 export function serverText(text) {

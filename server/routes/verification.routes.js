@@ -4,7 +4,7 @@ const controller = require('../controllers/verification.controller');
 const { requireAuth } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 const { createRateLimiter } = require('../middleware/rate-limit');
-const { validateSubmit, validateReview } = require('../validators/verification.validator');
+const { validateSubmit, validateReview, validateMessage } = require('../validators/verification.validator');
 
 const { validateUuidParam } = require('../middleware/validate-uuid-param'); // Stage 16
 const { AppError, ErrorCodes } = require('../utils/errors');
@@ -56,5 +56,8 @@ router.post('/:id/review', requireAuth, validateUuidParam('id'), writeLimiter, v
 router.post('/proof-image', requireAuth, uploadLimiter, readImage, controller.uploadProofImage);
 router.post('/tasks/:taskId/open', requireAuth, validateUuidParam('taskId'), linkLimiter, controller.openLink);
 router.post('/tasks/:taskId/complete', requireAuth, validateUuidParam('taskId'), linkLimiter, controller.completeLink);
+// 021: a member appeals a rejection; a creator reports an undone action.
+router.post('/:id/appeal', requireAuth, validateUuidParam('id'), writeLimiter, validate(validateMessage), controller.appeal);
+router.post('/:id/report-undone', requireAuth, validateUuidParam('id'), writeLimiter, validate(validateMessage), controller.reportUndone);
 
 module.exports = router;

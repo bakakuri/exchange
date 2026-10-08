@@ -18,6 +18,33 @@ import { shortDate } from '../shared/time.js';
 
 const XP_PER_LEVEL = 1000;
 
+// Mirrors pending_proof_limit() (021_trust_and_economy.sql): 5 + 5 x level, 30 at most.
+const pendingLimit = (level) => Math.min(5 + 5 * Math.max(level, 1), 30);
+const PERK_LEVELS = [1, 2, 3, 4, 5];
+
+function renderPerks(section, user) {
+  const list = qs('[data-level-perks-list]');
+  if (!list) return;
+  const level = user.level ?? 1;
+  list.innerHTML = '';
+  for (const n of PERK_LEVELS) {
+    const top = n === PERK_LEVELS[PERK_LEVELS.length - 1];
+    const current = top ? level >= n : level === n;
+    const reached = level >= n;
+    const state = current ? 'current' : reached ? 'reached' : 'locked';
+    list.append(createEl('li', { class: `level-perk level-perk--${state}` }, [
+      createEl('span', { class: 'level-perk__level' }, [
+        icon(reached ? 'i-circle-check' : 'i-lock', { size: 14 }),
+        top ? t('Level {level}+', { level: formatNumber(n) }) : t('Level {level}', { level: formatNumber(n) }),
+      ]),
+      createEl('strong', { class: 'level-perk__value' }, formatNumber(pendingLimit(n))),
+      createEl('span', { class: 'level-perk__label' }, t('proofs waiting at once')),
+      ...(current ? [createEl('span', { class: 'level-perk__you' }, t('You are here'))] : []),
+    ]));
+  }
+  section.hidden = false;
+}
+
 const setText = (sel, text) => {
   const el = qs(sel);
   if (el) el.textContent = text;
@@ -66,6 +93,8 @@ export async function init() {
 
   const user = store.getState().user;
   if (user && levelEl) renderLevel(levelEl, user);
+  const perksEl = qs('[data-level-perks]');
+  if (user && perksEl) renderPerks(perksEl, user);
 
   try {
     const [{ achievements }, { unlocked }] = await Promise.all([api.achievements.catalog(), api.achievements.mine()]);

@@ -9,6 +9,7 @@ const LABELS = {
   approved: () => t('Approved'),
   rejected: () => t('Rejected'),
   expired: () => t('Expired'),
+  reversed: () => t('Reversed'),
 };
 
 export function statusLabel(status) {

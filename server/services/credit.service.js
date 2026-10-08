@@ -54,4 +54,19 @@ async function getSummary(accessToken) {
   return { by_type: data };
 }
 
-module.exports = { getLedger, getSummary };
+// Progress toward the one-time welcome bonus (get_starter_bonus(),
+// 021_trust_and_economy.sql): approvals by different creators so far.
+async function getWelcomeBonus(accessToken) {
+  const client = getClientForUser(accessToken);
+  const { data, error } = await client.rpc('get_starter_bonus');
+  if (error) throw new AppError(ErrorCodes.VALIDATION_ERROR, error.message, 400);
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    creators_done: Number(row?.creators_done) || 0,
+    creators_needed: Number(row?.creators_needed) || 3,
+    amount: Number(row?.amount) || 10,
+    granted_at: row?.granted_at || null,
+  };
+}
+
+module.exports = { getLedger, getSummary, getWelcomeBonus };

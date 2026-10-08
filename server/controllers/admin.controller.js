@@ -52,4 +52,17 @@ const resolveReport = asyncHandler(async (req, res) => {
   res.status(204).end();
 });
 
-module.exports = { listUsers, getUser, updateUser, adjustCredits, getStats, listAudit, listReports, resolveReport };
+const overturnRejection = asyncHandler(async (req, res) => {
+  await adminService.overturnRejection(req.accessToken, req.params.id, { note: req.body.note });
+  res.status(204).end();
+});
+
+const reverseReward = asyncHandler(async (req, res) => {
+  const result = await adminService.reverseReward(req.accessToken, req.params.id, { note: req.body.note });
+  res.json(result);
+});
+
+module.exports = {
+  listUsers, getUser, updateUser, adjustCredits, getStats, listAudit, listReports, resolveReport,
+  overturnRejection, reverseReward,
+};

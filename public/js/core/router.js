@@ -74,7 +74,9 @@ function resolve(path) {
   return { route: home(), params: {} };
 }
 
-async function render(path) {
+async function render(fullPath) {
+  // A link may carry a query (e.g. /profile?link=instagram); routes match the path.
+  const path = fullPath.split(/[?#]/)[0];
   const { route, params } = resolve(path);
 
   if (guard) {

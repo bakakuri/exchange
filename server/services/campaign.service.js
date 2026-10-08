@@ -16,7 +16,7 @@ const { AppError, ErrorCodes } = require('../utils/errors');
 
 const CAMPAIGN_FIELDS =
   'id, creator_id, title, description, reward, desired_completions, completed_count, ' +
-  'total_budget, remaining_budget, status, created_at, updated_at, ' +
+  'total_budget, remaining_budget, reserved_count, status, created_at, updated_at, ' +
   'task:tasks(id, platform, task_type, target_url, instructions, verification_method)';
 
 const DEFAULT_PAGE_SIZE = 20;

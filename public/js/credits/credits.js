@@ -1,5 +1,6 @@
 // js/credits/credits.js - behavior for the /credits route: current
-// balance plus a cursor-paginated transaction history.
+// balance, progress toward the one-time welcome bonus (021), and a
+// cursor-paginated transaction history.
 
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
@@ -15,7 +16,7 @@ const TYPE_LABELS = {
   campaign_reservation: () => t('Campaign budget reserved'),
   campaign_refund: () => t('Campaign refund'),
   referral_reward: () => t('Referral bonus'),
-  signup_bonus: () => t('Signup bonus'),
+  signup_bonus: () => t('Welcome bonus'),
   admin_adjustment: () => t('Admin adjustment'),
   reversal: () => t('Reversal'),
   penalty: () => t('Penalty'),
@@ -63,6 +64,34 @@ function renderSummary(dl, byType) {
   }
 }
 
+// "Welcome bonus: 10 credits - 1 of 3 creators". Shown until it's paid.
+function renderWelcomeBonus(el, bonus) {
+  if (!bonus || bonus.granted_at) { el.hidden = true; return; }
+  const done = Math.min(bonus.creators_done, bonus.creators_needed);
+  const steps = Array.from({ length: bonus.creators_needed }, (_, i) =>
+    createEl('span', { class: `welcome-bonus__step${i < done ? ' is-done' : ''}` },
+      [icon(i < done ? 'i-check' : 'i-user', { size: 14 })]));
+  el.innerHTML = '';
+  el.append(
+    createEl('span', { class: 'welcome-bonus__icon' }, [icon('i-gift', { size: 22 })]),
+    createEl('div', { class: 'welcome-bonus__text' }, [
+      createEl('strong', {}, tn(bonus.amount, 'Welcome bonus: {n} credit', 'Welcome bonus: {n} credits')),
+      createEl('p', {}, t('Get proofs approved by {needed} different creators - approved by them, not automatically.', {
+        needed: formatNumber(bonus.creators_needed),
+      })),
+    ]),
+    createEl('div', { class: 'welcome-bonus__progress', 'aria-label': t('{done} of {needed} creators', {
+      done: formatNumber(done), needed: formatNumber(bonus.creators_needed),
+    }) }, [
+      createEl('div', { class: 'welcome-bonus__steps' }, steps),
+      createEl('span', { class: 'welcome-bonus__count' }, t('{done} of {needed} creators', {
+        done: formatNumber(done), needed: formatNumber(bonus.creators_needed),
+      })),
+    ]),
+  );
+  el.hidden = false;
+}
+
 function renderEntries(listEl, entries, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
 
@@ -104,6 +133,13 @@ export async function init() {
     balanceEl.textContent = tn(credits, '{n} credit', '{n} credits');
   } catch {
     balanceEl.textContent = t('Could not load your balance.');
+  }
+
+  const bonusEl = qs('[data-welcome-bonus]');
+  if (bonusEl) {
+    api.credits.welcomeBonus()
+      .then(({ welcome_bonus: bonus }) => renderWelcomeBonus(bonusEl, bonus))
+      .catch(() => { bonusEl.hidden = true; });
   }
 
   try {

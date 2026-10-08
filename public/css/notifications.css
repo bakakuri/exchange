@@ -60,3 +60,14 @@
   padding: 0 var(--space-3);
   font-size: var(--font-size-sm);
 }
+
+/* A notification that asks for something links to it (021). */
+.notification-item__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
