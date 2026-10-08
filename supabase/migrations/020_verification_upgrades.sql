@@ -20,7 +20,18 @@
 --      complete_link_click_task() pays the reward at once - a click can
 --      prove a visit, never a follow, hence the task-type limit.
 --
--- Safe to run more than once.
+-- Safe to run more than once - but not on its own after 021, which
+-- replaces several of the functions below (the check right here stops it).
+
+do $$
+begin
+  if exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'campaigns' and column_name = 'reserved_count')
+     and current_setting('exchange.apply_020_021', true) is distinct from 'on' then
+    raise exception 'Migration 021 is already applied - running 020 on its own again would undo parts of it. Run 021 (or supabase/apply/020_021_together.sql) instead.';
+  end if;
+end;
+$$;
 
 -- ═══════════════════════════════════════════════════════════════ columns
 

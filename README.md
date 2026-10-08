@@ -1320,7 +1320,11 @@ same session.
 
 `supabase/migrations/021_trust_and_economy.sql` - **run it in the
 Supabase SQL editor before deploying this version** (after 020; it runs
-as one transaction and is safe to run again).
+as one transaction and is safe to run again). It needs 020: on a database
+without 020 it stops with a message and changes nothing. In that case run
+**`supabase/apply/020_021_together.sql`** instead - 020 and 021 in one
+file, one transaction, safe to repeat. (Running 020 on its own after 021
+is refused, since it would undo parts of 021.)
 
 | | Rule |
 |---|---|
