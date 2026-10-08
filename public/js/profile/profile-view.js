@@ -6,13 +6,17 @@ import { store } from '../core/state.js';
 import { qs, createEl } from '../shared/dom.js';
 import { ApiError } from '../shared/errors.js';
 import { platformLabel } from '../shared/social-platforms.js';
+import { t, formatNumber } from '../core/i18n.js';
+import { activityLabel } from '../shared/activity-labels.js';
+import { serverText } from '../shared/server-text.js';
+import { shortDate } from '../shared/time.js';
 
 export async function init(params) {
   const container = qs('[data-profile-view-content]');
   if (!container) return;
 
   container.innerHTML = '';
-  container.append(createEl('p', { class: 'profile-view__loading' }, 'Loading…'));
+  container.append(createEl('p', { class: 'profile-view__loading' }, t('Loading…')));
 
   let profile;
   try {
@@ -20,8 +24,8 @@ export async function init(params) {
   } catch (err) {
     container.innerHTML = '';
     const message = err instanceof ApiError && err.status === 404
-      ? `No profile found for "${params.username}".`
-      : 'Could not load this profile.';
+      ? t('No profile found for “{username}”.', { username: params.username })
+      : t('Could not load this profile.');
     container.append(createEl('p', {}, message));
     return;
   }
@@ -45,25 +49,15 @@ async function renderAchievements(container, username) {
   if (!unlocked || unlocked.length === 0) return;
 
   container.append(
-    createEl('h2', {}, 'Achievements'),
+    createEl('h2', {}, t('Achievements')),
     createEl(
       'ul',
       { class: 'profile-view__achievements' },
       unlocked.map((u) =>
-        createEl('li', { class: 'profile-view__achievement-badge', title: u.achievement.description }, u.achievement.title)
+        createEl('li', { class: 'profile-view__achievement-badge', title: serverText(u.achievement.description) }, serverText(u.achievement.title))
       )
     )
   );
-}
-
-// activity_type values already read as reasonable labels once
-// underscores become spaces and the first letter is capitalized -
-// metadata (015_functions.sql's jsonb_build_object payloads) isn't
-// shown here, keeping this feed to "what happened, when", consistent
-// with 009_activity.sql's own "display feed" framing.
-function activityLabel(type) {
-  const words = type.split('_');
-  return words[0].charAt(0).toUpperCase() + words[0].slice(1) + ' ' + words.slice(1).join(' ');
 }
 
 async function renderActivity(container, username) {
@@ -76,14 +70,14 @@ async function renderActivity(container, username) {
   if (!activity || activity.length === 0) return;
 
   container.append(
-    createEl('h2', {}, 'Activity'),
+    createEl('h2', {}, t('Activity')),
     createEl(
       'ul',
       { class: 'activity-list' },
       activity.map((a) =>
         createEl('li', { class: 'activity-list__item' }, [
           createEl('span', {}, activityLabel(a.type)),
-          createEl('time', { class: 'activity-list__date' }, new Date(a.created_at).toLocaleDateString()),
+          createEl('time', { class: 'activity-list__date', datetime: a.created_at }, shortDate(a.created_at)),
         ])
       )
     )
@@ -100,7 +94,7 @@ async function renderSocial(container, username) {
   if (!social_profiles || social_profiles.length === 0) return;
 
   container.append(
-    createEl('h2', {}, 'Linked accounts'),
+    createEl('h2', {}, t('Linked accounts')),
     createEl(
       'ul',
       { class: 'social-list social-list--readonly' },
@@ -134,15 +128,15 @@ function render(container, profile) {
 
   container.append(
     createEl('dl', { class: 'profile-view__stats' }, [
-      createEl('dt', {}, 'Level'), createEl('dd', {}, String(profile.level)),
-      createEl('dt', {}, 'XP'), createEl('dd', {}, String(profile.xp)),
-      createEl('dt', {}, 'Member since'), createEl('dd', {}, new Date(profile.created_at).toLocaleDateString()),
+      createEl('dt', {}, t('Level')), createEl('dd', {}, String(profile.level)),
+      createEl('dt', {}, t('XP')), createEl('dd', {}, formatNumber(profile.xp ?? 0)),
+      createEl('dt', {}, t('Member since')), createEl('dd', {}, shortDate(profile.created_at)),
     ])
   );
 
   if (isOwn) {
     container.append(
-      createEl('p', {}, [createEl('a', { href: '/profile', 'data-link': '' }, 'Edit your profile')])
+      createEl('p', {}, [createEl('a', { href: '/profile', 'data-link': '' }, t('Edit your profile'))])
     );
   }
 }

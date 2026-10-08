@@ -25,8 +25,13 @@
       <input id="profile-country" name="country" type="text" maxlength="2" placeholder="e.g. GE" />
     </div>
     <div class="field">
-      <label for="profile-language">Language code</label>
-      <input id="profile-language" name="language" type="text" maxlength="2" placeholder="e.g. ka" />
+      <label for="profile-language">Site language</label>
+      <select id="profile-language" name="language">
+        <option value="">Automatic (by country and phone)</option>
+        <option value="ka" lang="ka">ქართული</option>
+        <option value="ru" lang="ru">Русский</option>
+        <option value="en" lang="en">English</option>
+      </select>
     </div>
     <p class="form-error" id="profile-error" role="alert" hidden></p>
     <p class="form-success" id="profile-success" role="status" hidden>Saved.</p>

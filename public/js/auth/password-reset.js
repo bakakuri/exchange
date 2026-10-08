@@ -9,7 +9,7 @@
 import { requestPasswordReset, confirmPasswordReset } from './auth.js';
 import { navigate } from '../core/router.js';
 import { qs } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 
 function recoveryTokenFromUrl() {
   const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
@@ -53,7 +53,7 @@ function wireRequestForm() {
       successEl.hidden = false;
       form.reset();
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Something went wrong. Please try again.';
+      errorEl.textContent = errorMessage(err, 'Something went wrong. Please try again.');
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;
@@ -76,9 +76,7 @@ function wireConfirmForm(token) {
       await confirmPasswordReset(token, form.password.value);
       navigate('/login', { replace: true });
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError
-        ? err.message
-        : 'Could not reset your password. The link may have expired - request a new one.';
+      errorEl.textContent = errorMessage(err, 'Could not reset your password. The link may have expired - request a new one.');
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;

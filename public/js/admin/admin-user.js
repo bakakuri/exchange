@@ -7,34 +7,37 @@
 import { api } from '../shared/api.js';
 import { navigate } from '../core/router.js';
 import { qs, createEl, escapeHtml } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
+import { t, tn, formatNumber } from '../core/i18n.js';
+import { shortDate } from '../shared/time.js';
+import { roleLabel, userStatusLabel } from './labels.js';
 
 // ── profile rendering ───────────────────────────────────────────────────────
 
 function renderProfile(el, user) {
   const statsSection = user._stats
     ? `<p class="admin-user-detail__stats">
-         ${Number(user._stats.total_completions)} completions, ${Number(user._stats.pending_verifications)} pending review
+         ${escapeHtml(tn(Number(user._stats.total_completions), '{n} completion', '{n} completions'))}, ${escapeHtml(t('{n} pending review', { n: Number(user._stats.pending_verifications) }))}
        </p>`
     : '';
 
   el.innerHTML = `
     <div class="admin-user-detail__header">
       <div>
-        <h2 class="admin-user-detail__name">${escapeHtml(user.display_name || user.username || '(no name)')}</h2>
+        <h2 class="admin-user-detail__name">${escapeHtml(user.display_name || user.username || t('(no name)'))}</h2>
         <p class="admin-user-detail__username">@${escapeHtml(user.username || '—')}</p>
         ${statsSection}
       </div>
       <div class="admin-user-detail__badges">
-        <span class="admin-user-role admin-user-role--${escapeHtml(user.role)}">${escapeHtml(user.role)}</span>
-        <span class="admin-user-status admin-user-status--${escapeHtml(user.status)}">${escapeHtml(user.status)}</span>
+        <span class="admin-user-role admin-user-role--${escapeHtml(user.role)}">${escapeHtml(roleLabel(user.role))}</span>
+        <span class="admin-user-status admin-user-status--${escapeHtml(user.status)}">${escapeHtml(userStatusLabel(user.status))}</span>
       </div>
     </div>
     <dl class="admin-user-detail__meta">
-      <dt>Credits</dt><dd>${Number(user.credits)}</dd>
-      <dt>Level</dt><dd>${Number(user.level)} (${Number(user.xp)} XP)</dd>
-      <dt>Joined</dt><dd>${new Date(user.created_at).toLocaleDateString()}</dd>
-      <dt>Referral code</dt><dd>${escapeHtml(user.referral_code || '—')}</dd>
+      <dt>${escapeHtml(t('Credits'))}</dt><dd>${formatNumber(Number(user.credits))}</dd>
+      <dt>${escapeHtml(t('Level'))}</dt><dd>${Number(user.level)} (${formatNumber(Number(user.xp))} XP)</dd>
+      <dt>${escapeHtml(t('Joined'))}</dt><dd>${escapeHtml(shortDate(user.created_at))}</dd>
+      <dt>${escapeHtml(t('Referral code'))}</dt><dd>${escapeHtml(user.referral_code || '—')}</dd>
     </dl>
   `.trim();
 }
@@ -68,7 +71,7 @@ function initUpdateForm(userId, currentUser) {
       successEl.hidden = false;
       form.reason.value = '';
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Update failed.';
+      errorEl.textContent = errorMessage(err, 'Update failed.');
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;
@@ -107,7 +110,7 @@ function initCreditForm(userId, profileEl) {
       renderProfile(profileEl, updated);
       initUpdateForm(userId, updated);
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Credit adjustment failed.';
+      errorEl.textContent = errorMessage(err, 'Credit adjustment failed.');
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;
@@ -137,7 +140,7 @@ export async function init({ id } = {}) {
   } catch (err) {
     if (loadingEl) loadingEl.hidden = true;
     if (errorEl) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not load user.';
+      errorEl.textContent = errorMessage(err, 'Could not load user.');
       errorEl.hidden = false;
     }
   }

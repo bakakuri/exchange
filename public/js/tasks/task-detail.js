@@ -11,16 +11,17 @@
 import { api } from '../shared/api.js';
 import { store } from '../core/state.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { ApiError, errorMessage } from '../shared/errors.js';
 import { taskPlatformLabel } from '../shared/task-platforms.js';
 
 import { taskActionLabel } from '../shared/task-label.js';
+import { t, tn } from '../core/i18n.js';
 
 const STATUS_LABELS = {
-  pending: 'Your submission is pending review.',
-  approved: 'Your submission was approved — credits already landed in your balance.',
-  rejected: 'Your submission was rejected. See your submissions for the reviewer’s notes.',
-  expired: 'Your submission expired.',
+  pending: () => t('Your submission is pending review.'),
+  approved: () => t('Your submission was approved — credits already landed in your balance.'),
+  rejected: () => t('Your submission was rejected. See your submissions for the reviewer’s notes.'),
+  expired: () => t('Your submission expired.'),
 };
 
 export async function init(params) {
@@ -28,14 +29,14 @@ export async function init(params) {
   if (!container) return;
 
   container.innerHTML = '';
-  container.append(createEl('p', { class: 'task-detail__loading' }, 'Loading…'));
+  container.append(createEl('p', { class: 'task-detail__loading' }, t('Loading…')));
 
   let task;
   try {
     ({ task } = await api.tasks.get(params.id));
   } catch (err) {
     container.innerHTML = '';
-    const message = err instanceof ApiError && err.status === 404 ? 'Task not found.' : 'Could not load this task.';
+    const message = err instanceof ApiError && err.status === 404 ? t('Task not found.') : errorMessage(err, 'Could not load this task.');
     container.append(createEl('p', {}, message));
     return;
   }
@@ -56,7 +57,7 @@ function render(container, task) {
   container.append(
     createEl('div', { class: 'task-detail__header' }, [
       createEl('h1', {}, campaign.title),
-      createEl('span', { class: 'task-detail__reward' }, `${campaign.reward} credits`),
+      createEl('span', { class: 'task-detail__reward' }, tn(campaign.reward, '{n} credit', '{n} credits')),
     ]),
     createEl('p', { class: 'task-detail__meta' }, taskActionLabel(task.task_type, task.platform))
   );
@@ -66,21 +67,21 @@ function render(container, task) {
   }
 
   if (task.instructions) {
-    container.append(createEl('h2', {}, 'Instructions'), createEl('p', {}, task.instructions));
+    container.append(createEl('h2', {}, t('Instructions')), createEl('p', {}, task.instructions));
   }
 
   container.append(
-    createEl('a', { href: task.target_url, target: '_blank', rel: 'noopener noreferrer', class: 'btn btn--primary task-detail__open' }, task.platform && task.platform !== 'other' ? `Open on ${taskPlatformLabel(task.platform)}` : 'Open link')
+    createEl('a', { href: task.target_url, target: '_blank', rel: 'noopener noreferrer', class: 'btn btn--primary task-detail__open' }, task.platform && task.platform !== 'other' ? t('Open on {platform}', { platform: taskPlatformLabel(task.platform) }) : t('Open link'))
   );
 
   if (isOwn) {
-    container.append(createEl('p', { class: 'task-detail__note' }, 'This is your own task — you can’t complete it yourself.'));
+    container.append(createEl('p', { class: 'task-detail__note' }, t('This is your own task — you can’t complete it yourself.')));
   } else if (task.my_completion) {
     container.append(
-      createEl('p', { class: 'task-detail__note' }, STATUS_LABELS[task.my_completion.status] || task.my_completion.status)
+      createEl('p', { class: 'task-detail__note' }, STATUS_LABELS[task.my_completion.status]?.() || task.my_completion.status)
     );
   } else if (!isOpen) {
-    container.append(createEl('p', { class: 'task-detail__note' }, 'This task is no longer open.'));
+    container.append(createEl('p', { class: 'task-detail__note' }, t('This task is no longer open.')));
   } else {
     container.append(renderSubmitForm(task, container));
   }
@@ -90,15 +91,15 @@ function renderSubmitForm(task, container) {
   const urlField = createEl('input', { type: 'url', id: 'proof-url', name: 'proof_url', placeholder: 'https://…' });
   const textField = createEl('textarea', { id: 'proof-text', name: 'proof_text', rows: '3' });
   const errorEl = createEl('p', { class: 'form-error', role: 'alert', hidden: '' }, '');
-  const submitBtn = createEl('button', { type: 'submit', class: 'btn btn--primary' }, 'Submit proof');
+  const submitBtn = createEl('button', { type: 'submit', class: 'btn btn--primary' }, t('Submit proof'));
 
   const form = createEl('form', { class: 'form task-detail__submit-form', id: 'submit-proof-form' }, [
-    createEl('div', { class: 'field' }, [createEl('label', { for: 'proof-url' }, 'Proof URL (optional)'), urlField]),
+    createEl('div', { class: 'field' }, [createEl('label', { for: 'proof-url' }, t('Proof URL (optional)')), urlField]),
     createEl('div', { class: 'field' }, [
-      createEl('label', { for: 'proof-text' }, 'Proof notes (optional)'),
+      createEl('label', { for: 'proof-text' }, t('Proof notes (optional)')),
       textField,
     ]),
-    createEl('p', { class: 'task-detail__submit-hint' }, 'Provide a proof URL, some notes, or both.'),
+    createEl('p', { class: 'task-detail__submit-hint' }, t('Provide a proof URL, some notes, or both.')),
     errorEl,
     submitBtn,
   ]);
@@ -116,7 +117,7 @@ function renderSubmitForm(task, container) {
       task.my_completion = { status: completion.status };
       render(container, task);
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not submit proof.';
+      errorEl.textContent = errorMessage(err, 'Could not submit proof.');
       errorEl.hidden = false;
       submitBtn.disabled = false;
     }

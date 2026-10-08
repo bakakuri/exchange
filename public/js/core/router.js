@@ -13,6 +13,12 @@
 // setRouteGuard(), can redirect a navigation before it renders; that's
 // how protected/guestOnly routes work (see core/route-guards.js) without
 // the router itself knowing anything about authentication.
+//
+// Page fragments are written in English; each is translated into the
+// active language (core/i18n.js) before its module runs, and refresh()
+// re-renders the current page after a language switch.
+
+import { t, translateDom } from './i18n.js';
 
 const routes = [];
 let guard = null;
@@ -81,7 +87,8 @@ async function render(path) {
 
   const res = await fetch(route.fragment);
   root().innerHTML = await res.text();
-  document.title = route.title;
+  translateDom(root());
+  document.title = t(route.title);
 
   if (route.module) {
     const mod = await import(route.module);
@@ -93,6 +100,11 @@ export function navigate(path, { replace = false } = {}) {
   if (replace) history.replaceState({}, '', path);
   else history.pushState({}, '', path);
   render(path);
+}
+
+/** Render the current path again (e.g. after the language changes). */
+export function refresh() {
+  return render(location.pathname);
 }
 
 export function init() {

@@ -9,9 +9,10 @@
 import { api } from '../shared/api.js';
 import { navigate } from '../core/router.js';
 import { qs } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 import { TASK_PLATFORMS } from '../shared/task-platforms.js';
 import { TASK_TYPES } from '../shared/task-types.js';
+import { t, tn } from '../core/i18n.js';
 
 export async function init() {
   const form = qs('#campaign-form');
@@ -21,12 +22,12 @@ export async function init() {
   if (!form) return;
 
   for (const p of TASK_PLATFORMS) form.platform.append(new Option(p.label, p.value));
-  for (const t of TASK_TYPES) form.task_type.append(new Option(t.label, t.value));
+  for (const type of TASK_TYPES) form.task_type.append(new Option(type.label, type.value));
 
   try {
     // GET /api/credits/balance responds { credits } (credit.controller.js).
     const { credits } = await api.credits.balance();
-    balanceHint.textContent = `Your balance: ${credits} credits.`;
+    balanceHint.textContent = t('Your balance: {amount}.', { amount: tn(credits, '{n} credit', '{n} credits') });
   } catch {
     balanceHint.textContent = '';
   }
@@ -34,7 +35,9 @@ export async function init() {
   function updateTotal() {
     const reward = Number(form.reward.value) || 0;
     const desiredCompletions = Number(form.desired_completions.value) || 0;
-    totalEl.textContent = reward > 0 && desiredCompletions > 0 ? `Total budget: ${reward * desiredCompletions} credits.` : '';
+    totalEl.textContent = reward > 0 && desiredCompletions > 0
+      ? t('Total budget: {amount}.', { amount: tn(reward * desiredCompletions, '{n} credit', '{n} credits') })
+      : '';
   }
 
   form.reward.addEventListener('input', updateTotal);
@@ -61,7 +64,7 @@ export async function init() {
       });
       navigate(`/campaigns/${campaign.id}`, { replace: true });
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not create that campaign.';
+      errorEl.textContent = errorMessage(err, 'Could not create that campaign.');
       errorEl.hidden = false;
       submitBtn.disabled = false;
     }

@@ -6,19 +6,20 @@
 
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 import { SOCIAL_PLATFORMS, platformLabel } from '../shared/social-platforms.js';
+import { t } from '../core/i18n.js';
 
 function renderList(listEl, socialProfiles, onRemove) {
   listEl.innerHTML = '';
 
   if (socialProfiles.length === 0) {
-    listEl.append(createEl('li', { class: 'social-list__empty' }, 'No linked accounts yet.'));
+    listEl.append(createEl('li', { class: 'social-list__empty' }, t('No linked accounts yet.')));
     return;
   }
 
   for (const profile of socialProfiles) {
-    const removeBtn = createEl('button', { type: 'button', class: 'social-list__remove' }, 'Remove');
+    const removeBtn = createEl('button', { type: 'button', class: 'social-list__remove' }, t('Remove'));
     removeBtn.addEventListener('click', () => onRemove(profile.id));
 
     listEl.append(
@@ -49,7 +50,7 @@ export async function initSocialSection() {
       renderList(listEl, social_profiles, handleRemove);
     } catch {
       listEl.innerHTML = '';
-      listEl.append(createEl('li', { class: 'social-list__empty' }, 'Could not load linked accounts.'));
+      listEl.append(createEl('li', { class: 'social-list__empty' }, t('Could not load linked accounts.')));
     }
   }
 
@@ -58,7 +59,7 @@ export async function initSocialSection() {
       await api.social.remove(id);
       await load();
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not remove that account.';
+      errorEl.textContent = errorMessage(err, 'Could not remove that account.');
       errorEl.hidden = false;
     }
   }
@@ -80,7 +81,7 @@ export async function initSocialSection() {
       form.platform.selectedIndex = 0;
       await load();
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not add that account.';
+      errorEl.textContent = errorMessage(err, 'Could not add that account.');
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;

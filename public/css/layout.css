@@ -57,6 +57,82 @@
 :root[data-theme="dark"] .theme-toggle__sun,
 :root:not([data-theme="dark"]) .theme-toggle__moon { display: none; }
 
+/* ── Language menu (js/core/language-menu.js) ─────────────────────────── */
+
+.lang-menu { position: relative; }
+
+.lang-menu__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 8px 0 9px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+.lang-menu__button:hover,
+.lang-menu.is-open .lang-menu__button { color: var(--color-ink); background: var(--color-hover); }
+.lang-menu__code { min-width: 2ch; color: var(--color-ink); font-variant-numeric: tabular-nums; }
+.lang-menu__chevron { opacity: 0.7; transition: transform var(--transition-fast); }
+.lang-menu.is-open .lang-menu__chevron { transform: rotate(180deg); }
+
+.lang-menu__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  min-width: 196px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg), var(--highlight);
+  transform-origin: top right;
+  animation: lang-menu-in 140ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.lang-menu__list[hidden] { display: none; }
+@keyframes lang-menu-in { from { opacity: 0; transform: translateY(-4px) scale(0.98); } }
+
+.lang-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.lang-menu__item:hover,
+.lang-menu__item:focus-visible { background: var(--color-hover); color: var(--color-ink); outline: none; }
+.lang-menu__item:focus-visible { box-shadow: inset 0 0 0 2px var(--color-accent); }
+.lang-menu__check { color: var(--color-ink); visibility: hidden; }
+.lang-menu__item[aria-checked="true"] { color: var(--color-ink); font-weight: 600; }
+.lang-menu__item[aria-checked="true"] .lang-menu__check { visibility: visible; }
+.lang-menu__name { flex: 1; }
+.lang-menu__short { color: var(--color-text-subtle); font-size: var(--font-size-xs); font-weight: 500; letter-spacing: 0.04em; }
+
+/* Sidebar head: brand left, compact switcher right. */
+.sidebar__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.lang-menu--compact .lang-menu__chevron { display: none; }
+.lang-menu--compact .lang-menu__button { padding: 0 8px; }
+
 /* ── Top bar ──────────────────────────────────────────────────────────── */
 
 .topbar {
@@ -360,6 +436,14 @@
     -webkit-tap-highlight-color: transparent;
   }
   .tabbar a:hover { text-decoration: none; }
+  /* Labels never spill into the next tab, whatever the language. */
+  .tabbar :is(a, button) > span:not(.nav-badge) {
+    max-width: calc(100% - 4px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  :lang(ka) .tabbar :is(a, button) { font-size: 0.65rem; }
   .tabbar a[aria-current="page"],
   .tabbar button[aria-expanded="true"] { color: var(--color-ink); }
   .tabbar a[aria-current="page"] .icon { stroke-width: 2.1; }
@@ -377,4 +461,14 @@
   h1 { font-size: 1.75rem; }
   /* Visitors on phones: the top bar keeps one action. */
   :root:not([data-auth="in"]) .topbar__link { display: none; }
+  /* Room for longer Georgian / Russian labels: the switcher drops its
+     chevron and the end group tightens. */
+  .topbar__end { gap: 4px; }
+  .topbar .lang-menu__chevron { display: none; }
+  .topbar .lang-menu__button { padding: 0 7px; }
+}
+
+/* Smallest phones: the mark alone carries the brand. */
+@media (max-width: 380px) {
+  .topbar .brand__name { display: none; }
 }

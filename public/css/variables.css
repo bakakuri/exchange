@@ -12,7 +12,7 @@
    The old token names (--color-surface, --radius-md, ...) are kept so
    every page stylesheet keeps working. */
 
-/* ── Typeface: FiraGO (Latin + Georgian), self-hosted, subset ──────────── */
+/* ── Typeface: FiraGO (Latin + Cyrillic + Georgian), self-hosted, subset ─ */
 /* SIL Open Font License 1.1 - see /fonts/FiraGO-OFL.txt */
 @font-face {
   font-family: "FiraGO";

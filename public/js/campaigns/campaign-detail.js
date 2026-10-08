@@ -10,24 +10,26 @@
 
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { ApiError, errorMessage } from '../shared/errors.js';
 
 import { campaignStatusLabel } from './status.js';
 import { taskActionLabel } from '../shared/task-label.js';
+import { t, tn, formatNumber } from '../core/i18n.js';
+import { shortDate } from '../shared/time.js';
 
 export async function init(params) {
   const container = qs('[data-campaign-detail-content]');
   if (!container) return;
 
   container.innerHTML = '';
-  container.append(createEl('p', { class: 'campaign-detail__loading' }, 'Loading…'));
+  container.append(createEl('p', { class: 'campaign-detail__loading' }, t('Loading…')));
 
   let campaign;
   try {
     ({ campaign } = await api.campaigns.get(params.id));
   } catch (err) {
     container.innerHTML = '';
-    const message = err instanceof ApiError && err.status === 404 ? 'Campaign not found.' : 'Could not load this campaign.';
+    const message = err instanceof ApiError && err.status === 404 ? t('Campaign not found.') : errorMessage(err, 'Could not load this campaign.');
     container.append(createEl('p', {}, message));
     return;
   }
@@ -47,17 +49,17 @@ function render(container, campaign) {
 
   container.append(
     createEl('dl', { class: 'campaign-detail__stats' }, [
-      createEl('dt', {}, 'Reward'), createEl('dd', {}, `${campaign.reward} credits`),
-      createEl('dt', {}, 'Progress'), createEl('dd', {}, `${campaign.completed_count}/${campaign.desired_completions} completed`),
-      createEl('dt', {}, 'Budget'), createEl('dd', {}, `${campaign.remaining_budget}/${campaign.total_budget} credits remaining`),
-      createEl('dt', {}, 'Created'), createEl('dd', {}, new Date(campaign.created_at).toLocaleDateString()),
+      createEl('dt', {}, t('Reward')), createEl('dd', {}, tn(campaign.reward, '{n} credit', '{n} credits')),
+      createEl('dt', {}, t('Progress')), createEl('dd', {}, t('{done} of {total} completed', { done: formatNumber(campaign.completed_count), total: formatNumber(campaign.desired_completions) })),
+      createEl('dt', {}, t('Budget')), createEl('dd', {}, t('{left} of {total} credits left', { left: formatNumber(campaign.remaining_budget), total: formatNumber(campaign.total_budget) })),
+      createEl('dt', {}, t('Created')), createEl('dd', {}, shortDate(campaign.created_at)),
     ])
   );
 
   if (campaign.task) {
     const task = campaign.task;
     container.append(
-      createEl('h2', {}, 'Task'),
+      createEl('h2', {}, t('Task')),
       createEl('p', { class: 'campaign-detail__meta' }, taskActionLabel(task.task_type, task.platform)),
       createEl('a', { href: task.target_url, target: '_blank', rel: 'noopener noreferrer' }, task.target_url)
     );
@@ -74,13 +76,13 @@ function renderEditForm(campaign, container) {
   const titleField = createEl('input', { type: 'text', id: 'edit-title', name: 'title', maxlength: '120', value: campaign.title, required: '' });
   const descriptionField = createEl('textarea', { id: 'edit-description', name: 'description', maxlength: '2000', rows: '3' }, campaign.description || '');
   const errorEl = createEl('p', { class: 'form-error', role: 'alert', hidden: '' }, '');
-  const successEl = createEl('p', { class: 'form-success', role: 'status', hidden: '' }, 'Saved.');
-  const submitBtn = createEl('button', { type: 'submit', class: 'btn btn--primary' }, 'Save changes');
+  const successEl = createEl('p', { class: 'form-success', role: 'status', hidden: '' }, t('Saved.'));
+  const submitBtn = createEl('button', { type: 'submit', class: 'btn btn--primary' }, t('Save changes'));
 
   const form = createEl('form', { class: 'form campaign-detail__edit-form', id: 'campaign-edit-form' }, [
-    createEl('h2', {}, 'Edit'),
-    createEl('div', { class: 'field' }, [createEl('label', { for: 'edit-title' }, 'Title'), titleField]),
-    createEl('div', { class: 'field' }, [createEl('label', { for: 'edit-description' }, 'Description'), descriptionField]),
+    createEl('h2', {}, t('Edit')),
+    createEl('div', { class: 'field' }, [createEl('label', { for: 'edit-title' }, t('Title')), titleField]),
+    createEl('div', { class: 'field' }, [createEl('label', { for: 'edit-description' }, t('Description')), descriptionField]),
     errorEl,
     successEl,
     submitBtn,
@@ -100,7 +102,7 @@ function renderEditForm(campaign, container) {
       successEl.hidden = false;
       render(container, updated);
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not save those changes.';
+      errorEl.textContent = errorMessage(err, 'Could not save those changes.');
       errorEl.hidden = false;
       submitBtn.disabled = false;
     }
@@ -119,28 +121,28 @@ function renderActions(campaign, container) {
       const { campaign: updated } = await fn();
       render(container, updated);
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not complete that action.';
+      errorEl.textContent = errorMessage(err, 'Could not complete that action.');
       errorEl.hidden = false;
     }
   }
 
   if (campaign.status === 'active') {
-    const pauseBtn = createEl('button', { type: 'button', class: 'btn btn--ghost' }, 'Pause');
+    const pauseBtn = createEl('button', { type: 'button', class: 'btn btn--ghost' }, t('Pause'));
     pauseBtn.addEventListener('click', () => runAction(() => api.campaigns.pause(campaign.id)));
     actionsEl.prepend(pauseBtn);
   } else if (campaign.status === 'paused') {
-    const resumeBtn = createEl('button', { type: 'button', class: 'btn btn--primary' }, 'Resume');
+    const resumeBtn = createEl('button', { type: 'button', class: 'btn btn--primary' }, t('Resume'));
     resumeBtn.addEventListener('click', () => runAction(() => api.campaigns.resume(campaign.id)));
     actionsEl.prepend(resumeBtn);
   }
 
   if (campaign.status === 'active' || campaign.status === 'paused') {
-    const cancelBtn = createEl('button', { type: 'button', class: 'btn btn--danger' }, 'Cancel campaign');
-    const reasonField = createEl('textarea', { rows: '2', placeholder: 'Reason (optional)' });
-    const confirmBtn = createEl('button', { type: 'button', class: 'btn btn--danger' }, 'Confirm cancellation');
-    const backBtn = createEl('button', { type: 'button', class: 'btn btn--ghost' }, 'Never mind');
+    const cancelBtn = createEl('button', { type: 'button', class: 'btn btn--danger' }, t('Cancel campaign'));
+    const reasonField = createEl('textarea', { rows: '2', placeholder: t('Reason (optional)') });
+    const confirmBtn = createEl('button', { type: 'button', class: 'btn btn--danger' }, t('Confirm cancellation'));
+    const backBtn = createEl('button', { type: 'button', class: 'btn btn--ghost' }, t('Never mind'));
     const cancelForm = createEl('div', { class: 'campaign-detail__cancel-form', hidden: '' }, [
-      createEl('p', {}, 'Cancelling refunds any remaining budget and can’t be undone.'),
+      createEl('p', {}, t('Cancelling refunds any remaining budget and can’t be undone.')),
       reasonField,
       createEl('div', { class: 'submission-card__reject-actions' }, [confirmBtn, backBtn]),
     ]);

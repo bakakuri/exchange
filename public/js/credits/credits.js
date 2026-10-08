@@ -3,24 +3,28 @@
 
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 import { icon } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
 import { shortDateTime, fullDateTime } from '../shared/time.js';
+import { t, tn, formatNumber } from '../core/i18n.js';
+import { serverText } from '../shared/server-text.js';
 
 const TYPE_LABELS = {
-  task_reward: 'Task reward',
-  campaign_reservation: 'Campaign budget reserved',
-  campaign_refund: 'Campaign refund',
-  referral_reward: 'Referral bonus',
-  signup_bonus: 'Signup bonus',
-  admin_adjustment: 'Admin adjustment',
-  reversal: 'Reversal',
-  penalty: 'Penalty',
+  task_reward: () => t('Task reward'),
+  campaign_reservation: () => t('Campaign budget reserved'),
+  campaign_refund: () => t('Campaign refund'),
+  referral_reward: () => t('Referral bonus'),
+  signup_bonus: () => t('Signup bonus'),
+  admin_adjustment: () => t('Admin adjustment'),
+  reversal: () => t('Reversal'),
+  penalty: () => t('Penalty'),
 };
 
+const typeLabel = (type) => TYPE_LABELS[type]?.() || type;
+
 function formatAmount(amount) {
-  return amount > 0 ? `+${amount}` : String(amount);
+  return amount > 0 ? `+${formatNumber(amount)}` : amount < 0 ? `−${formatNumber(-amount)}` : '0';
 }
 
 // The reward engine's output, by type (Stage 10 - GET /api/credits/summary,
@@ -45,7 +49,7 @@ function renderSummary(dl, byType) {
   dl.innerHTML = '';
 
   if (byType.length === 0) {
-    dl.append(createEl('dt', {}, 'No activity yet'), createEl('dd', {}, ''));
+    dl.append(createEl('dt', {}, t('No activity yet')), createEl('dd', {}, ''));
     return;
   }
 
@@ -53,7 +57,7 @@ function renderSummary(dl, byType) {
   for (const row of sorted) {
     const amountClass = row.total_amount > 0 ? 'ledger-amount ledger-amount--positive' : 'ledger-amount ledger-amount--negative';
     dl.append(
-      createEl('dt', {}, `${TYPE_LABELS[row.type] || row.type} (${row.entry_count})`),
+      createEl('dt', {}, `${typeLabel(row.type)} (${formatNumber(row.entry_count)})`),
       createEl('dd', { class: amountClass }, formatAmount(row.total_amount))
     );
   }
@@ -64,12 +68,12 @@ function renderEntries(listEl, entries, { append = false } = {}) {
 
   for (const entry of entries) {
     const main = createEl('div', { class: 'ledger-item__main' }, [
-      createEl('strong', {}, TYPE_LABELS[entry.type] || entry.type),
+      createEl('strong', {}, typeLabel(entry.type)),
       createEl('time', { class: 'ledger-item__date', datetime: entry.created_at, title: fullDateTime(entry.created_at) }, shortDateTime(entry.created_at)),
     ]);
     if (entry.description) {
       main.insertBefore(
-        createEl('p', { class: 'ledger-item__description' }, entry.description),
+        createEl('p', { class: 'ledger-item__description' }, serverText(entry.description)),
         main.lastChild
       );
     }
@@ -97,9 +101,9 @@ export async function init() {
 
   try {
     const { credits } = await api.credits.balance();
-    balanceEl.textContent = `${credits} credits`;
+    balanceEl.textContent = tn(credits, '{n} credit', '{n} credits');
   } catch {
-    balanceEl.textContent = 'Could not load your balance.';
+    balanceEl.textContent = t('Could not load your balance.');
   }
 
   try {
@@ -107,7 +111,7 @@ export async function init() {
     renderSummary(summaryEl, by_type);
   } catch {
     summaryEl.innerHTML = '';
-    summaryEl.append(createEl('dt', {}, 'Could not load your summary'), createEl('dd', {}, ''));
+    summaryEl.append(createEl('dt', {}, t('Could not load your summary')), createEl('dd', {}, ''));
   }
 
   async function loadPage() {
@@ -119,14 +123,14 @@ export async function init() {
       if (entries.length === 0 && listEl.children.length === 0) {
         listEl.append(emptyState({
           iconId: 'i-coins',
-          title: 'No transactions yet',
-          text: 'Credits you earn from tasks and spend on campaigns are listed here, newest first.',
-          action: { href: '/tasks', label: 'Find a task' },
+          title: t('No transactions yet'),
+          text: t('Credits you earn from tasks and spend on campaigns are listed here, newest first.'),
+          action: { href: '/tasks', label: t('Find a task') },
           className: 'ledger-item--empty',
         }));
       }
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not load your transaction history.';
+      errorEl.textContent = errorMessage(err, 'Could not load your transaction history.');
       errorEl.hidden = false;
     }
   }

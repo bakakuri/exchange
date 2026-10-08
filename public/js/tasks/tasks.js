@@ -3,12 +3,13 @@
 
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 import { TASK_PLATFORMS } from '../shared/task-platforms.js';
 import { TASK_TYPES } from '../shared/task-types.js';
 import { taskActionLabel } from '../shared/task-label.js';
 import { icon, platformTile } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
+import { t, tn, formatNumber } from '../core/i18n.js';
 
 function renderTasks(listEl, tasks, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
@@ -16,9 +17,9 @@ function renderTasks(listEl, tasks, { append = false } = {}) {
   if (tasks.length === 0 && listEl.children.length === 0) {
     listEl.append(emptyState({
       iconId: 'i-list-checks',
-      title: 'No open tasks right now',
-      text: 'New tasks appear here as soon as someone launches a campaign. Try another platform or type, or start a campaign of your own.',
-      action: { href: '/campaigns/new', label: 'Start a campaign' },
+      title: t('No open tasks right now'),
+      text: t('New tasks appear here as soon as someone launches a campaign. Try another platform or type, or start a campaign of your own.'),
+      action: { href: '/campaigns/new', label: t('Start a campaign') },
       className: 'task-list__empty',
     }));
     return;
@@ -33,7 +34,7 @@ function renderTasks(listEl, tasks, { append = false } = {}) {
             createEl('strong', { class: 'task-card__title' }, task.campaign_title),
             createEl('span', { class: 'task-card__meta' }, taskActionLabel(task.task_type, task.platform)),
           ]),
-          createEl('span', { class: 'reward-chip', title: `${task.reward} credits` }, `+${task.reward}`),
+          createEl('span', { class: 'reward-chip', title: tn(task.reward, '{n} credit', '{n} credits') }, `+${formatNumber(task.reward)}`),
           icon('i-chevron-right', { size: 16, className: 'row-chevron' }),
         ]),
       ])
@@ -50,7 +51,7 @@ export async function init() {
   if (!listEl) return;
 
   for (const p of TASK_PLATFORMS) platformSelect.append(new Option(p.label, p.value));
-  for (const t of TASK_TYPES) taskTypeSelect.append(new Option(t.label, t.value));
+  for (const type of TASK_TYPES) taskTypeSelect.append(new Option(type.label, type.value));
 
   let cursor = null;
 
@@ -68,7 +69,7 @@ export async function init() {
       cursor = next_cursor;
       loadMoreBtn.hidden = !cursor;
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not load tasks.';
+      errorEl.textContent = errorMessage(err, 'Could not load tasks.');
       errorEl.hidden = false;
     }
   }

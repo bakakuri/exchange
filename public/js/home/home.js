@@ -7,12 +7,14 @@
 import { store } from '../core/state.js';
 import { api } from '../shared/api.js';
 import { qs, qsa, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 import { TASK_PLATFORMS } from '../shared/task-platforms.js';
 import { taskActionLabel } from '../shared/task-label.js';
 import { icon, platformIcon, platformTile } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
-import { timeAgo, fullDateTime } from '../shared/time.js';
+import { timeAgo, fullDateTime, longDay } from '../shared/time.js';
+import { t, tn, formatNumber } from '../core/i18n.js';
+import { activityLabel } from '../shared/activity-labels.js';
 
 const DASHBOARD_TASKS = 5;
 const DASHBOARD_ACTIVITY = 5;
@@ -43,15 +45,21 @@ function renderVisitor() {
 
 // ── Dashboard helpers ──────────────────────────────────────────────────
 
+function setCredits(n) {
+  setText('[data-home-credits]', formatNumber(n));
+  setText('[data-home-credits-unit]', tn(n, 'credit', 'credits'));
+}
+
 function greeting(name) {
   const h = new Date().getHours();
-  const part = h < 5 ? 'Good evening' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-  return `${part}, ${name}`;
+  if (h >= 5 && h < 12) return t('Good morning, {name}', { name });
+  if (h >= 12 && h < 18) return t('Good afternoon, {name}', { name });
+  return t('Good evening, {name}', { name });
 }
 
 function formatSigned(n) {
-  if (n > 0) return `+${n}`;
-  if (n < 0) return `−${Math.abs(n)}`;
+  if (n > 0) return `+${formatNumber(n)}`;
+  if (n < 0) return `−${formatNumber(Math.abs(n))}`;
   return '0';
 }
 
@@ -61,7 +69,7 @@ function renderSparkline(el, entries) {
   el.innerHTML = '';
   const ordered = [...entries].reverse();
   if (ordered.length === 0) {
-    el.append(createEl('p', { class: 'spark__empty' }, 'Your balance history appears after your first transaction.'));
+    el.append(createEl('p', { class: 'spark__empty' }, t('Your balance history appears after your first transaction.')));
     return;
   }
   const values = [ordered[0].balance_after - ordered[0].amount, ...ordered.map((e) => e.balance_after)];
@@ -97,7 +105,7 @@ function renderDelta(entries) {
   const el = qs('[data-home-delta]');
   if (!el) return;
   el.classList.toggle('is-up', sum > 0);
-  el.textContent = recent.length ? `${formatSigned(sum)} in the last 7 days` : 'No movement in the last 7 days';
+  el.textContent = recent.length ? t('{amount} in the last 7 days', { amount: formatSigned(sum) }) : t('No movement in the last 7 days');
 }
 
 function renderLevel(user) {
@@ -106,8 +114,8 @@ function renderLevel(user) {
   // XP inside the current level (level = floor(xp / 1000) + 1).
   const into = ((xp % XP_PER_LEVEL) + XP_PER_LEVEL) % XP_PER_LEVEL;
   const pct = Math.min(100, Math.round((into / XP_PER_LEVEL) * 100));
-  setText('[data-home-level]', `Level ${level}`);
-  setText('[data-home-xp]', `${into} of ${XP_PER_LEVEL} XP to level ${level + 1}`);
+  setText('[data-home-level]', t('Level {level}', { level }));
+  setText('[data-home-xp]', t('{xp} of {total} XP to level {next}', { xp: formatNumber(into), total: formatNumber(XP_PER_LEVEL), next: level + 1 }));
   const bar = qs('[data-home-xp-bar]');
   if (bar) {
     bar.setAttribute('aria-valuenow', String(into));
@@ -120,9 +128,9 @@ function renderTasks(listEl, tasks) {
   if (!tasks.length) {
     listEl.append(emptyState({
       iconId: 'i-list-checks',
-      title: 'No open tasks right now',
-      text: 'New tasks appear as soon as someone launches a campaign.',
-      action: { href: '/campaigns/new', label: 'Start a campaign' },
+      title: t('No open tasks right now'),
+      text: t('New tasks appear as soon as someone launches a campaign.'),
+      action: { href: '/campaigns/new', label: t('Start a campaign') },
       className: 'home-task-list__empty',
     }));
     return;
@@ -136,7 +144,7 @@ function renderTasks(listEl, tasks) {
             createEl('span', { class: 'home-task__title' }, task.campaign_title),
             createEl('span', { class: 'home-task__action' }, taskActionLabel(task.task_type, task.platform)),
           ]),
-          createEl('span', { class: 'reward-chip' }, `+${task.reward}`),
+          createEl('span', { class: 'reward-chip' }, `+${formatNumber(task.reward)}`),
         ]),
       ])
     );
@@ -154,15 +162,10 @@ const ACTIVITY_ICONS = {
   referral_joined: 'i-users',
 };
 
-function activityLabel(type) {
-  const words = String(type).split('_');
-  return words[0].charAt(0).toUpperCase() + words[0].slice(1) + ' ' + words.slice(1).join(' ');
-}
-
 function renderActivity(listEl, items) {
   listEl.innerHTML = '';
   if (!items.length) {
-    listEl.append(createEl('li', { class: 'activity-feed__empty' }, 'Tasks you complete and campaigns you launch will show up here.'));
+    listEl.append(createEl('li', { class: 'activity-feed__empty' }, t('Tasks you complete and campaigns you launch will show up here.')));
     return;
   }
   for (const a of items.slice(0, DASHBOARD_ACTIVITY)) {
@@ -178,10 +181,10 @@ function renderActivity(listEl, items) {
 
 async function renderMember(user) {
   showView('member');
-  const name = user.display_name || user.username || 'there';
+  const name = user.display_name || user.username || t('there');
   setText('[data-home-greeting]', greeting(name.split(' ')[0]));
-  setText('[data-home-date]', new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }));
-  setText('[data-home-credits]', String(user.credits ?? 0));
+  setText('[data-home-date]', longDay());
+  setCredits(user.credits ?? 0);
   renderLevel(user);
 
   const listEl = qs('[data-home-tasks]');
@@ -202,13 +205,13 @@ async function renderMember(user) {
     const total = (catalog.value.achievements || []).length;
     const got = (unlocked.value.unlocked || []).length;
     if (total) {
-      setText('[data-home-badge-count]', `${got} of ${total}`);
+      setText('[data-home-badge-count]', t('{got} of {total}', { got, total }));
       const badges = qs('[data-home-badges]');
       if (badges) badges.hidden = false;
     }
   }
 
-  if (balance.status === 'fulfilled') setText('[data-home-credits]', String(balance.value.credits));
+  if (balance.status === 'fulfilled') setCredits(balance.value.credits);
 
   const sparkEl = qs('[data-home-spark]');
   if (ledger.status === 'fulfilled') {
@@ -222,21 +225,19 @@ async function renderMember(user) {
 
   if (unread.status === 'fulfilled') {
     const n = unread.value.unread_count || 0;
-    setText('[data-home-unread]', n ? `${n} unread` : 'All caught up');
-  } else setText('[data-home-unread]', 'Open notifications');
+    setText('[data-home-unread]', n ? t('{n} unread', { n }) : t('All caught up'));
+  } else setText('[data-home-unread]', t('Open notifications'));
 
   if (review.status === 'fulfilled') {
     const { completions = [], next_cursor: more } = review.value;
     const n = completions.length;
-    setText('[data-home-review]', n ? `${more ? `${n}+` : n} waiting for you` : 'Nothing waiting');
-  } else setText('[data-home-review]', 'Open your review queue');
+    setText('[data-home-review]', n ? t('{n} waiting for you', { n: more ? `${n}+` : n }) : t('Nothing waiting'));
+  } else setText('[data-home-review]', t('Open your review queue'));
 
   if (tasks.status === 'fulfilled') {
     renderTasks(listEl, tasks.value.tasks || []);
   } else if (errorEl) {
-    errorEl.textContent = tasks.reason instanceof ApiError
-      ? tasks.reason.message
-      : 'Could not load open tasks. Refresh to try again.';
+    errorEl.textContent = errorMessage(tasks.reason, 'Could not load open tasks. Refresh to try again.');
     errorEl.hidden = false;
   }
 

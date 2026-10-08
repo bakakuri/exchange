@@ -7,6 +7,7 @@
 import { store } from './state.js';
 import { eventBus } from './events.js';
 import { api } from '../shared/api.js';
+import { t } from './i18n.js';
 
 const MIN_INTERVAL_MS = 20_000;
 let lastRun = 0;
@@ -17,7 +18,7 @@ function setBadge(selector, count, { hasMore = false } = {}) {
     el.hidden = !count;
     if (el.classList.contains('nav-badge--dot')) {
       el.textContent = '';
-      el.setAttribute('aria-label', `${count} new`);
+      el.setAttribute('aria-label', t('{n} new', { n: count }));
     } else {
       el.textContent = hasMore || count > 99 ? '99+' : String(count);
     }

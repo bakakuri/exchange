@@ -3,6 +3,8 @@
 // in 004_tasks.sql) - a separate enum from social_platform, so a
 // separate file, even though most values overlap.
 
+import { t } from '../core/i18n.js';
+
 export const TASK_PLATFORMS = [
   { value: 'instagram', label: 'Instagram' },
   { value: 'tiktok', label: 'TikTok' },
@@ -15,7 +17,7 @@ export const TASK_PLATFORMS = [
   { value: 'reddit', label: 'Reddit' },
   { value: 'pinterest', label: 'Pinterest' },
   { value: 'linkedin', label: 'LinkedIn' },
-  { value: 'other', label: 'Other' },
+  { value: 'other', get label() { return t('Other'); } },
 ];
 
 export function taskPlatformLabel(value) {

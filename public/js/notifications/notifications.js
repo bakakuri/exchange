@@ -1,18 +1,19 @@
 // js/notifications/notifications.js - behavior for the /notifications
 // route: the signed-in user's own notifications (GET /api/notifications),
-// each one already carrying a human-readable title/body written by
-// whichever database function created it (015_functions.sql) - nothing
-// here needs its own type-to-label mapping the way credits.js or
-// submissions/status.js do, since a notification's title already is its
-// label.
+// each one already carrying a human-readable title/body written in
+// English by whichever database function created it (015_functions.sql).
+// serverText() shows those in the active language; free text inside them
+// (a reviewer's note, a cancellation reason) stays as the person wrote it.
 
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 import { icon } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
 import { refreshNavBadges } from '../core/nav-badges.js';
 import { timeAgo, fullDateTime } from '../shared/time.js';
+import { t } from '../core/i18n.js';
+import { serverText } from '../shared/server-text.js';
 
 const NOTIFICATION_ICONS = {
   verification_approved: 'i-badge-check',
@@ -32,8 +33,8 @@ function renderNotifications(listEl, notifications, onRead, { append = false } =
   if (notifications.length === 0 && listEl.children.length === 0) {
     listEl.append(emptyState({
       iconId: 'i-bell',
-      title: "You're all caught up",
-      text: 'Approvals, rewards and campaign updates will show up here.',
+      title: t('You’re all caught up'),
+      text: t('Approvals, rewards and campaign updates will show up here.'),
       className: 'notification-list__empty',
     }));
     return;
@@ -42,11 +43,11 @@ function renderNotifications(listEl, notifications, onRead, { append = false } =
   for (const n of notifications) {
     const children = [
       createEl('div', { class: 'notification-item__main' }, [
-        createEl('strong', {}, n.title),
+        createEl('strong', {}, serverText(n.title)),
         createEl('time', { class: 'notification-item__date', datetime: n.created_at, title: fullDateTime(n.created_at) }, timeAgo(n.created_at)),
       ]),
     ];
-    if (n.body) children.push(createEl('p', { class: 'notification-item__body' }, n.body));
+    if (n.body) children.push(createEl('p', { class: 'notification-item__body' }, serverText(n.body)));
 
     const body = createEl('div', { class: 'notification-item__content' }, children);
     const item = createEl('li', { class: `notification-item${n.read_at ? '' : ' notification-item--unread'}` }, [
@@ -55,7 +56,7 @@ function renderNotifications(listEl, notifications, onRead, { append = false } =
     ]);
 
     if (!n.read_at) {
-      const readBtn = createEl('button', { type: 'button', class: 'btn btn--ghost notification-item__read-btn' }, 'Mark read');
+      const readBtn = createEl('button', { type: 'button', class: 'btn btn--ghost notification-item__read-btn' }, t('Mark read'));
       readBtn.addEventListener('click', () => onRead(n.id, item, readBtn));
       body.append(readBtn);
     }
@@ -87,7 +88,7 @@ export async function init() {
       cursor = next_cursor;
       loadMoreBtn.hidden = !cursor;
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not load notifications.';
+      errorEl.textContent = errorMessage(err, 'Could not load notifications.');
       errorEl.hidden = false;
     }
   }
@@ -100,7 +101,7 @@ export async function init() {
       item.classList.remove('notification-item--unread');
       readBtn.remove();
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not mark that as read.';
+      errorEl.textContent = errorMessage(err, 'Could not mark that as read.');
       errorEl.hidden = false;
       readBtn.disabled = false;
     }
@@ -115,7 +116,7 @@ export async function init() {
       refreshNavBadges();
       await loadPage({ reset: true });
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not mark all as read.';
+      errorEl.textContent = errorMessage(err, 'Could not mark all as read.');
       errorEl.hidden = false;
     } finally {
       markAllBtn.disabled = false;

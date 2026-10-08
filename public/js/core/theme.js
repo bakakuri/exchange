@@ -6,6 +6,9 @@
 // so "follow my phone" is always one tap away.
 // js/core/theme-init.js applies the initial theme before first paint.
 
+import { t } from './i18n.js';
+import { eventBus } from './events.js';
+
 const STORAGE_KEY = 'exchange.theme';
 const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -37,9 +40,14 @@ function apply(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   document.querySelector('meta[name="theme-color"]')
     ?.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff');
-  document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
-    toggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-  });
+  labelToggles();
+}
+
+// Toggles carry data-i18n-skip in index.html: their label depends on the
+// theme, so it is set here (and again when the language changes).
+function labelToggles() {
+  const label = currentTheme() === 'dark' ? t('Switch to light theme') : t('Switch to dark theme');
+  document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => toggle.setAttribute('aria-label', label));
 }
 
 export function initTheme() {
@@ -52,6 +60,8 @@ export function initTheme() {
     remember(next);
     apply(next);
   });
+
+  eventBus.on('language:change', labelToggles);
 
   darkQuery.addEventListener('change', () => {
     if (!storedTheme()) apply(deviceTheme());

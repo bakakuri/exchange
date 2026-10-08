@@ -5,12 +5,13 @@
 
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 
 import { campaignStatusLabel } from './status.js';
 import { taskActionLabel } from '../shared/task-label.js';
 import { platformTile } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
+import { t, tn, formatNumber } from '../core/i18n.js';
 
 function renderCampaigns(listEl, campaigns, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
@@ -18,9 +19,9 @@ function renderCampaigns(listEl, campaigns, { append = false } = {}) {
   if (campaigns.length === 0 && listEl.children.length === 0) {
     listEl.append(emptyState({
       iconId: 'i-megaphone',
-      title: 'No campaigns yet',
-      text: 'A campaign asks other members to follow, like or subscribe to your page. You set the reward per person and how many people you want.',
-      action: { href: '/campaigns/new', label: 'Create a campaign' },
+      title: t('No campaigns yet'),
+      text: t('A campaign asks other members to follow, like or subscribe to your page. You set the reward per person and how many people you want.'),
+      action: { href: '/campaigns/new', label: t('Create a campaign') },
       className: 'campaign-list__empty',
     }));
     return;
@@ -40,18 +41,18 @@ function renderCampaigns(listEl, campaigns, { append = false } = {}) {
             'p',
             { class: 'campaign-card__meta' },
             c.task
-              ? `${taskActionLabel(c.task.task_type, c.task.platform)}, ${c.reward} credits each`
-              : `${c.reward} credits`
+              ? t('{action}, {amount} each', { action: taskActionLabel(c.task.task_type, c.task.platform), amount: tn(c.reward, '{n} credit', '{n} credits') })
+              : tn(c.reward, '{n} credit', '{n} credits')
           ),
           createEl('span', { class: 'progress', role: 'progressbar', 'aria-valuemin': '0',
             'aria-valuemax': String(c.desired_completions), 'aria-valuenow': String(c.completed_count),
-            'aria-label': 'Completions' }, [
+            'aria-label': t('Completions') }, [
             createEl('span', { class: 'progress__bar', style: `width: ${Math.min(100, Math.round((c.completed_count / Math.max(1, c.desired_completions)) * 100))}%` }),
           ]),
           createEl(
             'p',
             { class: 'campaign-card__progress' },
-            `${c.completed_count} of ${c.desired_completions} done, ${c.remaining_budget} credits left`
+            t('{done} of {total} done, {left} credits left', { done: formatNumber(c.completed_count), total: formatNumber(c.desired_completions), left: formatNumber(c.remaining_budget) })
           ),
           ]),
         ]),
@@ -82,7 +83,7 @@ export async function init() {
       cursor = next_cursor;
       loadMoreBtn.hidden = !cursor;
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not load campaigns.';
+      errorEl.textContent = errorMessage(err, 'Could not load campaigns.');
       errorEl.hidden = false;
     }
   }

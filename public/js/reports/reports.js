@@ -7,14 +7,17 @@
 
 import { api } from '../shared/api.js';
 import { qs, escapeHtml } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
+import { t } from '../core/i18n.js';
+import { shortDate } from '../shared/time.js';
+import { reportTypeLabel, reportStatusLabel } from '../shared/report-labels.js';
 
 // ── submit form ─────────────────────────────────────────────────────────────
 
 const TARGET_HINTS = {
-  task: 'Find the ID in the task URL: /tasks/<id>',
-  campaign: 'Find the ID in the campaign URL: /campaigns/<id>',
-  user: "Find the user's profile URL: /u/<username> (use their profile UUID)",
+  task: () => t('Find the ID in the task URL: /tasks/<id>'),
+  campaign: () => t('Find the ID in the campaign URL: /campaigns/<id>'),
+  user: () => t('Use the person’s profile ID (their UUID), not their @username.'),
 };
 
 function initSubmitForm() {
@@ -29,7 +32,7 @@ function initSubmitForm() {
   // Update hint text when target type changes.
   if (targetTypeEl && hintEl) {
     targetTypeEl.addEventListener('change', () => {
-      hintEl.textContent = TARGET_HINTS[targetTypeEl.value] || '';
+      hintEl.textContent = TARGET_HINTS[targetTypeEl.value]?.() || '';
     });
   }
 
@@ -58,7 +61,7 @@ function initSubmitForm() {
       successEl.hidden = false;
       form.reset();
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Submission failed.';
+      errorEl.textContent = errorMessage(err, 'Submission failed.');
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;
@@ -68,24 +71,14 @@ function initSubmitForm() {
 
 // ── history list ────────────────────────────────────────────────────────────
 
-const STATUS_LABELS = { open: 'Open', resolved: 'Resolved', dismissed: 'Dismissed' };
-const TYPE_LABELS = {
-  spam: 'Spam',
-  fraud: 'Fraud',
-  invalid_task: 'Invalid task',
-  inappropriate_content: 'Inappropriate content',
-  broken_url: 'Broken URL',
-  abuse: 'Abuse',
-};
-
 function renderReportItem(report) {
   const li = document.createElement('li');
   li.className = 'report-item';
 
   const statusClass = `report-item__status--${report.status}`;
-  const date = new Date(report.created_at).toLocaleDateString();
-  const typeLabel = TYPE_LABELS[report.report_type] || report.report_type;
-  const statusLabel = STATUS_LABELS[report.status] || report.status;
+  const date = shortDate(report.created_at);
+  const typeLabel = reportTypeLabel(report.report_type);
+  const statusLabel = reportStatusLabel(report.status);
 
   li.innerHTML = `
     <div class="report-item__header">
@@ -118,7 +111,7 @@ async function loadMore(listEl, emptyEl, loadMoreBtn, errorEl) {
       loadMoreBtn.hidden = !hasMore;
     }
   } catch (err) {
-    errorEl.textContent = err instanceof ApiError ? err.message : 'Failed to load reports.';
+    errorEl.textContent = errorMessage(err, 'Failed to load reports.');
     errorEl.hidden = false;
   } finally {
     loadMoreBtn.disabled = false;

@@ -5,16 +5,10 @@
 
 import { api } from '../shared/api.js';
 import { qs, escapeHtml } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
-
-const TYPE_LABELS = {
-  spam: 'Spam',
-  fraud: 'Fraud',
-  invalid_task: 'Invalid task',
-  inappropriate_content: 'Inappropriate content',
-  broken_url: 'Broken URL',
-  abuse: 'Abuse',
-};
+import { errorMessage } from '../shared/errors.js';
+import { t } from '../core/i18n.js';
+import { shortDate } from '../shared/time.js';
+import { reportTypeLabel, reportStatusLabel } from '../shared/report-labels.js';
 
 // ── render ──────────────────────────────────────────────────────────────────
 
@@ -23,30 +17,30 @@ function renderReportRow(report, listEl) {
   li.className = 'admin-report-row';
   li.dataset.id = report.id;
 
-  const typeLabel = TYPE_LABELS[report.report_type] || report.report_type;
-  const date = new Date(report.created_at).toLocaleDateString();
+  const typeLabel = reportTypeLabel(report.report_type);
+  const date = shortDate(report.created_at);
   const reporter = report.reporter
     ? `@${report.reporter.username || report.reporter_id}`
     : report.reporter_id;
 
   const targetParts = [];
-  if (report.related_task_id) targetParts.push(`Task: ${report.related_task_id}`);
-  if (report.related_campaign_id) targetParts.push(`Campaign: ${report.related_campaign_id}`);
-  if (report.related_user_id) targetParts.push(`User: ${report.related_user_id}`);
+  if (report.related_task_id) targetParts.push(t('Task: {id}', { id: report.related_task_id }));
+  if (report.related_campaign_id) targetParts.push(t('Campaign: {id}', { id: report.related_campaign_id }));
+  if (report.related_user_id) targetParts.push(t('User: {id}', { id: report.related_user_id }));
 
   li.innerHTML = `
     <div class="admin-report-row__header">
       <span class="admin-report-type">${escapeHtml(typeLabel)}</span>
-      <span class="admin-report-status admin-report-status--${escapeHtml(report.status)}">${escapeHtml(report.status)}</span>
+      <span class="admin-report-status admin-report-status--${escapeHtml(report.status)}">${escapeHtml(reportStatusLabel(report.status))}</span>
       <span class="admin-report-row__date">${date}</span>
     </div>
-    <p class="admin-report-row__reporter">Reporter: ${escapeHtml(reporter)}</p>
+    <p class="admin-report-row__reporter">${escapeHtml(t('Reporter: {name}', { name: reporter }))}</p>
     ${targetParts.length ? `<p class="admin-report-row__target">${escapeHtml(targetParts.join(', '))}</p>` : ''}
     <p class="admin-report-row__description">${escapeHtml(report.description)}</p>
     ${report.status === 'open' ? `
       <div class="admin-report-row__actions">
-        <button class="btn btn--sm btn--success" data-resolve="resolved">Resolve</button>
-        <button class="btn btn--sm btn--danger" data-resolve="dismissed">Dismiss</button>
+        <button class="btn btn--sm btn--success" data-resolve="resolved">${escapeHtml(t('Resolve'))}</button>
+        <button class="btn btn--sm btn--danger" data-resolve="dismissed">${escapeHtml(t('Dismiss'))}</button>
         <p class="form-error admin-report-row__error" role="alert" hidden></p>
       </div>
     ` : ''}
@@ -67,11 +61,11 @@ function renderReportRow(report, listEl) {
         const statusEl = li.querySelector('.admin-report-status');
         if (statusEl) {
           statusEl.className = `admin-report-status admin-report-status--${decision}`;
-          statusEl.textContent = decision;
+          statusEl.textContent = reportStatusLabel(decision);
         }
       } catch (err) {
         if (errorEl) {
-          errorEl.textContent = err instanceof ApiError ? err.message : 'Operation failed.';
+          errorEl.textContent = errorMessage(err, 'Operation failed.');
           errorEl.hidden = false;
         }
         btn.disabled = false;
@@ -110,7 +104,7 @@ async function loadReports(listEl, emptyEl, loadMoreBtn, errorEl, reset = false)
       loadMoreBtn.hidden = !next_cursor;
     }
   } catch (err) {
-    errorEl.textContent = err instanceof ApiError ? err.message : 'Failed to load reports.';
+    errorEl.textContent = errorMessage(err, 'Failed to load reports.');
     errorEl.hidden = false;
   }
 }

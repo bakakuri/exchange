@@ -204,9 +204,10 @@ button, input, select, textarea {
 /* Title + one action on the same line (My campaigns / New campaign). */
 :is(.campaigns-page__header, .notifications-page__header) {
   display: flex;
+  flex-wrap: wrap; /* a long title (Georgian, Russian) pushes the action below */
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3) var(--space-4);
   margin-bottom: var(--space-5);
 }
 :is(.campaigns-page__header, .notifications-page__header) h1 { margin: 0; }
@@ -280,6 +281,19 @@ button, input, select, textarea {
     .credits-summary dd, .admin-stat-tile__value, .home-stat__value, .app-nav__credits) {
   font-variant-numeric: tabular-nums;
 }
+
+/* ── Script-specific type ────────────────────────────────────────────── */
+/* Georgian (Mkhedruli) has tall ascenders and descenders and no capitals,
+   so headings get looser leading and lighter negative tracking than the
+   Latin settings above; Cyrillic only needs a touch less tracking. */
+:lang(ka) :is(h1, h2, h3) { line-height: 1.2; letter-spacing: -0.01em; }
+:lang(ru) :is(h1, h2) { letter-spacing: -0.025em; }
+
+/* Until core/language.js has translated the shell, a non-English visit
+   stays hidden so English doesn't flash first (theme-init.js sets
+   data-i18n="pending"). If scripts never run, the page shows anyway. */
+:root[data-i18n="pending"] body { opacity: 0; animation: i18n-reveal 0s linear 1.6s forwards; }
+@keyframes i18n-reveal { to { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

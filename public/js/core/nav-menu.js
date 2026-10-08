@@ -49,10 +49,11 @@ export function initNavMenu() {
   toggles.forEach((t) => t.addEventListener('click', () => setOpen(!isOpen())));
   scrim?.addEventListener('click', () => setOpen(false));
 
-  // Links and Sign out finish the interaction; the theme switch doesn't.
+  // Links, Sign out and picking a language finish the interaction; the
+  // theme switch and opening the language list don't.
   drawer.addEventListener('click', (e) => {
     const target = e.target.closest('a, button');
-    if (target && !target.hasAttribute('data-theme-toggle') && isOpen()) setOpen(false);
+    if (target && !target.matches('[data-theme-toggle], .lang-menu__button') && isOpen()) setOpen(false);
   });
 
   document.addEventListener('keydown', (e) => {

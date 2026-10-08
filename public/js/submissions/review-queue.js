@@ -9,13 +9,14 @@
 
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 
 import { statusLabel } from './status.js';
 import { taskActionLabel } from '../shared/task-label.js';
 import { platformTile } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
 import { refreshNavBadges } from '../core/nav-badges.js';
+import { t, tn } from '../core/i18n.js';
 
 function renderProof(c) {
   const parts = [];
@@ -31,12 +32,12 @@ function renderProof(c) {
 
 function renderActions(c, card, onDecided) {
   const errorEl = createEl('p', { class: 'form-error', role: 'alert', hidden: '' }, '');
-  const approveBtn = createEl('button', { type: 'button', class: 'btn btn--primary' }, 'Approve');
-  const rejectBtn = createEl('button', { type: 'button', class: 'btn btn--ghost' }, 'Reject');
+  const approveBtn = createEl('button', { type: 'button', class: 'btn btn--primary' }, t('Approve'));
+  const rejectBtn = createEl('button', { type: 'button', class: 'btn btn--ghost' }, t('Reject'));
 
-  const notesField = createEl('textarea', { rows: '2', placeholder: 'Reason for rejection (required)' });
-  const confirmRejectBtn = createEl('button', { type: 'button', class: 'btn btn--danger' }, 'Confirm rejection');
-  const cancelRejectBtn = createEl('button', { type: 'button', class: 'btn btn--ghost' }, 'Cancel');
+  const notesField = createEl('textarea', { rows: '2', placeholder: t('Reason for rejection (required)') });
+  const confirmRejectBtn = createEl('button', { type: 'button', class: 'btn btn--danger' }, t('Confirm rejection'));
+  const cancelRejectBtn = createEl('button', { type: 'button', class: 'btn btn--ghost' }, t('Cancel'));
   const rejectForm = createEl('div', { class: 'submission-card__reject-form', hidden: '' }, [
     notesField,
     createEl('div', { class: 'submission-card__reject-actions' }, [confirmRejectBtn, cancelRejectBtn]),
@@ -51,7 +52,7 @@ function renderActions(c, card, onDecided) {
       refreshNavBadges();
       onDecided();
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not record that decision.';
+      errorEl.textContent = errorMessage(err, 'Could not record that decision.');
       errorEl.hidden = false;
       approveBtn.disabled = false;
       confirmRejectBtn.disabled = false;
@@ -80,8 +81,8 @@ function renderList(listEl, completions, reload, { append = false } = {}) {
   if (completions.length === 0 && listEl.children.length === 0) {
     listEl.append(emptyState({
       iconId: 'i-clipboard-check',
-      title: 'Nothing to review',
-      text: 'When someone completes a task from one of your campaigns, their proof appears here for you to approve or reject.',
+      title: t('Nothing to review'),
+      text: t('When someone completes a task from one of your campaigns, their proof appears here for you to approve or reject.'),
       className: 'submission-list__empty',
     }));
     return;
@@ -93,14 +94,14 @@ function renderList(listEl, completions, reload, { append = false } = {}) {
         createEl('strong', {}, c.campaign_title),
         createEl('span', { class: `submission-status submission-status--${c.status}` }, statusLabel(c.status)),
       ]),
-      createEl('p', { class: 'submission-card__meta' }, `${taskActionLabel(c.task_type, c.platform)}, ${c.reward_amount} credits`),
+      createEl('p', { class: 'submission-card__meta' }, `${taskActionLabel(c.task_type, c.platform)}, ${tn(c.reward_amount, '{n} credit', '{n} credits')}`),
     ];
 
     const proof = renderProof(c);
     if (proof) children.push(proof);
 
     if (c.status === 'rejected' && c.review_notes) {
-      children.push(createEl('p', { class: 'submission-card__notes' }, `Your notes: ${c.review_notes}`));
+      children.push(createEl('p', { class: 'submission-card__notes' }, t('Your notes: {notes}', { notes: c.review_notes })));
     }
 
     const body = createEl('div', { class: 'submission-card__body' }, children);
@@ -136,7 +137,7 @@ export async function init() {
       cursor = next_cursor;
       loadMoreBtn.hidden = !cursor;
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not load the review queue.';
+      errorEl.textContent = errorMessage(err, 'Could not load the review queue.');
       errorEl.hidden = false;
     }
   }

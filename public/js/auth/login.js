@@ -2,7 +2,7 @@
 import { login } from './auth.js';
 import { navigate } from '../core/router.js';
 import { qs } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 
 export function init() {
   const form = qs('#login-form');
@@ -23,7 +23,7 @@ export function init() {
       });
       navigate('/');
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Sign in failed. Please try again.';
+      errorEl.textContent = errorMessage(err, 'Sign in failed. Please try again.');
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;

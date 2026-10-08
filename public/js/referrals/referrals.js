@@ -10,7 +10,9 @@
 import { api } from '../shared/api.js';
 import { store } from '../core/state.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
+import { t } from '../core/i18n.js';
+import { shortDate } from '../shared/time.js';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -18,9 +20,7 @@ function buildShareLink(code) {
   return `${location.origin}/register?ref=${encodeURIComponent(code)}`;
 }
 
-function fmtDate(iso) {
-  return new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' });
-}
+const fmtDate = shortDate;
 
 // ── share section ──────────────────────────────────────────────────────────
 
@@ -39,8 +39,8 @@ function initShare(code) {
     copyBtn.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(link);
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => { copyBtn.textContent = 'Copy link'; }, 2000);
+        copyBtn.textContent = t('Copied!');
+        setTimeout(() => { copyBtn.textContent = t('Copy link'); }, 2000);
       } catch {
         // Clipboard API unavailable (e.g. non-HTTPS dev). Show the link.
         if (linkInput) linkInput.select();
@@ -74,7 +74,7 @@ function initClaim(onClaimed) {
       // Reload the list so the new entry appears and the claim form hides.
       onClaimed();
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Failed to claim referral code.';
+      errorEl.textContent = errorMessage(err, 'Failed to claim referral code.');
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;
@@ -86,17 +86,15 @@ function initClaim(onClaimed) {
 
 function renderReferralItem(ref) {
   const other = ref.other_user;
-  const name = other?.display_name || other?.username || '(unknown user)';
+  const name = other?.display_name || other?.username || t('(unknown user)');
   const isReferred = ref.direction === 'referred'; // current user was referred by 'name'
 
-  const directionLabel = isReferred
-    ? 'Referred by'
-    : 'You referred';
+  const directionLabel = isReferred ? t('Referred by') : t('You referred');
 
   const statusClass = ref.reward_issued_at
     ? 'referral-item__status--rewarded'
     : 'referral-item__status--pending';
-  const statusText = ref.reward_issued_at ? 'Rewarded' : 'Pending';
+  const statusText = ref.reward_issued_at ? t('Rewarded') : t('Pending');
 
   return createEl('li', { class: 'referral-item' }, [
     createEl('div', { class: 'referral-item__header' }, [
@@ -149,7 +147,7 @@ async function loadMore(listEl, emptyEl, loadMoreBtn, loadErrorEl) {
       emptyEl.hidden = false;
     }
   } catch (err) {
-    loadErrorEl.textContent = err instanceof ApiError ? err.message : 'Could not load referrals.';
+    loadErrorEl.textContent = errorMessage(err, 'Could not load referrals.');
     loadErrorEl.hidden = false;
   } finally {
     isLoading = false;
@@ -200,11 +198,11 @@ export async function init() {
     alreadyReferred = referrals.some((r) => r.direction === 'referred');
   } catch (err) {
     if (loadErrorEl) {
-      loadErrorEl.textContent = err instanceof ApiError ? err.message : 'Could not load referrals.';
+      loadErrorEl.textContent = errorMessage(err, 'Could not load referrals.');
       loadErrorEl.hidden = false;
     }
     if (errorEl) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not load referrals.';
+      errorEl.textContent = errorMessage(err, 'Could not load referrals.');
       errorEl.hidden = false;
     }
   }

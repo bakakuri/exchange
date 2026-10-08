@@ -7,12 +7,13 @@
 
 import { api } from '../shared/api.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
 
 import { statusLabel } from './status.js';
 import { taskActionLabel } from '../shared/task-label.js';
 import { platformTile } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
+import { t, tn } from '../core/i18n.js';
 
 function renderSubmissions(listEl, completions, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
@@ -20,9 +21,9 @@ function renderSubmissions(listEl, completions, { append = false } = {}) {
   if (completions.length === 0 && listEl.children.length === 0) {
     listEl.append(emptyState({
       iconId: 'i-inbox',
-      title: 'No submissions yet',
-      text: 'When you complete a task and send proof, it shows up here until the campaign owner reviews it.',
-      action: { href: '/tasks', label: 'Find a task' },
+      title: t('No submissions yet'),
+      text: t('When you complete a task and send proof, it shows up here until the campaign owner reviews it.'),
+      action: { href: '/tasks', label: t('Find a task') },
       className: 'submission-list__empty',
     }));
     return;
@@ -34,11 +35,11 @@ function renderSubmissions(listEl, completions, { append = false } = {}) {
         createEl('strong', {}, c.campaign_title),
         createEl('span', { class: `submission-status submission-status--${c.status}` }, statusLabel(c.status)),
       ]),
-      createEl('p', { class: 'submission-card__meta' }, `${taskActionLabel(c.task_type, c.platform)}, ${c.reward_amount} credits`),
+      createEl('p', { class: 'submission-card__meta' }, `${taskActionLabel(c.task_type, c.platform)}, ${tn(c.reward_amount, '{n} credit', '{n} credits')}`),
     ];
 
     if (c.status === 'rejected' && c.review_notes) {
-      children.push(createEl('p', { class: 'submission-card__notes' }, `Reviewer notes: ${c.review_notes}`));
+      children.push(createEl('p', { class: 'submission-card__notes' }, t('Reviewer notes: {notes}', { notes: c.review_notes })));
     }
 
     listEl.append(createEl('li', { class: 'submission-card' }, [
@@ -70,7 +71,7 @@ export async function init() {
       cursor = next_cursor;
       loadMoreBtn.hidden = !cursor;
     } catch (err) {
-      errorEl.textContent = err instanceof ApiError ? err.message : 'Could not load submissions.';
+      errorEl.textContent = errorMessage(err, 'Could not load submissions.');
       errorEl.hidden = false;
     }
   }

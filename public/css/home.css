@@ -52,6 +52,16 @@
   letter-spacing: -0.045em;
 }
 
+/* Georgian words run longer and taller: a smaller, airier headline keeps
+   it to three or four lines. */
+:lang(ka) .hero__title {
+  max-width: 20ch;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+}
+:lang(ru) .hero__title { max-width: 19ch; font-size: clamp(2.5rem, 5.8vw, 4.75rem); line-height: 1.02; }
+
 .hero__lede {
   max-width: 42ch;
   margin: 0 0 var(--space-6);
@@ -91,8 +101,9 @@
   padding: var(--space-5) var(--space-5) var(--space-6) 0;
 }
 @media (min-width: 901px) {
-  /* Rise into the space beside the headline's last line. */
-  .hero__visual { margin-top: clamp(-120px, -7.5vw, -56px); }
+  /* Rise into the space beside the headline's last line - English only:
+     the Georgian and Russian headlines end in a full-width line. */
+  :lang(en) .hero__visual { margin-top: clamp(-120px, -7.5vw, -56px); }
 }
 
 .ticket-back {

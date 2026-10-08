@@ -7,29 +7,32 @@
 import { api } from '../shared/api.js';
 import { navigate } from '../core/router.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { errorMessage } from '../shared/errors.js';
+import { t, formatNumber } from '../core/i18n.js';
+import { shortDate } from '../shared/time.js';
+import { roleLabel } from './labels.js';
 
 // ── stats ───────────────────────────────────────────────────────────────────
 
 async function renderStats(statsEl) {
-  statsEl.innerHTML = '<span class="admin-stats__loading">Loading stats…</span>';
+  statsEl.replaceChildren(createEl('span', { class: 'admin-stats__loading' }, t('Loading stats…')));
 
   try {
     const { stats } = await api.admin.stats();
     statsEl.innerHTML = '';
 
     const tiles = [
-      { label: 'Total users', value: stats.total_users },
-      { label: 'Total campaigns', value: stats.total_campaigns },
-      { label: 'Active campaigns', value: stats.active_campaigns },
-      { label: 'Total completions', value: stats.total_completions },
-      { label: 'Pending verifications', value: stats.pending_verifications },
-      { label: 'Open reports', value: stats.pending_reports, link: '/admin/reports' },
+      { label: t('Total users'), value: stats.total_users },
+      { label: t('Total campaigns'), value: stats.total_campaigns },
+      { label: t('Active campaigns'), value: stats.active_campaigns },
+      { label: t('Total completions'), value: stats.total_completions },
+      { label: t('Pending verifications'), value: stats.pending_verifications },
+      { label: t('Open reports'), value: stats.pending_reports, link: '/admin/reports' },
     ];
 
     for (const tile of tiles) {
       const tileEl = createEl('div', { class: 'admin-stat-tile' }, [
-        createEl('span', { class: 'admin-stat-tile__value' }, String(tile.value)),
+        createEl('span', { class: 'admin-stat-tile__value' }, formatNumber(tile.value ?? 0)),
         createEl('span', { class: 'admin-stat-tile__label' }, tile.label),
       ]);
       // Tiles with a link are clickable.
@@ -47,7 +50,7 @@ async function renderStats(statsEl) {
   } catch (err) {
     statsEl.innerHTML = '';
     statsEl.append(
-      createEl('p', { class: 'form-error' }, err instanceof ApiError ? err.message : 'Could not load stats.')
+      createEl('p', { class: 'form-error' }, errorMessage(err, 'Could not load stats.'))
     );
   }
 }
@@ -60,13 +63,13 @@ function renderUserRow(user, listEl) {
 
   const row = createEl('li', { class: `admin-user-row ${statusClass}`.trim() }, [
     createEl('a', { class: 'admin-user-row__link', href: `/admin/users/${user.id}`, 'data-link': '' }, [
-      createEl('span', { class: 'admin-user-row__name' }, user.display_name || user.username || '(no name)'),
+      createEl('span', { class: 'admin-user-row__name' }, user.display_name || user.username || t('(no name)')),
       createEl('span', { class: 'admin-user-row__username' }, `@${user.username || '—'}`),
     ]),
     createEl('div', { class: 'admin-user-row__meta' }, [
-      createEl('span', { class: `admin-user-role ${roleClass}` }, user.role),
-      createEl('span', { class: 'admin-user-row__credits' }, `${user.credits} cr`),
-      createEl('span', { class: 'admin-user-row__date' }, new Date(user.created_at).toLocaleDateString()),
+      createEl('span', { class: `admin-user-role ${roleClass}` }, roleLabel(user.role)),
+      createEl('span', { class: 'admin-user-row__credits' }, t('{n} cr', { n: formatNumber(user.credits ?? 0) })),
+      createEl('span', { class: 'admin-user-row__date' }, shortDate(user.created_at)),
     ]),
   ]);
 
@@ -104,7 +107,7 @@ async function loadUsers(listEl, emptyEl, loadMoreBtn, errorEl, reset = false) {
       emptyEl.hidden = false;
     }
   } catch (err) {
-    errorEl.textContent = err instanceof ApiError ? err.message : 'Could not load users.';
+    errorEl.textContent = errorMessage(err, 'Could not load users.');
     errorEl.hidden = false;
   } finally {
     isLoading = false;

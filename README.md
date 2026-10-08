@@ -32,8 +32,10 @@ exchange/
     pages/                   HTML fragments injected into the shell
     css/                     variables.css, base.css, layout.css
     js/
-      core/                  app bootstrap, config, state, events, router
-      shared/                 http, api, dom, error helpers
+      core/                  app bootstrap, config, state, events, router,
+                              i18n engine, language detection + menu
+      shared/                 http, api, dom, error helpers, dates
+      i18n/                   ka/ and ru/ dictionaries (see "Languages")
     js/
       auth/                    session persistence, auth state manager, nav, pages
       home/                    "/" route
@@ -51,6 +53,7 @@ exchange/
   supabase/
     migrations/               001-017: full schema, RLS, business-logic functions, browse view
   scripts/
+    i18n-check.js             translation coverage check (see "Languages")
     test/                     Local Postgres validation harness (see below)
 ```
 
@@ -1249,8 +1252,8 @@ for links, focus rings and the current page. All values live in
 | Accent | `#2563EB` (5.2:1) | `#3B82F6` (5.7:1) |
 
 - **Type:** FiraGO (SIL OFL, `public/fonts/`), self-hosted and subset to
-  Latin + Georgian (about 30 KB per weight; 400/500/600/700) so Georgian
-  names and titles render in the same voice as Latin. Tabular figures for
+  Latin + Cyrillic + Georgian (about 37 KB per weight; 400/500/600/700) so
+  Georgian and Russian render in the same voice as Latin. Tabular figures for
   credits.
 - **Depth:** `--shadow-xs/sm/lg` and `--highlight` (a 1px inner top light)
   raise panels, buttons and the hero "ticket"; `--color-tile` fills icon
@@ -1282,6 +1285,57 @@ for links, focus rings and the current page. All values live in
   dashboard: balance with a sparkline of the real ledger and the 7-day
   change, level progress and achievements, open tasks, an inbox (to review,
   unread) and recent activity.
+
+---
+
+## Languages (ქართული · Русский · English)
+
+The whole site - static pages, everything the scripts render, server and
+database messages - is available in Georgian, Russian and English.
+
+**Which language a visitor sees** (first match wins, `public/js/core/language.js`):
+
+1. the one they picked on this device (🌐 menu in the top bar / sidebar);
+2. their account's language (`profiles.language`, also editable as
+   "Site language" on /profile; picking from the menu while signed in
+   saves it there, so every device follows);
+3. their country: `GET /api/locale` reads the CDN's geo header
+   (`x-vercel-ip-country`) - Georgia → ქართული; Russia, Belarus,
+   Kazakhstan, Kyrgyzstan → Русский (`server/services/locale.service.js`);
+   cached in the browser for 3 days;
+4. the phone/browser language, if it is one of the three;
+5. English.
+
+`theme-init.js` makes the same guess from storage before first paint and
+keeps the page hidden until the translation is in place (a CSS fallback
+shows it after 1.6 s if scripts fail), so English never flashes first.
+
+**How it works.** English is the source language and the dictionary key.
+Page fragments stay plain English HTML; the router translates each one
+before its script runs (`translateDom`, `core/i18n.js`). Scripts call
+`t('Find tasks')`, `t('Level {level}', { level })` and
+`tn(n, '{n} credit', '{n} credits')` (Russian plural forms via
+`Intl.PluralRules`). Server and database text (error messages,
+notification titles, ledger descriptions, achievement names) is
+translated on the client by its exact English text
+(`shared/errors.js`, `shared/server-text.js`) - the API itself stays
+English. Dates and numbers use `Intl`, with a built-in Georgian formatter
+for Chrome, which ships without Georgian date data.
+
+**Dictionaries:** `public/js/i18n/{ka,ru}/{shell,pages,features,server}.js`.
+After changing or adding English text anywhere, run
+
+```bash
+node scripts/i18n-check.js          # lists missing / unused / mismatched strings
+node scripts/i18n-check.js --list   # every English string and where it appears
+```
+
+`npm test` runs the same check (`tests/unit/i18n.test.js`), so CI fails
+on a missing translation.
+
+**Not translated here:** Supabase's own emails (sign-up confirmation,
+password reset) use the templates in the Supabase dashboard
+(Authentication → Email Templates).
 
 ---
 
@@ -1400,4 +1454,5 @@ error handler has a chance to log it.
 - [x] 18. CI/CD (GitHub Actions: syntax check + node:test on every push/PR; Vercel: CDN serves public/, api/index.js runs Express for /api/*; Node 22 pinned — see "CI/CD (Stage 18)")
 - [x] 19. Production readiness (structured JSON logging, request timeout middleware, graceful SIGTERM/SIGINT shutdown, uncaughtException/unhandledRejection handlers, health check enriched with node version + uptime — see "Production readiness (Stage 19)")
 - [x] Post-deploy fixes (blank page on Vercel, auth email flows, admin queries, mobile nav — see "Post-deploy fixes")
-- [x] Design system: Mono Minimal light/dark themes, FiraGO (Latin + Georgian), new home page — see "Design system (Mono Minimal)"
+- [x] Design system: Mono Minimal light/dark themes, FiraGO (Latin + Cyrillic + Georgian), new home page — see "Design system (Mono Minimal)"
+- [x] Languages: Georgian, Russian, English — automatic by country, switchable, saved to the account — see "Languages"

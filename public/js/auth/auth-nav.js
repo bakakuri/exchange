@@ -15,6 +15,7 @@ import { logout } from './auth.js';
 import { qs, qsa, createEl } from '../shared/dom.js';
 import { icon, avatar } from '../shared/icons.js';
 import { currentTheme } from '../core/theme.js';
+import { t } from '../core/i18n.js';
 
 function renderUserRow(el, user) {
   el.innerHTML = '';
@@ -26,13 +27,13 @@ function renderUserRow(el, user) {
     type: 'button',
     class: 'icon-button theme-toggle',
     'data-theme-toggle': '',
-    'aria-label': currentTheme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme',
+    'aria-label': currentTheme() === 'dark' ? t('Switch to light theme') : t('Switch to dark theme'),
   }, [
     icon('i-sun', { size: 18, className: 'theme-toggle__sun' }),
     icon('i-moon', { size: 18, className: 'theme-toggle__moon' }),
   ]);
 
-  const signOut = createEl('button', { type: 'button', class: 'icon-button', 'aria-label': 'Sign out', title: 'Sign out' },
+  const signOut = createEl('button', { type: 'button', class: 'icon-button', 'aria-label': t('Sign out'), title: t('Sign out') },
     [icon('i-log-out', { size: 18 })]);
   signOut.addEventListener('click', () => logout());
 
@@ -62,4 +63,5 @@ function render() {
 export function initAuthNav() {
   render();
   eventBus.on('state:change', render);
+  eventBus.on('language:change', render);
 }
