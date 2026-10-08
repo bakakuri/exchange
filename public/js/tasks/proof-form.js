@@ -15,6 +15,7 @@ import { icon } from '../shared/icons.js';
 import { prepareScreenshot } from '../shared/image-upload.js';
 import { taskPlatformLabel } from '../shared/task-platforms.js';
 import { t, formatNumber } from '../core/i18n.js';
+import { celebrate } from '../shared/motion.js';
 
 const AUTO_APPROVE_HOURS = 24;
 
@@ -188,6 +189,7 @@ export function renderProofForm(task, onSubmitted) {
         proof_image_path: proofImagePath,
         social_profile_id: accountId || undefined,
       });
+      celebrate(submitBtn, { pieces: 18 });
       onSubmitted(completion);
     } catch (err) {
       errorEl.textContent = errorMessage(err, 'Could not submit proof.');

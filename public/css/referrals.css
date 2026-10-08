@@ -29,9 +29,12 @@
 /* The code itself is the thing people copy - set it large and spaced. */
 .referral-share__code {
   margin-bottom: var(--space-4);
-  color: var(--color-ink);
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.14em;
   font-variant-numeric: tabular-nums;
   user-select: all;
@@ -88,7 +91,7 @@
 .referral-item__status--pending { --dot: var(--color-warning); }
 .referral-item__status--rewarded { --dot: var(--color-success); }
 
-.referral-item__user { margin: 0; color: var(--color-ink); font-weight: 500; }
+.referral-item__user { margin: 0; color: var(--color-ink); font-weight: 600; }
 
 .referral-item__date {
   margin: 2px 0 0;

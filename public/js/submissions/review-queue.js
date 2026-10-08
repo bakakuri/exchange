@@ -22,6 +22,7 @@ import { platformTile } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
 import { refreshNavBadges } from '../core/nav-badges.js';
 import { t, tn, formatNumber } from '../core/i18n.js';
+import { celebrate } from '../shared/motion.js';
 import { renderProof, statusDetail, followUpForm, withinFollowUpWindow } from './proof-view.js';
 
 // Visits can't be taken back, so only these can be reported as undone.
@@ -84,6 +85,7 @@ function renderActions(c, card, onDecided) {
     confirmRejectBtn.disabled = true;
     try {
       await api.verification.review(c.id, { decision, review_notes });
+      if (decision === 'approved') celebrate(approveBtn);
       refreshNavBadges();
       onDecided();
     } catch (err) {

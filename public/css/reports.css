@@ -52,7 +52,7 @@
   gap: var(--space-3);
 }
 
-.report-item__type { color: var(--color-ink); font-weight: 500; }
+.report-item__type { color: var(--color-ink); font-weight: 600; }
 
 .report-item__status--open { --dot: var(--color-warning); }
 .report-item__status--resolved { --dot: var(--color-success); }
@@ -91,7 +91,7 @@
   gap: var(--space-3);
 }
 
-.admin-report-type { color: var(--color-ink); font-weight: 500; }
+.admin-report-type { color: var(--color-ink); font-weight: 600; }
 
 .admin-report-status--open { --dot: var(--color-warning); }
 .admin-report-status--resolved { --dot: var(--color-success); }
@@ -155,7 +155,7 @@
   min-width: 0;
   overflow: hidden;
   color: var(--color-ink);
-  font-weight: 600;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

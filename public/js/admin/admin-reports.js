@@ -17,6 +17,7 @@ import { reportTypeLabel, reportStatusLabel } from '../shared/report-labels.js';
 import { taskActionLabel } from '../shared/task-label.js';
 import { statusLabel } from '../submissions/status.js';
 import { renderProof } from '../submissions/proof-view.js';
+import { celebrate } from '../shared/motion.js';
 
 const PROOF_REPORTS = ['proof_appeal', 'unfollowed'];
 
@@ -88,7 +89,7 @@ function proofActions(report, li) {
   }
 
   yesBtn.addEventListener('click', () => (appeal
-    ? act(() => api.admin.overturnRejection(c.id, note.value.trim()), 'resolved',
+    ? act(async () => { await api.admin.overturnRejection(c.id, note.value.trim()); celebrate(yesBtn); }, 'resolved',
       () => t('Approved - the member was paid.'))
     : act(() => api.admin.reverseReward(c.id, note.value.trim()), 'resolved',
       (r) => tn(r?.taken_back ?? 0, '{n} credit returned to the creator.', '{n} credits returned to the creator.'))));

@@ -60,7 +60,8 @@ export function platformIcon(platform, options = {}) {
 // campaign and submission rows.
 export function platformTile(platform, { size = 'md' } = {}) {
   const tile = document.createElement('span');
-  tile.className = `platform-tile platform-tile--${size}`;
+  // --<platform> gives the tile that platform's own colors (base.css).
+  tile.className = `platform-tile platform-tile--${size} platform-tile--${PLATFORM_ICONS[platform] ? platform : 'other'}`;
   tile.title = taskPlatformLabel(platform);
   tile.append(platformIcon(platform, { size: size === 'lg' ? 22 : 18, label: taskPlatformLabel(platform) }));
   return tile;

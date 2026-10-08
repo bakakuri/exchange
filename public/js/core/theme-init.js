@@ -37,5 +37,5 @@
   if (ok(lang)) root.setAttribute('lang', lang);
   root.setAttribute('data-i18n', lang === 'en' ? 'ready' : 'pending');
   var meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff');
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#0d0920' : '#f5f3ff');
 })();

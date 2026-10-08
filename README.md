@@ -1239,26 +1239,45 @@ not `.nvmrc`).
 
 ---
 
-## Design system (Mono Minimal)
+## Design system (Aurora)
 
-Black and white, hairline borders, one quiet blue (`--color-accent`) used only
-for links, focus rings and the current page. All values live in
-`public/css/variables.css`; no other stylesheet hard-codes a color.
+A violet → orchid → rose gradient (`--gradient-brand`) marks what matters
+in an exchange of attention: credits and rewards, the main action, the
+current page. Everything sits on a softly tinted canvas - lavender in
+light, deep indigo night in dark - lit by three slow pools of color (the
+fixed `.aurora` layer in `index.html`). Every platform tile keeps its own
+brand colors; statuses are tinted pills with a glowing dot (pending ones
+pulse). Type is heavier than usual: body Medium (500), titles Bold (700).
+All values live in `public/css/variables.css`.
 
 | | Light | Dark |
 |---|---|---|
-| Canvas / surface | `#FFFFFF` / `#FAFAFA` | `#000000` / `#0A0A0A` |
-| Hairline / form-field border | `#EAEAEA` / `#8F8F8F` (3:1) | `#262626` / `#616161` (3:1) |
-| Text / muted | `#000000` / `#666666` | `#EDEDED` / `#A1A1A1` |
-| Accent | `#2563EB` (5.2:1) | `#3B82F6` (5.7:1) |
+| Canvas / card | `#F5F3FF` / `#FFFFFF` | `#0D0920` / `#17122E` |
+| Hairline / form-field border | `#E9E4FB` / `#8E85B7` (3.4:1) | `#2D2552` / `#7065AB` |
+| Heading / text / muted | `#1B1240` / `#251C4B` / `#5F5785` | `#F5F2FF` / `#E8E4FF` / `#ACA4D3` |
+| Accent (links, current page) | `#6246EA` (5.9:1) | `#A596FF` |
+| Gradient | `#6D5DFC → #B44CF0 → #FF6A95` | `#8B7BFF → #CF6BFF → #FF7FA6` |
+
+**Motion** (all of it off under `prefers-reduced-motion`):
+- pages arrive in a short cascade, list rows one after another;
+- numbers roll to their value (`countUp()` in `js/shared/motion.js`) -
+  balance, sidebar and top-bar credits;
+- progress bars fill in, with a light sweeping along them; the dashboard's
+  balance history draws itself;
+- buttons lift on hover and press in; the main button carries a sheen;
+  platform tiles and icons tilt when their row is pointed at;
+- the theme switch opens the new theme as a circle from the switch (View
+  Transitions, where the browser supports them);
+- a burst of confetti (`celebrate()`) when a reward is claimed, proof is
+  sent, or a proof is approved.
 
 - **Type:** FiraGO (SIL OFL, `public/fonts/`), self-hosted and subset to
   Latin + Cyrillic + Georgian (about 37 KB per weight; 400/500/600/700) so
   Georgian and Russian render in the same voice as Latin. Tabular figures for
   credits.
-- **Depth:** `--shadow-xs/sm/lg` and `--highlight` (a 1px inner top light)
-  raise panels, buttons and the hero "ticket"; `--color-tile` fills icon
-  tiles. Dark theme has its own values, not inverted light ones.
+- **Depth:** shadows are tinted, never grey (`--shadow-xs/sm/lg`,
+  `--shadow-glow` under gradient objects) plus `--highlight` (a 1px inner
+  top light). Dark theme has its own values, not inverted light ones.
 - **Themes:** `js/core/theme-init.js` (a classic script at the top of
   `<head>`, since the CSP forbids inline scripts) sets `<html data-theme>`
   and `<html data-auth>` before first paint: the stored theme choice, else
@@ -1279,7 +1298,7 @@ for links, focus rings and the current page. All values live in
   container with divided rows, each anchored by a platform tile or row icon;
   panels (`.panel`) for summaries; progress bars; reward chips; empty states
   with an icon and a next step (`js/shared/empty-state.js`); loading
-  skeletons; statuses are neutral pills with a colored dot.
+  skeletons; statuses are tinted pills with a glowing dot.
 - **Home:** visitors see the landing page (headline, a live-looking ledger
   "ticket", how it works with mini interface previews, the fairness rules
   the server enforces, closing call to action). Signed-in members see a
@@ -1515,7 +1534,7 @@ error handler has a chance to log it.
 - [x] 18. CI/CD (GitHub Actions: syntax check + node:test on every push/PR; Vercel: CDN serves public/, api/index.js runs Express for /api/*; Node 22 pinned — see "CI/CD (Stage 18)")
 - [x] 19. Production readiness (structured JSON logging, request timeout middleware, graceful SIGTERM/SIGINT shutdown, uncaughtException/unhandledRejection handlers, health check enriched with node version + uptime — see "Production readiness (Stage 19)")
 - [x] Post-deploy fixes (blank page on Vercel, auth email flows, admin queries, mobile nav — see "Post-deploy fixes")
-- [x] Design system: Mono Minimal light/dark themes, FiraGO (Latin + Cyrillic + Georgian), new home page — see "Design system (Mono Minimal)"
+- [x] Design system: Aurora light/dark themes (gradient, brand-colored platform tiles, motion), FiraGO (Latin + Cyrillic + Georgian) — see "Design system (Aurora)"
 - [x] Languages: Georgian, Russian, English — automatic by country, switchable, saved to the account — see "Languages"
 - [x] Verification: screenshot proof, 24-hour auto-approval, creator track record, real link-click tasks — see "Verifying completed tasks (020)"
 - [x] Trust & economy: referral-farm fix, places held at submission, creator notice, account on proof, doer reputation and limits, appeals, undone-action reversal, duplicate screenshots, welcome bonus, level perks — see "Trust and economy rules (021)"

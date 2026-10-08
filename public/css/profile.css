@@ -45,7 +45,7 @@
 }
 .social-list__item a:hover { text-decoration: none; }
 .social-list__item a:hover .social-list__name { text-decoration: underline; }
-.social-list__name { font-weight: 500; }
+.social-list__name { font-weight: 600; }
 .social-list__platform { color: var(--color-text-muted); font-size: var(--font-size-sm); }
 
 .social-list__remove {

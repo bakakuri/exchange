@@ -29,6 +29,18 @@ const NOTIFICATION_ICONS = {
   reward_reversed: 'i-undo-2',
 };
 
+// The icon tile's color says how it went (base.css .row-icon--*).
+const NOTIFICATION_TONES = {
+  verification_approved: 'success',
+  verification_rejected: 'danger',
+  reward_received: 'brand',
+  referral_reward: 'brand',
+  achievement_unlocked: 'brand',
+  refund: 'success',
+  reward_reversed: 'warning',
+  campaign_cancelled: 'warning',
+};
+
 // Notifications that ask for something get a way to do it.
 const NOTIFICATION_ACTIONS = {
   proof_submitted: { href: '/submissions/review', label: () => t('Review proof') },
@@ -64,7 +76,8 @@ function renderNotifications(listEl, notifications, onRead, { append = false } =
 
     const body = createEl('div', { class: 'notification-item__content' }, children);
     const item = createEl('li', { class: `notification-item${n.read_at ? '' : ' notification-item--unread'}` }, [
-      createEl('span', { class: 'row-icon' }, [icon(NOTIFICATION_ICONS[n.type] || 'i-bell', { size: 18 })]),
+      createEl('span', { class: `row-icon${NOTIFICATION_TONES[n.type] ? ` row-icon--${NOTIFICATION_TONES[n.type]}` : ''}` },
+        [icon(NOTIFICATION_ICONS[n.type] || 'i-bell', { size: 18 })]),
       body,
     ]);
 

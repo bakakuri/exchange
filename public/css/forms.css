@@ -25,9 +25,9 @@
 
 .field label,
 .form-label {
-  color: var(--color-text);
+  color: var(--color-ink);
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 700;
 }
 
 /* ── Inputs ───────────────────────────────────────────────────────────── */
@@ -41,16 +41,17 @@
 .follow-up__form textarea,
 .admin-report-row__actions--proof textarea {
   width: 100%;
-  min-height: 44px;
-  padding: 10px 12px;
+  min-height: 48px;
+  padding: 11px 14px;
   background: var(--color-bg);
   color: var(--color-text);
-  border: 1px solid var(--color-control-border);
+  border: 1.5px solid var(--color-control-border);
   border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: var(--font-size-base); /* 16px: stops iOS zooming on focus */
+  font-weight: 500;
   line-height: 1.4;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-base), background-color var(--transition-fast);
 }
 
 .field textarea,
@@ -82,8 +83,8 @@ textarea::placeholder { color: var(--color-text-subtle); }
 .follow-up__form textarea:focus-visible,
 .admin-report-row__actions--proof textarea:focus-visible {
   outline: none;
-  border-color: var(--color-ink);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 28%, transparent);
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-focus) 22%, transparent), 0 8px 22px -12px var(--color-glow);
 }
 
 /* Native select with a drawn chevron that follows the theme. */
@@ -106,7 +107,7 @@ input[type="radio"] {
   width: 18px;
   height: 18px;
   margin: 0;
-  accent-color: var(--color-ink);
+  accent-color: var(--aurora-1);
 }
 
 .form-hint {
@@ -122,40 +123,78 @@ input[type="radio"] {
 }
 
 /* ── Buttons ──────────────────────────────────────────────────────────── */
-/* .btn alone is the secondary button; --primary is ink-filled (black in
-   light, white in dark). Color is reserved for success/danger outcomes. */
+/* .btn alone is the secondary button (card color, hairline); --primary
+   carries the gradient and its glow - one per screen, the main action.
+   Every button lifts on hover and presses in when tapped. */
 
 .btn {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: 40px;
-  padding: 0 var(--space-4);
+  min-height: 44px;
+  padding: 6px 18px;
   background: var(--color-bg);
   color: var(--color-ink);
-  border: 1px solid var(--color-border-strong);
+  border: 1.5px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
+  font-size: 0.96875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-wrap: balance;
   cursor: pointer;
   text-decoration: none;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+  transition:
+    transform 260ms var(--ease-spring),
+    box-shadow var(--transition-base),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    opacity var(--transition-fast);
 }
-.btn:hover:not(:disabled) { background: var(--color-hover); text-decoration: none; }
-.btn:active:not(:disabled) { transform: translateY(0.5px); }
+.btn:hover:not(:disabled) { background: var(--color-hover); border-color: color-mix(in srgb, var(--aurora-1) 40%, var(--color-border-strong)); text-decoration: none; transform: translateY(-1px); }
+.btn:active:not(:disabled) { transform: translateY(1px) scale(0.97); transition-duration: 80ms; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn .icon { transition: transform 360ms var(--ease-spring); }
+.btn:hover:not(:disabled) .icon { transform: scale(1.12) rotate(-8deg); }
 
 .btn--primary {
-  background: var(--color-ink);
-  color: var(--color-on-ink);
-  border-color: var(--color-ink);
-  box-shadow: var(--shadow-xs), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+  background: var(--gradient-brand);
+  background-size: 180% 100%;
+  background-position: 0% 50%;
+  color: var(--color-on-gradient);
+  border-color: transparent;
+  box-shadow: 0 12px 26px -12px var(--color-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition:
+    transform 260ms var(--ease-spring),
+    box-shadow var(--transition-base),
+    background-position 600ms var(--ease-out),
+    opacity var(--transition-fast);
 }
 .btn:not(.btn--primary):not(.btn--danger):not(.btn--success) { box-shadow: var(--shadow-xs); }
-.btn--primary:hover:not(:disabled) { background: var(--color-ink); opacity: 0.86; }
+.btn--primary:hover:not(:disabled) {
+  background: var(--gradient-brand);
+  background-size: 180% 100%;
+  background-position: 100% 50%;
+  border-color: transparent;
+  box-shadow: 0 18px 34px -12px var(--color-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+/* A sheen crosses the main button now and then, to draw the eye. */
+.btn--primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.35) 50%, transparent 65%);
+  transform: translateX(-130%);
+  animation: btn-sheen 4.5s ease-in-out 2s infinite;
+  pointer-events: none;
+}
+@keyframes btn-sheen { 0%, 75% { transform: translateX(-130%); } 100% { transform: translateX(130%); } }
+.btn--primary:disabled::after { animation: none; }
 
 .btn--ghost {
   background: transparent;
@@ -164,15 +203,16 @@ input[type="radio"] {
 }
 
 .btn--lg {
-  min-height: 48px;
-  padding: 0 22px;
-  border-radius: 10px;
-  font-size: 1rem;
+  min-height: 54px;
+  padding: 0 26px;
+  border-radius: 16px;
+  font-size: 1.0625rem;
 }
 
 .btn--sm {
-  min-height: 32px;
-  padding: 0 var(--space-3);
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
   font-size: var(--font-size-sm);
 }
 
@@ -195,11 +235,16 @@ input[type="radio"] {
 .form-error,
 .form-success {
   margin: 0;
-  padding: 10px 12px;
+  padding: 11px 14px;
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
+  font-weight: 600;
   line-height: 1.45;
+  animation: message-in 420ms var(--ease-spring);
 }
+@keyframes message-in { from { opacity: 0; transform: translateY(-4px) scale(0.98); } }
+.form-error:not([hidden]) { animation: message-in 420ms var(--ease-spring), shake 360ms ease-in-out 120ms; }
+@keyframes shake { 25% { transform: translateX(-4px); } 50% { transform: translateX(4px); } 75% { transform: translateX(-2px); } }
 
 .form-error {
   color: var(--color-danger);
@@ -232,7 +277,7 @@ input[type="radio"] {
   width: 100vw;
   height: 640px;
   transform: translateX(-50%);
-  background-image: radial-gradient(var(--color-grid) 1px, transparent 1.4px);
+  background-image: radial-gradient(var(--color-grid) 1.2px, transparent 1.6px);
   background-size: 22px 22px;
   -webkit-mask-image: radial-gradient(ellipse 46% 60% at 50% 30%, #000, transparent 75%);
   mask-image: radial-gradient(ellipse 46% 60% at 50% 30%, #000, transparent 75%);
@@ -247,12 +292,13 @@ input[type="radio"] {
   box-shadow: var(--shadow-lg), var(--highlight);
 }
 
-.auth-card__mark { width: 40px; height: 40px; border-radius: 12px; margin-bottom: var(--space-5); }
-.auth-card h1 { margin: 0 0 6px; font-size: 1.625rem; font-weight: 700; letter-spacing: -0.03em; }
-.auth-card__sub { margin: 0 0 var(--space-5); color: var(--color-text-muted); font-size: 0.9375rem; }
+.auth-card__mark { width: 48px; height: 48px; border-radius: 15px; margin-bottom: var(--space-5); }
+.auth-card__mark svg { width: 24px; height: 24px; }
+.auth-card h1 { margin: 0 0 6px; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; }
+.auth-card__sub { margin: 0 0 var(--space-5); color: var(--color-text-muted); font-size: 1rem; }
 
 .auth-page .form { max-width: none; }
-.auth-page .form > .btn--primary { width: 100%; min-height: 46px; margin-top: var(--space-2); align-self: stretch; }
+.auth-page .form > .btn--primary { width: 100%; min-height: 52px; margin-top: var(--space-2); align-self: stretch; }
 
 .auth-page__alt {
   margin: var(--space-4) 0 0;

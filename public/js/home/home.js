@@ -15,6 +15,7 @@ import { emptyState } from '../shared/empty-state.js';
 import { timeAgo, fullDateTime, longDay } from '../shared/time.js';
 import { t, tn, formatNumber } from '../core/i18n.js';
 import { activityLabel } from '../shared/activity-labels.js';
+import { countUp } from '../shared/motion.js';
 
 const DASHBOARD_TASKS = 5;
 const DASHBOARD_ACTIVITY = 5;
@@ -46,7 +47,7 @@ function renderVisitor() {
 // ── Dashboard helpers ──────────────────────────────────────────────────
 
 function setCredits(n) {
-  setText('[data-home-credits]', formatNumber(n));
+  countUp(qs('[data-home-credits]'), n, formatNumber);
   setText('[data-home-credits-unit]', tn(n, 'credit', 'credits'));
 }
 

@@ -2,14 +2,17 @@
    Design tokens - the single source of truth for color, type, spacing and
    motion. Every other stylesheet reads from these custom properties.
 
-   Direction: "Mono Minimal" - black and white, hairline borders, one quiet
-   blue used only for links, focus and the current page. Elevation comes
-   from borders, not shadows; status colors appear as small dots.
+   Direction: "Aurora" - a violet → orchid → rose gradient that marks the
+   things that matter in an exchange of attention (credits, rewards, the
+   main action, the current page), on a softly tinted canvas: lavender in
+   light, deep indigo night in dark. Status colors glow as small lit dots;
+   every platform keeps its own brand color. Type is heavier than the
+   default: body Medium, titles Bold.
 
    Themes: light is the default. js/core/theme-init.js sets
    <html data-theme="light|dark"> before first paint (stored choice, else
    the device setting); the media query below covers visitors without JS.
-   The old token names (--color-surface, --radius-md, ...) are kept so
+   The older token names (--color-surface, --radius-md, ...) are kept so
    every page stylesheet keeps working. */
 
 /* ── Typeface: FiraGO (Latin + Cyrillic + Georgian), self-hosted, subset ─ */
@@ -47,43 +50,61 @@
   color-scheme: light;
 
   /* ── Color: light ───────────────────────────────────────────────────── */
-  --color-bg: #ffffff;              /* canvas */
-  --color-surface: #fafafa;         /* containers, inputs */
+  --color-canvas: #f5f3ff;          /* the page itself - lavender-tinted */
+  --color-bg: #ffffff;              /* cards, lists, panels */
+  --color-surface: #faf9ff;         /* insets, inputs, quiet containers */
   --color-surface-raised: #ffffff;  /* menus, popovers */
-  --color-hover: #f4f4f5;           /* row / control hover */
-  --color-border: #eaeaea;          /* hairlines */
-  --color-border-strong: #d4d4d4;   /* hovered / emphasised hairlines */
-  --color-control-border: #8f8f8f;  /* form fields: 3.1:1, so they read as controls */
-  --color-ink: #000000;             /* headings, primary button */
+  --color-hover: #f1eefe;           /* row / control hover */
+  --color-border: #e9e4fb;          /* hairlines */
+  --color-border-strong: #d6cdf6;   /* hovered / emphasised hairlines */
+  --color-control-border: #8e85b7;  /* form fields: 3.4:1, they read as controls */
+  --color-ink: #1b1240;             /* headings - deep indigo, not black */
   --color-on-ink: #ffffff;          /* text on ink */
-  --color-text: #000000;
-  --color-text-muted: #666666;      /* 5.7:1 on white */
-  --color-text-subtle: #707070;     /* 4.7:1 on surface - placeholders, dates */
-  --color-accent: #2563eb;          /* links, current page - 5.2:1 */
-  --color-accent-strong: #1d4ed8;
-  --color-focus: #3b82f6;
-  --color-success: #15803d;
-  --color-warning: #b45309;
-  --color-danger: #dc2626;
-  --color-scrim: rgba(255, 255, 255, 0.82); /* frosted header */
-  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
-  --color-tile: #f4f4f5;            /* icon tiles, avatars */
-  --color-grid: rgba(0, 0, 0, 0.075);  /* hero dot texture */
-  --color-glow: rgba(0, 0, 0, 0.045);  /* hero light falloff */
-  /* Depth: hairline + soft shadow; the inner highlight only shows in dark */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 32px 64px -24px rgba(0, 0, 0, 0.22), 0 12px 24px -12px rgba(0, 0, 0, 0.08);
-  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0);
+  --color-text: #251c4b;            /* body - 14:1 on white */
+  --color-text-muted: #5f5785;      /* 6.4:1 on white */
+  --color-text-subtle: #736c99;     /* 4.9:1 on white - dates, placeholders */
+  --color-accent: #6246ea;          /* links, current page - 5.9:1 */
+  --color-accent-strong: #4f35d6;
+  --color-focus: #7c5cff;
+  --color-success: #0a8a5e;         /* 4.6:1 on white */
+  --color-warning: #b9590a;         /* 4.7:1 on white */
+  --color-danger: #d42a42;          /* 5.0:1 on white */
+  --color-scrim: rgba(245, 243, 255, 0.78); /* frosted bars */
+  --color-tile: #f0edff;            /* icon tiles, avatars */
+  --color-grid: rgba(98, 70, 234, 0.12);  /* dot texture */
+  --color-glow: rgba(109, 93, 252, 0.32); /* colored light under gradient things */
+
+  /* The gradient: three stops, used for money, rewards and the main action. */
+  --aurora-1: #6d5dfc;
+  --aurora-2: #b44cf0;
+  --aurora-3: #ff6a95;
+  --gradient-brand: linear-gradient(135deg, var(--aurora-1) 0%, var(--aurora-2) 55%, var(--aurora-3) 100%);
+  --gradient-soft: linear-gradient(135deg, color-mix(in srgb, var(--aurora-1) 12%, transparent), color-mix(in srgb, var(--aurora-3) 10%, transparent));
+  --color-on-gradient: #ffffff;
+
+  /* Canvas light: three slow pools of color behind everything. */
+  --aurora-pool-1: rgba(124, 92, 255, 0.16);
+  --aurora-pool-2: rgba(255, 106, 149, 0.11);
+  --aurora-pool-3: rgba(56, 189, 248, 0.09);
+
+  /* Depth: tinted shadows (never grey) + an inner highlight */
+  --shadow-xs: 0 1px 2px rgba(40, 24, 110, 0.06);
+  --shadow-sm: 0 1px 2px rgba(40, 24, 110, 0.05), 0 10px 28px -14px rgba(76, 52, 190, 0.22);
+  --shadow-lg: 0 32px 64px -24px rgba(40, 24, 110, 0.38), 0 12px 24px -12px rgba(40, 24, 110, 0.12);
+  --shadow-pop: 0 18px 40px -12px rgba(40, 24, 110, 0.3), 0 2px 6px rgba(40, 24, 110, 0.06);
+  --shadow-glow: 0 14px 32px -10px var(--color-glow);
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
   /* ── Typography ─────────────────────────────────────────────────────── */
   --font-sans: "FiraGO", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Georgian", sans-serif;
-  --font-size-xs: 0.75rem;   /* 12 */
-  --font-size-sm: 0.875rem;  /* 14 */
-  --font-size-base: 1rem;    /* 16 */
-  --font-size-lg: 1.25rem;   /* 20 */
-  --font-size-xl: 1.5rem;    /* 24 */
-  --font-size-2xl: 2rem;     /* 32 */
+  --font-weight-body: 500;   /* Medium: heavier than the usual 400 */
+  --font-weight-strong: 700;
+  --font-size-xs: 0.78125rem; /* 12.5 */
+  --font-size-sm: 0.90625rem; /* 14.5 */
+  --font-size-base: 1rem;     /* 16 */
+  --font-size-lg: 1.3125rem;  /* 21 */
+  --font-size-xl: 1.5rem;     /* 24 */
+  --font-size-2xl: 2.125rem;  /* 34 */
   --font-size-display: clamp(2.5rem, 8vw, 4.5rem);
   --leading-body: 1.55;
   --leading-tight: 1.15;
@@ -101,22 +122,24 @@
   --space-10: 72px;
 
   /* ── Shape: radius follows hierarchy ────────────────────────────────── */
-  --radius-sm: 8px;      /* controls: inputs, buttons */
-  --radius-md: 12px;     /* containers: lists, panels */
-  --radius-lg: 16px;     /* the hero ticket */
+  --radius-sm: 12px;     /* controls: inputs, buttons */
+  --radius-md: 18px;     /* containers: lists, panels */
+  --radius-lg: 22px;     /* hero cards */
   --radius-pill: 999px;  /* chips */
 
   /* ── Layout ─────────────────────────────────────────────────────────── */
-  --content-width: 720px;
-  --wide-width: 1040px;
+  --content-width: 740px;
+  --wide-width: 1080px;
   --header-height: 64px;
-  --sidebar-width: 248px;
-  --tabbar-height: 64px;
-  --radius-xl: 20px;     /* product shots, feature panels */
+  --sidebar-width: 260px;
+  --tabbar-height: 68px;
+  --radius-xl: 28px;     /* product shots, feature panels */
 
   /* ── Motion ─────────────────────────────────────────────────────────── */
-  --transition-fast: 120ms ease;
-  --transition-base: 200ms ease;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 140ms var(--ease-out);
+  --transition-base: 240ms var(--ease-out);
 }
 
 /* ── Color: dark ──────────────────────────────────────────────────────── */
@@ -124,64 +147,78 @@
    device setting when no choice has been applied (no-JS visitors). */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-bg: #000000;
-  --color-surface: #0a0a0a;
-  --color-surface-raised: #111111;
-  --color-hover: #161616;
-  --color-border: #262626;
-  --color-border-strong: #3f3f3f;
-  --color-control-border: #616161;
-  --color-ink: #ffffff;
-  --color-on-ink: #000000;
-  --color-text: #ededed;
-  --color-text-muted: #a1a1a1;      /* 8.6:1 on black */
-  --color-text-subtle: #8a8a8a;
-  --color-accent: #3b82f6;          /* 5.7:1 on black */
-  --color-accent-strong: #60a5fa;
-  --color-focus: #3b82f6;
-  --color-success: #4ade80;
-  --color-warning: #fbbf24;
-  --color-danger: #f87171;
-  --color-scrim: rgba(0, 0, 0, 0.78);
-  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.6);
-  --color-tile: #161616;
-  --color-grid: rgba(255, 255, 255, 0.085);
-  --color-glow: rgba(255, 255, 255, 0.07);
+  --color-canvas: #0d0920;
+  --color-bg: #17122e;
+  --color-surface: #1b1535;
+  --color-surface-raised: #211a40;
+  --color-hover: #251e48;
+  --color-border: #2d2552;
+  --color-border-strong: #3e3470;
+  --color-control-border: #7065ab;
+  --color-ink: #f5f2ff;
+  --color-on-ink: #140f2a;
+  --color-text: #e8e4ff;
+  --color-text-muted: #aca4d3;      /* 8:1 on the card color */
+  --color-text-subtle: #8f87b8;     /* 5.3:1 */
+  --color-accent: #a596ff;
+  --color-accent-strong: #c1b6ff;
+  --color-focus: #9c8cff;
+  --color-success: #3ddc97;
+  --color-warning: #fbbf4a;
+  --color-danger: #ff6b81;
+  --color-scrim: rgba(13, 9, 32, 0.74);
+  --color-tile: #231c44;
+  --color-grid: rgba(165, 150, 255, 0.13);
+  --color-glow: rgba(139, 123, 255, 0.45);
+  --aurora-1: #8b7bff;
+  --aurora-2: #cf6bff;
+  --aurora-3: #ff7fa6;
+  --aurora-pool-1: rgba(124, 92, 255, 0.24);
+  --aurora-pool-2: rgba(255, 106, 149, 0.13);
+  --aurora-pool-3: rgba(56, 189, 248, 0.1);
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 32px 64px -24px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.02);
-  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45), 0 12px 30px -14px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 32px 64px -24px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --shadow-pop: 0 18px 44px -12px rgba(0, 0, 0, 0.75);
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
-    --color-bg: #000000;
-    --color-surface: #0a0a0a;
-    --color-surface-raised: #111111;
-    --color-hover: #161616;
-    --color-border: #262626;
-    --color-border-strong: #3f3f3f;
-    --color-control-border: #616161;
-    --color-ink: #ffffff;
-    --color-on-ink: #000000;
-    --color-text: #ededed;
-    --color-text-muted: #a1a1a1;
-    --color-text-subtle: #8a8a8a;
-    --color-accent: #3b82f6;
-    --color-accent-strong: #60a5fa;
-    --color-focus: #3b82f6;
-    --color-success: #4ade80;
-    --color-warning: #fbbf24;
-    --color-danger: #f87171;
-    --color-scrim: rgba(0, 0, 0, 0.78);
-    --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.6);
-    --color-tile: #161616;
-    --color-grid: rgba(255, 255, 255, 0.085);
-    --color-glow: rgba(255, 255, 255, 0.07);
+    --color-canvas: #0d0920;
+    --color-bg: #17122e;
+    --color-surface: #1b1535;
+    --color-surface-raised: #211a40;
+    --color-hover: #251e48;
+    --color-border: #2d2552;
+    --color-border-strong: #3e3470;
+    --color-control-border: #7065ab;
+    --color-ink: #f5f2ff;
+    --color-on-ink: #140f2a;
+    --color-text: #e8e4ff;
+    --color-text-muted: #aca4d3;
+    --color-text-subtle: #8f87b8;
+    --color-accent: #a596ff;
+    --color-accent-strong: #c1b6ff;
+    --color-focus: #9c8cff;
+    --color-success: #3ddc97;
+    --color-warning: #fbbf4a;
+    --color-danger: #ff6b81;
+    --color-scrim: rgba(13, 9, 32, 0.74);
+    --color-tile: #231c44;
+    --color-grid: rgba(165, 150, 255, 0.13);
+    --color-glow: rgba(139, 123, 255, 0.45);
+    --aurora-1: #8b7bff;
+    --aurora-2: #cf6bff;
+    --aurora-3: #ff7fa6;
+    --aurora-pool-1: rgba(124, 92, 255, 0.24);
+    --aurora-pool-2: rgba(255, 106, 149, 0.13);
+    --aurora-pool-3: rgba(56, 189, 248, 0.1);
     --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 32px 64px -24px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.02);
-    --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45), 0 12px 30px -14px rgba(0, 0, 0, 0.7);
+    --shadow-lg: 0 32px 64px -24px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.03);
+    --shadow-pop: 0 18px 44px -12px rgba(0, 0, 0, 0.75);
+    --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 }

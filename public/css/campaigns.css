@@ -5,7 +5,7 @@
 /* ── Campaign rows ────────────────────────────────────────────────────── */
 
 .campaign-card { transition: background-color var(--transition-fast); }
-.campaign-card:hover { background: var(--color-hover); }
+.campaign-card:hover { background: var(--gradient-soft), var(--color-bg); }
 
 .campaign-card__link {
   display: flex;
@@ -28,7 +28,7 @@
   min-width: 0;
   overflow: hidden;
   color: var(--color-ink);
-  font-weight: 600;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

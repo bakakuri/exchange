@@ -20,11 +20,11 @@
 .submission-card__header a {
   min-width: 0;
   overflow: hidden;
-  font-weight: 500;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.submission-card__header strong { color: var(--color-ink); font-weight: 600; }
+.submission-card__header strong { color: var(--color-ink); font-weight: 700; }
 
 .submission-card__meta {
   margin: 2px 0 0;
@@ -56,7 +56,8 @@
   background: var(--color-tile);
 }
 .proof-shot img { display: block; max-width: 100%; max-height: 220px; object-fit: contain; }
-.proof-shot:hover { border-color: var(--color-border-strong); }
+.proof-shot { transition: transform 360ms var(--ease-spring), box-shadow var(--transition-base); }
+.proof-shot:hover { border-color: var(--color-accent); transform: scale(1.03) rotate(-1deg); box-shadow: var(--shadow-glow); }
 
 /* Where a submission stands: auto-approval countdown, approved
    automatically, expired. */
@@ -82,6 +83,8 @@
 .submission-status--approved { --dot: var(--color-success); }
 .submission-status--rejected,
 .submission-status--expired { --dot: var(--color-danger); }
+.submission-card { transition: background-color var(--transition-fast); }
+.submission-card:hover { background: var(--gradient-soft), var(--color-bg); }
 
 .submission-card__actions {
   display: flex;
@@ -119,7 +122,7 @@
 }
 .doer-line > .icon { flex-shrink: 0; color: var(--color-text-subtle); }
 .doer-line > span:not(.trust-badge)::before { content: '·'; margin-right: 8px; color: var(--color-text-subtle); }
-.doer-line__name { color: var(--color-ink); font-weight: 600; }
+.doer-line__name { color: var(--color-ink); font-weight: 700; }
 
 .submission-card__proof .proof-account {
   display: flex;
@@ -130,23 +133,32 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
 }
-.proof-account a { font-weight: 600; overflow-wrap: anywhere; }
+.proof-account a { font-weight: 700; overflow-wrap: anywhere; }
 .proof-account .icon { flex-shrink: 0; color: var(--color-success); }
 
 /* ── Waiting-proof limit (top of /submissions) ─────────────────────────── */
 
 .submission-limits {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 14px;
   margin-bottom: var(--space-4);
   padding: 14px 16px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
 }
 .submission-limits[hidden] { display: none; }
-.submission-limits > .icon { flex-shrink: 0; margin-top: 1px; color: var(--color-text-subtle); }
+.submission-limits > .icon {
+  box-sizing: content-box;
+  flex-shrink: 0;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--gradient-brand);
+  color: var(--color-on-gradient);
+  box-shadow: 0 8px 16px -8px var(--color-glow);
+}
 .submission-limits__text {
   display: flex;
   flex-direction: column;
@@ -155,12 +167,12 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
-.submission-limits__text strong { color: var(--color-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.submission-limits__text strong { color: var(--color-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
 .submission-limits--warn {
   border-color: color-mix(in srgb, var(--color-warning) 38%, var(--color-border));
   background: color-mix(in srgb, var(--color-warning) 6%, var(--color-bg));
 }
-.submission-limits--warn > .icon { color: var(--color-warning); }
+.submission-limits--warn > .icon { background: var(--color-warning); box-shadow: none; }
 .submission-limits__warn { color: var(--color-text); }
 
 /* ── Appeal / report an undone action: a short note for an admin ──────── */

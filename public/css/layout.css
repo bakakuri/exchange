@@ -26,15 +26,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--color-ink);
-  color: var(--color-on-ink);
-  box-shadow: var(--shadow-xs);
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--gradient-brand);
+  background-size: 160% 160%;
+  color: var(--color-on-gradient);
+  box-shadow: 0 8px 18px -8px var(--color-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: gradient-pan 8s ease-in-out infinite alternate;
+  transition: transform 500ms var(--ease-spring);
 }
+.brand__mark svg { width: 18px; height: 18px; }
+.brand:hover .brand__mark { transform: rotate(180deg); }
+@keyframes gradient-pan { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
 
-.brand__name { font-size: 1.0625rem; font-weight: 700; letter-spacing: -0.015em; }
+.brand__name { font-size: 1.1875rem; font-weight: 700; letter-spacing: -0.02em; }
 
 /* ── Icon buttons + theme switch ──────────────────────────────────────── */
 
@@ -52,10 +58,14 @@
   cursor: pointer;
   transition: color var(--transition-fast), background-color var(--transition-fast);
 }
-.icon-button:hover { color: var(--color-ink); background: var(--color-hover); }
+.icon-button:hover { color: var(--color-accent); background: var(--color-hover); }
+.icon-button:active { transform: scale(0.9); }
 
 :root[data-theme="dark"] .theme-toggle__sun,
 :root:not([data-theme="dark"]) .theme-toggle__moon { display: none; }
+/* The switch turns its icon when it is used. */
+.theme-toggle .icon { transition: transform 500ms var(--ease-spring); }
+.theme-toggle:hover .icon { transform: rotate(-25deg) scale(1.1); }
 
 /* ── Language menu (js/core/language-menu.js) ─────────────────────────── */
 
@@ -73,7 +83,7 @@
   color: var(--color-text-muted);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
   cursor: pointer;
   transition: color var(--transition-fast), background-color var(--transition-fast);
@@ -86,22 +96,22 @@
 
 .lang-menu__list {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   right: 0;
   z-index: 60;
-  min-width: 196px;
+  min-width: 204px;
   margin: 0;
   padding: 6px;
   list-style: none;
-  background: var(--color-bg);
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg), var(--highlight);
   transform-origin: top right;
-  animation: lang-menu-in 140ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: lang-menu-in 260ms var(--ease-spring);
 }
 .lang-menu__list[hidden] { display: none; }
-@keyframes lang-menu-in { from { opacity: 0; transform: translateY(-4px) scale(0.98); } }
+@keyframes lang-menu-in { from { opacity: 0; transform: translateY(-8px) scale(0.92); } }
 
 .lang-menu__item {
   display: flex;
@@ -122,8 +132,8 @@
 .lang-menu__item:hover,
 .lang-menu__item:focus-visible { background: var(--color-hover); color: var(--color-ink); outline: none; }
 .lang-menu__item:focus-visible { box-shadow: inset 0 0 0 2px var(--color-accent); }
-.lang-menu__check { color: var(--color-ink); visibility: hidden; }
-.lang-menu__item[aria-checked="true"] { color: var(--color-ink); font-weight: 600; }
+.lang-menu__check { color: var(--color-accent); visibility: hidden; }
+.lang-menu__item[aria-checked="true"] { color: var(--color-ink); font-weight: 700; background: var(--gradient-soft); }
 .lang-menu__item[aria-checked="true"] .lang-menu__check { visibility: visible; }
 .lang-menu__name { flex: 1; }
 .lang-menu__short { color: var(--color-text-subtle); font-size: var(--font-size-xs); font-weight: 500; letter-spacing: 0.04em; }
@@ -164,27 +174,37 @@
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 700;
 }
 .topbar__link:hover { color: var(--color-ink); background: var(--color-hover); text-decoration: none; }
 
 .credit-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px 0 10px;
+  gap: 7px;
+  height: 36px;
+  padding: 0 13px 0 5px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   background: var(--color-bg);
   color: var(--color-ink);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-sm);
+  transition: transform 300ms var(--ease-spring), box-shadow var(--transition-base);
 }
-.credit-pill:hover { text-decoration: none; background: var(--color-hover); }
-.credit-pill .icon { color: var(--color-text-muted); }
+.credit-pill:hover { text-decoration: none; transform: translateY(-1px); box-shadow: var(--shadow-glow); }
+/* The coin: the icon on a gradient disc. */
+.credit-pill .icon {
+  box-sizing: content-box;
+  padding: 5px;
+  border-radius: 50%;
+  background: var(--gradient-brand);
+  color: var(--color-on-gradient);
+  box-shadow: 0 3px 8px -2px var(--color-glow);
+}
+.credit-pill:hover .icon { animation: coin-flip 700ms var(--ease-out); }
 
 /* ── Sidebar ──────────────────────────────────────────────────────────── */
 
@@ -193,7 +213,9 @@
   flex-direction: column;
   gap: var(--space-5);
   padding: var(--space-4) var(--space-3);
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
   border-right: 1px solid var(--color-border);
 }
 
@@ -209,28 +231,40 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 36px;
-  padding: 0 10px;
-  border-radius: var(--radius-sm);
+  gap: 12px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 13px;
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-size: 0.9375rem;
+  font-weight: 600;
   white-space: nowrap;
   transition: color var(--transition-fast), background-color var(--transition-fast);
 }
-.app-nav a .icon { color: var(--color-text-subtle); transition: color var(--transition-fast); }
+.app-nav a .icon { color: var(--color-text-subtle); transition: color var(--transition-fast), transform 360ms var(--ease-spring); }
 .app-nav a:hover { color: var(--color-ink); background: var(--color-hover); text-decoration: none; }
-.app-nav a:hover .icon { color: var(--color-ink); }
+.app-nav a:hover .icon { color: var(--color-accent); transform: scale(1.15) rotate(-6deg); }
 
-/* Current page: a raised pill (canvas color + hairline + soft shadow). */
+/* Current page: a tinted pill with a gradient bar that slides in. */
 .app-nav a[aria-current="page"] {
   color: var(--color-ink);
-  background: var(--color-bg);
-  box-shadow: inset 0 0 0 1px var(--color-border), var(--shadow-xs);
+  background: var(--gradient-soft), var(--color-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--aurora-1) 22%, transparent), var(--shadow-xs);
 }
-:root[data-theme="dark"] .app-nav a[aria-current="page"] { background: var(--color-tile); }
-.app-nav a[aria-current="page"] .icon { color: var(--color-ink); }
+.app-nav a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 9px;
+  bottom: 9px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--gradient-brand);
+  box-shadow: 0 0 12px var(--color-glow);
+  animation: nav-bar-in 420ms var(--ease-spring) both;
+}
+@keyframes nav-bar-in { from { transform: scaleY(0); opacity: 0; } }
+.app-nav a[aria-current="page"] .icon { color: var(--color-accent); }
 
 .app-nav__rule {
   height: 1px;
@@ -246,33 +280,60 @@
   margin-top: auto;
 }
 
+/* The balance, as the one gradient object in the sidebar. */
 .credit-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
+  padding: 14px 18px 16px;
   border-radius: var(--radius-md);
-  background: var(--color-bg);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-xs), var(--highlight);
-  transition: border-color var(--transition-fast);
+  background: var(--gradient-brand);
+  background-size: 160% 160%;
+  color: var(--color-on-gradient);
+  box-shadow: 0 16px 32px -14px var(--color-glow), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  animation: gradient-pan 9s ease-in-out infinite alternate;
+  transition: transform 320ms var(--ease-spring);
 }
-.credit-card:hover { text-decoration: none; border-color: var(--color-border-strong); }
+.credit-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 150px;
+  height: 150px;
+  right: -56px;
+  top: -70px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+}
+.credit-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
+  transform: translateX(-120%);
+  animation: card-shine 5s ease-in-out 1.5s infinite;
+}
+@keyframes card-shine { 0%, 70% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+.credit-card:hover { text-decoration: none; transform: translateY(-2px) scale(1.015); }
 
 .credit-card__label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-text-muted);
+  color: rgba(255, 255, 255, 0.85);
   font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .credit-card__value {
-  font-size: 1.5rem;
+  font-size: 1.875rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
 
@@ -300,7 +361,7 @@
 .user-row__text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
 .user-row__name,
 .user-row__handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.user-row__name { font-size: var(--font-size-sm); font-weight: 600; }
+.user-row__name { font-size: var(--font-size-sm); font-weight: 700; }
 .user-row__handle { color: var(--color-text-subtle); font-size: var(--font-size-xs); }
 
 .user-row__actions { display: flex; flex-shrink: 0; }
@@ -316,6 +377,16 @@
   margin: 0 auto;
   padding: var(--space-8) var(--space-5) var(--space-10);
   min-height: calc(100vh - var(--header-height) - 72px);
+}
+
+/* Theme switch: the new theme opens as a circle from the switch
+   (View Transitions, where the browser has them - js/core/theme.js). */
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-new(root) { animation: theme-reveal 620ms var(--ease-out); }
+@keyframes theme-reveal {
+  from { clip-path: circle(0 at var(--reveal-x, 50%) var(--reveal-y, 0%)); }
+  to { clip-path: circle(150vmax at var(--reveal-x, 50%) var(--reveal-y, 0%)); }
 }
 
 .app-footer {
@@ -430,11 +501,18 @@
     border: 0;
     color: var(--color-text-subtle);
     font: inherit;
-    font-size: 0.6875rem;
-    font-weight: 500;
+    font-size: 0.71875rem;
+    font-weight: 600;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
+  .tabbar :is(a, button) .icon {
+    box-sizing: content-box;
+    padding: 4px 14px;
+    border-radius: 14px;
+    transition: transform 360ms var(--ease-spring), background-color var(--transition-fast), color var(--transition-fast);
+  }
+  .tabbar :is(a, button):active .icon { transform: scale(0.86); }
   .tabbar a:hover { text-decoration: none; }
   /* Labels never spill into the next tab, whatever the language. */
   .tabbar :is(a, button) > span:not(.nav-badge) {
@@ -445,8 +523,16 @@
   }
   :lang(ka) .tabbar :is(a, button) { font-size: 0.65rem; }
   .tabbar a[aria-current="page"],
-  .tabbar button[aria-expanded="true"] { color: var(--color-ink); }
-  .tabbar a[aria-current="page"] .icon { stroke-width: 2.1; }
+  .tabbar button[aria-expanded="true"] { color: var(--color-ink); font-weight: 700; }
+  /* The current tab's icon sits on a gradient pill that springs in. */
+  .tabbar a[aria-current="page"] .icon {
+    stroke-width: 2.2;
+    background: var(--gradient-brand);
+    color: var(--color-on-gradient);
+    box-shadow: 0 8px 16px -8px var(--color-glow);
+    animation: tab-pop 480ms var(--ease-spring) both;
+  }
+  @keyframes tab-pop { from { transform: scale(0.6) translateY(4px); opacity: 0.4; } }
 
   :root[data-auth="in"] .app-main {
     padding-bottom: calc(var(--tabbar-height) + var(--space-8) + env(safe-area-inset-bottom));

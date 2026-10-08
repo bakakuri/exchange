@@ -4,7 +4,7 @@
 /* ── Task rows ────────────────────────────────────────────────────────── */
 
 .task-card { transition: background-color var(--transition-fast); }
-.task-card:hover { background: var(--color-hover); }
+.task-card:hover { background: var(--gradient-soft), var(--color-bg); }
 
 .task-card__link {
   display: flex;
@@ -26,7 +26,8 @@
 .task-card__title {
   overflow: hidden;
   color: var(--color-ink);
-  font-weight: 600;
+  font-size: 1.03125rem;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -48,7 +49,7 @@
   gap: 4px;
   color: var(--color-text-subtle);
   font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-weight: 700;
   white-space: nowrap;
 }
 .trust-badge--good { color: var(--color-success); }
@@ -79,14 +80,18 @@
 }
 .task-detail__header h1 { margin-bottom: var(--space-4); }
 
+/* The reward: a gradient pill that lands with a small bounce. */
 .task-detail__reward {
   flex-shrink: 0;
-  padding: 4px 12px;
-  border: 1px solid var(--color-border);
+  padding: 7px 16px;
   border-radius: var(--radius-pill);
-  color: var(--color-success);
-  font-weight: 600;
+  background: var(--gradient-brand);
+  color: var(--color-on-gradient);
+  box-shadow: 0 12px 24px -10px var(--color-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  font-weight: 700;
+  animation: reward-land 700ms var(--ease-spring) 250ms both;
 }
+@keyframes reward-land { from { opacity: 0; transform: translateY(-10px) scale(0.6) rotate(-8deg); } }
 
 .task-detail__description {
   max-width: 62ch;
@@ -101,34 +106,54 @@
 
 .task-detail__note {
   margin-top: var(--space-5);
-  padding: var(--space-3) var(--space-4);
+  padding: 14px 18px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 
 .task-detail__loading { color: var(--color-text-muted); }
 
-/* Status after a submission */
-.task-detail__note--approved { border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border)); color: var(--color-text); }
-.task-detail__note--pending { border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border)); color: var(--color-text); }
+/* Status after a submission: tinted by outcome. */
+.task-detail__note--approved { border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border)); background: color-mix(in srgb, var(--color-success) 8%, var(--color-bg)); color: var(--color-text); }
+.task-detail__note--pending { border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border)); background: color-mix(in srgb, var(--color-warning) 8%, var(--color-bg)); color: var(--color-text); }
+.task-detail__note--rejected,
+.task-detail__note--expired,
+.task-detail__note--reversed { border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border)); background: color-mix(in srgb, var(--color-danger) 6%, var(--color-bg)); color: var(--color-text); }
 
 /* ── Send proof (js/tasks/proof-form.js) ──────────────────────────────── */
 
+/* The action card: a gradient rule along its top edge marks it as the
+   thing to do on the page. */
 .proof-card,
 .visit-card {
+  position: relative;
+  overflow: hidden;
   max-width: 560px;
   margin-top: var(--space-6);
-  padding: 22px;
+  padding: 26px 24px 24px;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm), var(--highlight);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg), var(--highlight);
+}
+.proof-card::before,
+.visit-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--gradient-brand);
+  background-size: 200% 100%;
+  animation: gradient-pan 4s linear infinite alternate;
 }
 .proof-card { gap: var(--space-4); }
 .proof-card__head h2,
-.visit-card__head h2 { margin: 0; font-size: 1.125rem; }
+.visit-card__head h2 { margin: 0; font-size: 1.3125rem; }
 .task-detail-page :is(.proof-card__head, .visit-card__head) h2 + p,
 .proof-card__head p,
 .visit-card__head p { max-width: none; margin: 4px 0 0; color: var(--color-text-muted); font-size: var(--font-size-sm); white-space: normal; }
@@ -160,7 +185,8 @@
   cursor: pointer;
   transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
-.field .shot-picker:hover { border-color: var(--color-ink); background: var(--color-hover); }
+.field .shot-picker:hover { border-color: var(--color-accent); background: var(--gradient-soft), var(--color-bg); }
+.field .shot-picker:hover .shot-picker__icon { transform: rotate(-8deg) scale(1.08); }
 .field :focus-visible + .shot-picker { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 .shot-picker[hidden] { display: none !important; }
 .shot-picker__icon {
@@ -168,15 +194,16 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: var(--color-bg);
-  color: var(--color-ink);
-  box-shadow: inset 0 0 0 1px var(--color-border), var(--shadow-xs);
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--gradient-brand);
+  color: var(--color-on-gradient);
+  box-shadow: 0 10px 20px -10px var(--color-glow);
+  transition: transform 420ms var(--ease-spring);
 }
 .shot-picker__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.shot-picker__text strong { color: var(--color-ink); font-weight: 600; }
+.shot-picker__text strong { color: var(--color-ink); font-weight: 700; }
 .shot-picker__text small { color: var(--color-text-muted); font-size: var(--font-size-xs); }
 .shot-picker__status:empty { display: none; }
 .shot-picker__status { margin: 0; color: var(--color-text-muted); font-size: var(--font-size-xs); }
@@ -233,17 +260,24 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.visit-step__body strong { display: block; font-weight: 600; }
+.visit-step__body strong { display: block; font-weight: 700; }
 .visit-step__body p { margin: 2px 0 0; font-size: var(--font-size-sm); }
 .visit-step.is-current { color: var(--color-text); }
-.visit-step.is-current .visit-step__num { background: var(--color-ink); color: var(--color-on-ink); box-shadow: none; }
+.visit-step.is-current .visit-step__num {
+  background: var(--gradient-brand);
+  color: var(--color-on-gradient);
+  box-shadow: 0 0 0 0 var(--color-glow);
+  animation: step-ring 1.8s ease-out infinite;
+}
+@keyframes step-ring { 0% { box-shadow: 0 0 0 0 var(--color-glow); } 70%, 100% { box-shadow: 0 0 0 9px transparent; } }
 .visit-step.is-current strong { color: var(--color-ink); }
-.visit-step.is-done .visit-step__num { background: var(--color-success); color: #fff; box-shadow: none; }
+.visit-step.is-done .visit-step__num { background: var(--color-success); color: #fff; box-shadow: none; animation: step-done 520ms var(--ease-spring); }
+@keyframes step-done { from { transform: scale(0.4) rotate(-90deg); } }
 
 .visit-card__progress[hidden] { display: none; }
 .visit-card__progress .progress__bar { transition: width 250ms linear; }
 .visit-card__timer:empty { display: none; }
-.visit-card__timer { margin: -6px 0 0; color: var(--color-text-muted); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
+.visit-card__timer { margin: -6px 0 0; color: var(--color-ink); font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .visit-card__actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .visit-card__actions .btn[hidden] { display: none; }
 @media (max-width: 480px) {
@@ -257,11 +291,12 @@
   align-items: center;
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
-  font-weight: 500;
+  font-weight: 700;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-.places-left--few { color: var(--color-warning); }
+.places-left--few { color: var(--color-warning); animation: few-blink 2.4s ease-in-out infinite; }
+@keyframes few-blink { 50% { opacity: 0.55; } }
 .task-detail__meta .places-left {
   margin-left: 10px;
   padding: 2px 9px;
@@ -304,5 +339,7 @@
   box-shadow: inset 0 0 0 1px var(--color-border), var(--shadow-xs);
 }
 .account-field__text { min-width: 0; }
-.account-field__text strong { color: var(--color-ink); font-weight: 600; }
+.account-field__text strong { color: var(--color-ink); font-weight: 700; }
 .account-field__text p { margin: 2px 0 0; color: var(--color-text-muted); font-size: var(--font-size-xs); }
+
+.visit-card__head .row-icon { background: var(--gradient-brand); color: var(--color-on-gradient); box-shadow: 0 10px 20px -10px var(--color-glow); }

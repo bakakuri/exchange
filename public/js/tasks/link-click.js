@@ -9,6 +9,7 @@ import { createEl } from '../shared/dom.js';
 import { errorMessage } from '../shared/errors.js';
 import { icon } from '../shared/icons.js';
 import { t, tn } from '../core/i18n.js';
+import { celebrate } from '../shared/motion.js';
 
 function step(n, title, text) {
   return createEl('li', { class: 'visit-step' }, [
@@ -86,6 +87,7 @@ export function renderLinkClick(task, openLabel, onDone) {
     try {
       const { completion } = await api.verification.completeLink(task.id);
       clearInterval(ticker);
+      celebrate(claimBtn);
       onDone(completion);
     } catch (err) {
       errorEl.textContent = errorMessage(err, 'Could not claim the reward. Try again.');

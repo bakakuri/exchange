@@ -10,6 +10,7 @@ import { emptyState } from '../shared/empty-state.js';
 import { shortDateTime, fullDateTime } from '../shared/time.js';
 import { t, tn, formatNumber } from '../core/i18n.js';
 import { serverText } from '../shared/server-text.js';
+import { countUp } from '../shared/motion.js';
 
 const TYPE_LABELS = {
   task_reward: () => t('Task reward'),
@@ -130,7 +131,7 @@ export async function init() {
 
   try {
     const { credits } = await api.credits.balance();
-    balanceEl.textContent = tn(credits, '{n} credit', '{n} credits');
+    countUp(balanceEl, credits, (n) => tn(n, '{n} credit', '{n} credits'));
   } catch {
     balanceEl.textContent = t('Could not load your balance.');
   }

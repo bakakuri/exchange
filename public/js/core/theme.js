@@ -39,8 +39,24 @@ export function currentTheme() {
 function apply(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   document.querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff');
+    ?.setAttribute('content', theme === 'dark' ? '#0d0920' : '#f5f3ff');
   labelToggles();
+}
+
+// The new theme opens as a circle growing from the switch that was
+// pressed (View Transitions; layout.css draws it). Elsewhere, or with
+// reduced motion, it simply switches.
+function switchTo(theme, toggle) {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!document.startViewTransition || reduced) {
+    apply(theme);
+    return;
+  }
+  const box = toggle.getBoundingClientRect();
+  const root = document.documentElement;
+  root.style.setProperty('--reveal-x', `${box.left + box.width / 2}px`);
+  root.style.setProperty('--reveal-y', `${box.top + box.height / 2}px`);
+  document.startViewTransition(() => apply(theme));
 }
 
 // Toggles carry data-i18n-skip in index.html: their label depends on the
@@ -55,10 +71,11 @@ export function initTheme() {
 
   // Every [data-theme-toggle] (top bar, sidebar user row) switches theme.
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('[data-theme-toggle]')) return;
+    const toggle = e.target.closest('[data-theme-toggle]');
+    if (!toggle) return;
     const next = currentTheme() === 'dark' ? 'light' : 'dark';
     remember(next);
-    apply(next);
+    switchTo(next, toggle);
   });
 
   eventBus.on('language:change', labelToggles);

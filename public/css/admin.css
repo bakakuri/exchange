@@ -2,7 +2,7 @@
    list containers, stat panel and role/status chips come from base.css. */
 
 /* The Admin link in the header reads like any other account link. */
-.app-nav__admin { font-weight: 500; }
+.app-nav__admin { font-weight: 600; }
 
 .admin-back {
   display: inline-flex;
@@ -46,9 +46,12 @@
 
 .admin-stat-tile__value {
   order: 2;
-  color: var(--color-ink);
-  font-size: 1.75rem;
-  font-weight: 600;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 2rem;
+  font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -98,7 +101,7 @@
   min-width: 0;
   overflow: hidden;
   color: var(--color-ink);
-  font-weight: 500;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

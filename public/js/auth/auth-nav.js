@@ -15,7 +15,8 @@ import { logout } from './auth.js';
 import { qs, qsa, createEl } from '../shared/dom.js';
 import { icon, avatar } from '../shared/icons.js';
 import { currentTheme } from '../core/theme.js';
-import { t } from '../core/i18n.js';
+import { t, formatNumber } from '../core/i18n.js';
+import { countUp } from '../shared/motion.js';
 
 function renderUserRow(el, user) {
   el.innerHTML = '';
@@ -53,7 +54,7 @@ function render() {
   const user = store.getState().user;
   document.documentElement.setAttribute('data-auth', user ? 'in' : 'out');
 
-  qsa('[data-credits]').forEach((el) => { el.textContent = user ? String(user.credits ?? 0) : '0'; });
+  qsa('[data-credits]').forEach((el) => countUp(el, user ? user.credits ?? 0 : 0, formatNumber));
   qsa('[data-admin-only]').forEach((el) => { el.hidden = user?.role !== 'admin'; });
 
   const slot = qs('#auth-nav');
