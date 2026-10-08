@@ -16,6 +16,8 @@ const VERIFICATION_METHODS = require('../constants/verification-methods');
 // mirrors a different constraint than those do.
 const URL_RE = /^https?:\/\//;
 
+const LINK_CLICK_TASK_TYPES = ['visit', 'view', 'listen'];
+
 const MAX_TITLE_LEN = 120;
 const MAX_DESCRIPTION_LEN = 2000;
 const MAX_INSTRUCTIONS_LEN = 1000;
@@ -45,6 +47,11 @@ function validateCreate(body) {
   }
   if (body.verification_method != null && !VERIFICATION_METHODS.includes(body.verification_method)) {
     errors.push(`verification_method must be one of: ${VERIFICATION_METHODS.join(', ')}`);
+  }
+  // A click proves a visit, never a follow or a like (link_click_task_types,
+  // 020_verification_upgrades.sql).
+  if (body.verification_method === 'link_click' && !LINK_CLICK_TASK_TYPES.includes(body.task_type)) {
+    errors.push('Link-click checking is only for Visit, View and Listen tasks');
   }
 
   const reward = Number(body.reward);

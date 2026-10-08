@@ -171,6 +171,7 @@ export default {
   'Pending': 'Ожидает',
   'Approved': 'Одобрено',
   'Rejected': 'Отклонено',
+  'Expired': 'Просрочено',
   'My submissions': 'Выполненные задания',
   'Tasks you have completed, and where each one stands.': 'Задания, которые вы выполнили, и их статус.',
   'Browse tasks': 'Задания',

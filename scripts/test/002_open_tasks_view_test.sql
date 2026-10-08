@@ -39,7 +39,7 @@ select set_config('app.current_user_id', '00000000-0000-0000-0000-000000000101',
 -- could be invoked once per row scanned) - always capture its result
 -- first, the same two-step pattern used for B/C/D below.
 select test_set('campaign_open', public.create_campaign(
-  'Open task', '', 'instagram', 'follow', 'https://instagram.com/open', '', 'link_click', 10, 2
+  'Open task', '', 'instagram', 'follow', 'https://instagram.com/open', '', 'manual_proof', 10, 2
 )::text);
 select test_set('task_open', id::text) from public.tasks where campaign_id = test_get('campaign_open')::uuid;
 
@@ -52,13 +52,13 @@ select test_set('task_full', id::text) from public.tasks where campaign_id = tes
 
 -- C: active - paused below, so it should close.
 select test_set('campaign_paused', public.create_campaign(
-  'Will pause', '', 'instagram', 'follow', 'https://instagram.com/paused', '', 'link_click', 10, 2
+  'Will pause', '', 'instagram', 'follow', 'https://instagram.com/paused', '', 'manual_proof', 10, 2
 )::text);
 select test_set('task_paused', id::text) from public.tasks where campaign_id = test_get('campaign_paused')::uuid;
 
 -- D: active - cancelled below, so it should close.
 select test_set('campaign_cancelled', public.create_campaign(
-  'Will cancel', '', 'instagram', 'follow', 'https://instagram.com/cancelled', '', 'link_click', 10, 2
+  'Will cancel', '', 'instagram', 'follow', 'https://instagram.com/cancelled', '', 'manual_proof', 10, 2
 )::text);
 select test_set('task_cancelled', id::text) from public.tasks where campaign_id = test_get('campaign_cancelled')::uuid;
 

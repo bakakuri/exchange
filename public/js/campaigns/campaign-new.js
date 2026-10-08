@@ -14,6 +14,8 @@ import { TASK_PLATFORMS } from '../shared/task-platforms.js';
 import { TASK_TYPES } from '../shared/task-types.js';
 import { t, tn } from '../core/i18n.js';
 
+const LINK_CLICK_TASK_TYPES = ['visit', 'view', 'listen'];
+
 export async function init() {
   const form = qs('#campaign-form');
   const errorEl = qs('#campaign-error');
@@ -39,6 +41,25 @@ export async function init() {
       ? t('Total budget: {amount}.', { amount: tn(reward * desiredCompletions, '{n} credit', '{n} credits') })
       : '';
   }
+
+  // A click can prove a visit, never a follow or a like - link-click
+  // checking is offered only for Visit / View / Listen tasks (the server
+  // and the database enforce the same rule).
+  const hint = qs('[data-verification-hint]');
+  const linkOption = form.verification_method.querySelector('option[value="link_click"]');
+  function updateVerification() {
+    const clickable = LINK_CLICK_TASK_TYPES.includes(form.task_type.value);
+    linkOption.disabled = !clickable;
+    if (!clickable && form.verification_method.value === 'link_click') form.verification_method.value = 'manual_proof';
+    hint.textContent = form.verification_method.value === 'link_click'
+      ? t('Members open the page through Exchange and get the reward after 15 seconds - no review needed.')
+      : clickable
+        ? t('You check each proof yourself. Unreviewed proof is approved automatically after 24 hours.')
+        : t('You check each proof yourself. Unreviewed proof is approved automatically after 24 hours. Link click is only for Visit, View and Listen tasks.');
+  }
+  form.task_type.addEventListener('change', updateVerification);
+  form.verification_method.addEventListener('change', updateVerification);
+  updateVerification();
 
   form.reward.addEventListener('input', updateTotal);
   form.desired_completions.addEventListener('input', updateTotal);

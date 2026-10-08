@@ -17,18 +17,7 @@ import { platformTile } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
 import { refreshNavBadges } from '../core/nav-badges.js';
 import { t, tn } from '../core/i18n.js';
-
-function renderProof(c) {
-  const parts = [];
-  if (c.proof_url) {
-    parts.push(createEl('a', { href: c.proof_url, target: '_blank', rel: 'noopener noreferrer' }, c.proof_url));
-  }
-  if (c.proof_text) {
-    parts.push(createEl('p', { class: 'submission-card__proof-text' }, c.proof_text));
-  }
-  if (parts.length === 0) return null;
-  return createEl('div', { class: 'submission-card__proof' }, parts);
-}
+import { renderProof, statusDetail } from './proof-view.js';
 
 function renderActions(c, card, onDecided) {
   const errorEl = createEl('p', { class: 'form-error', role: 'alert', hidden: '' }, '');
@@ -99,6 +88,8 @@ function renderList(listEl, completions, reload, { append = false } = {}) {
 
     const proof = renderProof(c);
     if (proof) children.push(proof);
+    const detail = statusDetail(c, { reviewer: true });
+    if (detail) children.push(detail);
 
     if (c.status === 'rejected' && c.review_notes) {
       children.push(createEl('p', { class: 'submission-card__notes' }, t('Your notes: {notes}', { notes: c.review_notes })));

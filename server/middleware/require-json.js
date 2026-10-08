@@ -13,6 +13,12 @@ const { AppError, ErrorCodes } = require('../utils/errors');
 
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH']);
 
+// The one binary upload: a proof screenshot. Its route parses the body
+// with express.raw(), which enforces these same types and a size limit.
+const BINARY_UPLOADS = new Map([
+  ['/api/verification/proof-image', new Set(['image/jpeg', 'image/png', 'image/webp'])],
+]);
+
 // A request "has a body" when it carries one of these indicators.
 function hasBody(req) {
   const len = req.headers['content-length'];
@@ -25,6 +31,7 @@ function requireJson(req, res, next) {
   if (!hasBody(req)) return next();
 
   const ct = (req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  if (BINARY_UPLOADS.get(req.path)?.has(ct)) return next();
   if (ct !== 'application/json') {
     return next(
       new AppError(
@@ -38,4 +45,4 @@ function requireJson(req, res, next) {
   next();
 }
 
-module.exports = { requireJson };
+module.exports = { requireJson, BINARY_UPLOADS };

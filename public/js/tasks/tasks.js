@@ -10,6 +10,7 @@ import { taskActionLabel } from '../shared/task-label.js';
 import { icon, platformTile } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
 import { t, tn, formatNumber } from '../core/i18n.js';
+import { trustBadge, instantBadge } from '../shared/creator-trust.js';
 
 function renderTasks(listEl, tasks, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
@@ -32,7 +33,10 @@ function renderTasks(listEl, tasks, { append = false } = {}) {
           platformTile(task.platform),
           createEl('span', { class: 'task-card__body' }, [
             createEl('strong', { class: 'task-card__title' }, task.campaign_title),
-            createEl('span', { class: 'task-card__meta' }, taskActionLabel(task.task_type, task.platform)),
+            createEl('span', { class: 'task-card__meta' }, [
+              createEl('span', {}, taskActionLabel(task.task_type, task.platform)),
+              task.verification_method === 'link_click' ? instantBadge() : trustBadge(task.creator_stats),
+            ]),
           ]),
           createEl('span', { class: 'reward-chip', title: tn(task.reward, '{n} credit', '{n} credits') }, `+${formatNumber(task.reward)}`),
           icon('i-chevron-right', { size: 16, className: 'row-chevron' }),

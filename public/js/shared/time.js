@@ -1,5 +1,5 @@
 // js/shared/time.js - dates for lists, in the active language.
-//   timeAgo()        "2 hours ago" / "yesterday"
+//   timeAgo()        "2 hours ago" / "yesterday" / "in 5 hours"
 //   shortDateTime()  "Sep 30, 12:00 PM"
 //   shortDate()      "Sep 30, 2026"
 //   longDay()        "Wednesday, October 7"
@@ -26,6 +26,7 @@ const KA_MONTHS_SHORT = ['იან.', 'თებ.', 'მარ.', 'აპრ.',
 const KA_WEEKDAYS = ['კვირა', 'ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 'ხუთშაბათი', 'პარასკევი', 'შაბათი'];
 const KA_UNITS = { minute: 'წუთის', hour: 'საათის', day: 'დღის', week: 'კვირის', month: 'თვის', year: 'წლის' };
 const KA_LAST = { day: 'გუშინ', week: 'გასულ კვირას', month: 'გასულ თვეს', year: 'გასულ წელს' };
+const KA_IN = { minute: 'წუთში', hour: 'საათში', day: 'დღეში', week: 'კვირაში', month: 'თვეში', year: 'წელიწადში' };
 
 const pad = (n) => String(n).padStart(2, '0');
 const kaTime = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -33,6 +34,11 @@ const kaTime = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 function kaAgo(unit, count) {
   if (count === 1 && KA_LAST[unit]) return KA_LAST[unit];
   return `${count} ${KA_UNITS[unit]} წინ`;
+}
+
+function kaIn(unit, count) {
+  if (count === 1 && unit === 'day') return 'ხვალ';
+  return `${count} ${KA_IN[unit]}`;
 }
 
 // ── public ───────────────────────────────────────────────────────────────
@@ -48,7 +54,7 @@ export function timeAgo(iso) {
   for (const [unit, size] of UNITS) {
     if (Math.abs(seconds) < size) continue;
     const count = Math.round(seconds / size);
-    if (useGeorgianFallback()) return count < 0 ? kaAgo(unit, -count) : shortDateTime(iso);
+    if (useGeorgianFallback()) return count < 0 ? kaAgo(unit, -count) : kaIn(unit, count);
     return relativeFormat(currentLocale()).format(count, unit);
   }
   return t('just now');

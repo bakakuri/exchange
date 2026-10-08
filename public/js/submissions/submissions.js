@@ -14,6 +14,7 @@ import { taskActionLabel } from '../shared/task-label.js';
 import { platformTile } from '../shared/icons.js';
 import { emptyState } from '../shared/empty-state.js';
 import { t, tn } from '../core/i18n.js';
+import { renderProof, statusDetail } from './proof-view.js';
 
 function renderSubmissions(listEl, completions, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
@@ -37,6 +38,11 @@ function renderSubmissions(listEl, completions, { append = false } = {}) {
       ]),
       createEl('p', { class: 'submission-card__meta' }, `${taskActionLabel(c.task_type, c.platform)}, ${tn(c.reward_amount, '{n} credit', '{n} credits')}`),
     ];
+
+    const proof = renderProof(c);
+    if (proof) children.push(proof);
+    const detail = statusDetail(c);
+    if (detail) children.push(detail);
 
     if (c.status === 'rejected' && c.review_notes) {
       children.push(createEl('p', { class: 'submission-card__notes' }, t('Reviewer notes: {notes}', { notes: c.review_notes })));

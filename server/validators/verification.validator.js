@@ -6,6 +6,9 @@
 // early, with a friendlier error than a raw Postgres exception.
 
 const HTTPS_URL_RE = /^https:\/\//;
+// "<user uuid>/<uuid>.<ext>" - what POST /api/verification/proof-image
+// returns; the database re-checks the folder belongs to the caller.
+const PROOF_IMAGE_PATH_RE = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp)$/;
 const MAX_PROOF_TEXT_LEN = 2000;
 const MAX_REVIEW_NOTES_LEN = 1000;
 const DECISIONS = ['approved', 'rejected'];
@@ -15,9 +18,13 @@ function validateSubmit(body) {
 
   const hasUrl = body.proof_url != null && String(body.proof_url).length > 0;
   const hasText = body.proof_text != null && String(body.proof_text).length > 0;
+  const hasImage = body.proof_image_path != null && String(body.proof_image_path).length > 0;
 
-  if (!hasUrl && !hasText) {
-    errors.push('proof_url or proof_text is required');
+  if (!hasUrl && !hasText && !hasImage) {
+    errors.push('Add a link, a note or a screenshot as proof');
+  }
+  if (hasImage && !PROOF_IMAGE_PATH_RE.test(String(body.proof_image_path))) {
+    errors.push('Invalid screenshot');
   }
   if (hasUrl && !HTTPS_URL_RE.test(body.proof_url)) {
     errors.push('proof_url must be a valid https:// URL');
@@ -45,4 +52,4 @@ function validateReview(body) {
   return errors;
 }
 
-module.exports = { validateSubmit, validateReview };
+module.exports = { validateSubmit, validateReview, PROOF_IMAGE_PATH_RE };

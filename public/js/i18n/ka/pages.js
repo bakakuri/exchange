@@ -171,6 +171,7 @@ export default {
   'Pending': 'მოლოდინში',
   'Approved': 'დადასტურებული',
   'Rejected': 'უარყოფილი',
+  'Expired': 'ვადაგასული',
   'My submissions': 'ჩემი შესრულებები',
   'Tasks you have completed, and where each one stands.': 'თქვენ მიერ შესრულებული დავალებები და მათი სტატუსი.',
   'Browse tasks': 'დავალებები',

@@ -29,10 +29,11 @@
     </div>
     <div class="field">
       <label for="campaign-verification-method">Verification method</label>
-      <select id="campaign-verification-method" name="verification_method">
+      <select id="campaign-verification-method" name="verification_method" aria-describedby="campaign-verification-hint">
         <option value="manual_proof">Manual proof review</option>
         <option value="link_click">Link click</option>
       </select>
+      <p class="form-hint" id="campaign-verification-hint" data-verification-hint></p>
     </div>
     <div class="field">
       <label for="campaign-reward">Reward per completion (credits)</label>

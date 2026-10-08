@@ -17,6 +17,20 @@ const OPEN_TASK_FIELDS =
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
 
+// How many proofs each creator approved / rejected by hand
+// (creator_review_stats(), 020_verification_upgrades.sql), shown next to
+// their tasks so members can judge who actually pays. Non-critical: on
+// any error the tasks still load, just without the numbers.
+async function creatorStats(client, creatorIds) {
+  const ids = [...new Set(creatorIds.filter(Boolean))];
+  if (ids.length === 0) return new Map();
+  const { data, error } = await client.rpc('creator_review_stats', { p_creator_ids: ids });
+  if (error || !Array.isArray(data)) return new Map();
+  return new Map(data.map((r) => [r.creator_id, { approved: Number(r.approved) || 0, rejected: Number(r.rejected) || 0 }]));
+}
+
+const statsFor = (stats, creatorId) => stats.get(creatorId) || { approved: 0, rejected: 0 };
+
 // public.open_tasks (017_open_tasks_view.sql) already excludes tasks
 // whose campaign is paused/completed/cancelled or out of budget/slots -
 // the one thing left to filter here is the viewer's own tasks. That's a
@@ -47,7 +61,9 @@ async function listOpen(accessToken, viewerId, { limit, before, platform, taskTy
   if (error) throw new AppError(ErrorCodes.VALIDATION_ERROR, error.message, 400);
 
   const nextCursor = data.length === pageSize ? data[data.length - 1].created_at : null;
-  return { tasks: data, next_cursor: nextCursor };
+  const stats = await creatorStats(client, data.map((t) => t.creator_id));
+  const tasks = data.map((t) => ({ ...t, creator_stats: statsFor(stats, t.creator_id) }));
+  return { tasks, next_cursor: nextCursor };
 }
 
 // Unlike listOpen, this returns a task regardless of whether its
@@ -70,12 +86,13 @@ async function getById(accessToken, userId, taskId) {
 
   const { data: myCompletion } = await client
     .from('task_completions')
-    .select('id, status, reward_amount, created_at, reviewed_at')
+    .select('id, status, reward_amount, created_at, reviewed_at, auto_approved')
     .eq('task_id', taskId)
     .eq('user_id', userId)
     .maybeSingle();
 
-  return { ...task, my_completion: myCompletion || null };
+  const stats = await creatorStats(client, [task.campaign?.creator_id]);
+  return { ...task, my_completion: myCompletion || null, creator_stats: statsFor(stats, task.campaign?.creator_id) };
 }
 
 module.exports = { listOpen, getById };

@@ -97,6 +97,9 @@ export const api = {
     review: (id, body) => request('POST', `/verification/${encodeURIComponent(id)}/review`, { body }),
     mine: ({ before, status } = {}) => request('GET', `/verification/mine${verificationQuery({ before, status })}`),
     toReview: ({ before, status } = {}) => request('GET', `/verification/to-review${verificationQuery({ before, status })}`),
+    uploadProofImage: (file) => request('POST', '/verification/proof-image', { file }),
+    openLink: (taskId) => request('POST', `/verification/tasks/${encodeURIComponent(taskId)}/open`, { keepalive: true }),
+    completeLink: (taskId) => request('POST', `/verification/tasks/${encodeURIComponent(taskId)}/complete`),
   },
 
   referrals: {

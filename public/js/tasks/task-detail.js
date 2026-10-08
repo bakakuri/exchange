@@ -1,12 +1,11 @@
 // js/tasks/task-detail.js - behavior for the /tasks/:id route: detail
-// view of a single task, including submitting proof of completion
-// (Stage 8) when the task is open, isn't the viewer's own, and hasn't
-// been submitted for already. The submission itself goes through
-// submit_task_verification() (015_functions.sql via /api/verification) -
-// this file just renders the form and re-renders the task's own status
-// once a submission exists. Full submission detail (proof, reviewer
-// notes on a rejection) lives on the /submissions page, not here - this
-// page is about the task, not the history of attempts at it.
+// view of a single task, the creator's track record, and - when the task
+// is open, isn't the viewer's own, and hasn't been done yet - the way to
+// complete it: proof for tasks a person checks (proof-form.js) or the
+// three link-click steps for Visit / View / Listen tasks checked
+// automatically (link-click.js). Everything is re-checked by the
+// database; this file only renders and re-renders the task's status.
+// Full submission detail lives on /submissions.
 
 import { api } from '../shared/api.js';
 import { store } from '../core/state.js';
@@ -16,13 +15,30 @@ import { taskPlatformLabel } from '../shared/task-platforms.js';
 
 import { taskActionLabel } from '../shared/task-label.js';
 import { t, tn } from '../core/i18n.js';
+import { timeAgo } from '../shared/time.js';
+import { trustLine } from '../shared/creator-trust.js';
+import { renderProofForm } from './proof-form.js';
+import { renderLinkClick } from './link-click.js';
 
-const STATUS_LABELS = {
-  pending: () => t('Your submission is pending review.'),
-  approved: () => t('Your submission was approved — credits already landed in your balance.'),
-  rejected: () => t('Your submission was rejected. See your submissions for the reviewer’s notes.'),
-  expired: () => t('Your submission expired.'),
-};
+const AUTO_APPROVE_MS = 24 * 60 * 60 * 1000;
+
+function statusNote(completion) {
+  switch (completion.status) {
+    case 'pending': {
+      const due = completion.created_at && new Date(new Date(completion.created_at).getTime() + AUTO_APPROVE_MS).toISOString();
+      return due
+        ? t('Your submission is pending review. If nobody reviews it, it’s approved automatically {when}.', { when: timeAgo(due) })
+        : t('Your submission is pending review.');
+    }
+    case 'approved':
+      return completion.auto_approved
+        ? t('Approved automatically — credits already landed in your balance.')
+        : t('Your submission was approved — credits already landed in your balance.');
+    case 'rejected': return t('Your submission was rejected. See your submissions for the reviewer’s notes.');
+    case 'expired': return t('Your submission expired.');
+    default: return completion.status;
+  }
+}
 
 export async function init(params) {
   const container = qs('[data-task-detail-content]');
@@ -61,6 +77,7 @@ function render(container, task) {
     ]),
     createEl('p', { class: 'task-detail__meta' }, taskActionLabel(task.task_type, task.platform))
   );
+  if (task.verification_method !== 'link_click') container.append(trustLine(task.creator_stats));
 
   if (campaign.description) {
     container.append(createEl('p', { class: 'task-detail__description' }, campaign.description));
@@ -70,58 +87,31 @@ function render(container, task) {
     container.append(createEl('h2', {}, t('Instructions')), createEl('p', {}, task.instructions));
   }
 
-  container.append(
-    createEl('a', { href: task.target_url, target: '_blank', rel: 'noopener noreferrer', class: 'btn btn--primary task-detail__open' }, task.platform && task.platform !== 'other' ? t('Open on {platform}', { platform: taskPlatformLabel(task.platform) }) : t('Open link'))
-  );
+  const openLabel = task.platform && task.platform !== 'other'
+    ? t('Open on {platform}', { platform: taskPlatformLabel(task.platform) })
+    : t('Open link');
+  const canDo = !isOwn && !task.my_completion && isOpen;
+  const done = (completion) => {
+    task.my_completion = completion;
+    render(container, task);
+  };
+
+  // A link-click task's link is opened from its own card, so the click counts.
+  if (!(canDo && task.verification_method === 'link_click')) {
+    container.append(
+      createEl('a', { href: task.target_url, target: '_blank', rel: 'noopener noreferrer', class: 'btn btn--primary task-detail__open' }, openLabel)
+    );
+  }
 
   if (isOwn) {
     container.append(createEl('p', { class: 'task-detail__note' }, t('This is your own task — you can’t complete it yourself.')));
   } else if (task.my_completion) {
-    container.append(
-      createEl('p', { class: 'task-detail__note' }, STATUS_LABELS[task.my_completion.status]?.() || task.my_completion.status)
-    );
+    container.append(createEl('p', { class: `task-detail__note task-detail__note--${task.my_completion.status}` }, statusNote(task.my_completion)));
   } else if (!isOpen) {
     container.append(createEl('p', { class: 'task-detail__note' }, t('This task is no longer open.')));
+  } else if (task.verification_method === 'link_click') {
+    container.append(renderLinkClick(task, openLabel, done));
   } else {
-    container.append(renderSubmitForm(task, container));
+    container.append(renderProofForm(task, done));
   }
-}
-
-function renderSubmitForm(task, container) {
-  const urlField = createEl('input', { type: 'url', id: 'proof-url', name: 'proof_url', placeholder: 'https://…' });
-  const textField = createEl('textarea', { id: 'proof-text', name: 'proof_text', rows: '3' });
-  const errorEl = createEl('p', { class: 'form-error', role: 'alert', hidden: '' }, '');
-  const submitBtn = createEl('button', { type: 'submit', class: 'btn btn--primary' }, t('Submit proof'));
-
-  const form = createEl('form', { class: 'form task-detail__submit-form', id: 'submit-proof-form' }, [
-    createEl('div', { class: 'field' }, [createEl('label', { for: 'proof-url' }, t('Proof URL (optional)')), urlField]),
-    createEl('div', { class: 'field' }, [
-      createEl('label', { for: 'proof-text' }, t('Proof notes (optional)')),
-      textField,
-    ]),
-    createEl('p', { class: 'task-detail__submit-hint' }, t('Provide a proof URL, some notes, or both.')),
-    errorEl,
-    submitBtn,
-  ]);
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    errorEl.hidden = true;
-    submitBtn.disabled = true;
-
-    try {
-      const { completion } = await api.verification.submit(task.id, {
-        proof_url: urlField.value.trim() || undefined,
-        proof_text: textField.value.trim() || undefined,
-      });
-      task.my_completion = { status: completion.status };
-      render(container, task);
-    } catch (err) {
-      errorEl.textContent = errorMessage(err, 'Could not submit proof.');
-      errorEl.hidden = false;
-      submitBtn.disabled = false;
-    }
-  });
-
-  return form;
 }

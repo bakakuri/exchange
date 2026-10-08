@@ -51,7 +51,8 @@ exchange/
                               one auth.*.js and profile.*.js per layer so far
     utils/                     errors.js (canonical error codes), logger.js, async-handler.js
   supabase/
-    migrations/               001-017: full schema, RLS, business-logic functions, browse view
+    migrations/               001-020: full schema, RLS, business-logic functions, views,
+                              verification upgrades (020)
   scripts/
     i18n-check.js             translation coverage check (see "Languages")
     test/                     Local Postgres validation harness (see below)
@@ -1288,6 +1289,33 @@ for links, focus rings and the current page. All values live in
 
 ---
 
+## Verifying completed tasks (020)
+
+`supabase/migrations/020_verification_upgrades.sql` - **run it in the
+Supabase SQL editor before deploying this version** (it is safe to run
+again). It changes how a completed task is checked:
+
+| | How it works |
+|---|---|
+| **Screenshot proof** | The task page takes a screenshot (gallery or camera) next to the link / note. The browser shrinks it to ≤ 1600 px WebP and strips EXIF (`shared/image-upload.js`); `POST /api/verification/proof-image` checks the bytes (JPEG/PNG/WebP, ≤ 2 MB) and stores it in the private **`proofs`** Storage bucket under `<user id>/<random>`. Lists show it through 1-hour signed URLs. The database only accepts a screenshot from the submitter's own folder. |
+| **24-hour auto-approval** | A submission nobody reviews within 24 hours is approved automatically (reward paid as if the creator approved) - or marked **expired** with a notification if the campaign can no longer pay. `auto_approve_overdue_completions()` runs every 15 min via **pg_cron** when the extension is enabled, and the API also runs it (at most once a minute) before listing submissions. Pages show the countdown. |
+| **Creator track record** | `creator_review_stats()` counts each creator's own approvals / rejections (system approvals excluded). Task cards show "92% approved" (green / amber / red) once a creator has 3+ reviews, "New creator" before that; the task page shows the full line. |
+| **Link-click tasks** | Only for **Visit / View / Listen** (a click can't prove a follow - enforced by the form, the API and a table constraint). The member opens the page through Exchange (`POST /api/verification/tasks/:id/open` records the first click), keeps it open 15 s (countdown in the page, enforced by the database), then claims: `POST …/complete` pays at once - no review. |
+
+**Supabase setup:** the migration creates the `proofs` bucket and, where
+the project allows it, turns on **pg_cron** and schedules the 15-minute
+job. If the SQL editor prints "Could not schedule auto-approval…", enable
+pg_cron under Database → Extensions and run the migration again. Without
+it, auto-approval still happens whenever someone opens their submissions
+or review list.
+
+Local validation: `scripts/test/011_verification_upgrades_test.sql`
+(18 checks - screenshot ownership, link-click wait and one-reward rule,
+auto-approval and expiry, track record, grants) runs after 001-006 in the
+same session.
+
+---
+
 ## Languages (ქართული · Русский · English)
 
 The whole site - static pages, everything the scripts render, server and
@@ -1456,3 +1484,4 @@ error handler has a chance to log it.
 - [x] Post-deploy fixes (blank page on Vercel, auth email flows, admin queries, mobile nav — see "Post-deploy fixes")
 - [x] Design system: Mono Minimal light/dark themes, FiraGO (Latin + Cyrillic + Georgian), new home page — see "Design system (Mono Minimal)"
 - [x] Languages: Georgian, Russian, English — automatic by country, switchable, saved to the account — see "Languages"
+- [x] Verification: screenshot proof, 24-hour auto-approval, creator track record, real link-click tasks — see "Verifying completed tasks (020)"

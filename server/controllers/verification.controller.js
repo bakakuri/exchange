@@ -24,4 +24,21 @@ const review = asyncHandler(async (req, res) => {
   res.json({ completion });
 });
 
-module.exports = { listMine, listToReview, submit, review };
+// Body is the raw image (express.raw in verification.routes.js).
+const uploadProofImage = asyncHandler(async (req, res) => {
+  const contentType = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  const result = await verificationService.uploadProofImage(req.user.id, req.body, contentType);
+  res.status(201).json(result);
+});
+
+const openLink = asyncHandler(async (req, res) => {
+  const result = await verificationService.openLink(req.accessToken, req.params.taskId);
+  res.json(result);
+});
+
+const completeLink = asyncHandler(async (req, res) => {
+  const completion = await verificationService.completeLink(req.accessToken, req.params.taskId);
+  res.status(201).json({ completion });
+});
+
+module.exports = { listMine, listToReview, submit, review, uploadProofImage, openLink, completeLink };

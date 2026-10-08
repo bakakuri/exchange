@@ -44,6 +44,33 @@
 .submission-card__proof p + p { margin-top: var(--space-1); }
 .submission-card__proof-text { white-space: pre-wrap; color: var(--color-text); }
 
+/* Screenshot thumbnail; opens full size in a new tab (signed URL). */
+.proof-shot {
+  display: block;
+  width: fit-content;
+  max-width: min(100%, 280px);
+  margin-bottom: var(--space-2);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-tile);
+}
+.proof-shot img { display: block; max-width: 100%; max-height: 220px; object-fit: contain; }
+.proof-shot:hover { border-color: var(--color-border-strong); }
+
+/* Where a submission stands: auto-approval countdown, approved
+   automatically, expired. */
+.submission-card__detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.submission-card__detail .icon { flex-shrink: 0; }
+.submission-card__detail--due .icon { color: var(--color-warning); }
+
 .submission-card__notes {
   margin: var(--space-3) 0 0;
   color: var(--color-text-muted);

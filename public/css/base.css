@@ -77,11 +77,15 @@ button, input, select, textarea {
 /* The `hidden` attribute must win over component display rules. */
 [hidden] { display: none !important; }
 
+/* !important: form-field rules (.field input) must not size it back up. */
 .visually-hidden {
   position: absolute !important;
-  width: 1px;
-  height: 1px;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
   overflow: hidden;
+  border: 0 !important;
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
