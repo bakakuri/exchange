@@ -2,6 +2,8 @@
 const { asyncHandler } = require('../utils/async-handler');
 const profileService = require('../services/profile.service');
 const socialService = require('../services/social.service');
+const mediaService = require('../services/media.service');
+const { contentTypeOf } = require('../utils/images');
 
 // middleware/auth.js's requireAuth already re-reads the full profile
 // from the database on every request and attaches it as req.user, so
@@ -32,4 +34,15 @@ const getSocialByUsername = asyncHandler(async (req, res) => {
   res.json({ social_profiles });
 });
 
-module.exports = { getMe, updateMe, getByUsername, getSocialByUsername };
+// Profile photos (022): the raw image body in, the updated profile out.
+const uploadPhoto = (kind) => asyncHandler(async (req, res) => {
+  const profile = await mediaService.uploadPhoto(req.user.id, kind, req.body, contentTypeOf(req));
+  res.status(201).json({ profile });
+});
+
+const removePhoto = (kind) => asyncHandler(async (req, res) => {
+  const profile = await mediaService.removePhoto(req.user.id, kind);
+  res.json({ profile });
+});
+
+module.exports = { getMe, updateMe, getByUsername, getSocialByUsername, uploadPhoto, removePhoto };

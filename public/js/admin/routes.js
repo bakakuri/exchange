@@ -24,3 +24,28 @@ registerRoute('/admin/reports', {
   protected: true,
   adminOnly: true,
 });
+
+// 022: every campaign, every proof, messages to members.
+registerRoute('/admin/campaigns', {
+  fragment: '/pages/admin-campaigns.html',
+  module: '/js/admin/admin-campaigns.js',
+  title: 'Admin: Campaigns · Exchange',
+  protected: true,
+  adminOnly: true,
+});
+
+registerRoute('/admin/submissions', {
+  fragment: '/pages/admin-submissions.html',
+  module: '/js/admin/admin-submissions.js',
+  title: 'Admin: Submissions · Exchange',
+  protected: true,
+  adminOnly: true,
+});
+
+registerRoute('/admin/messages', {
+  fragment: '/pages/admin-messages.html',
+  module: '/js/admin/admin-messages.js',
+  title: 'Admin: Messages · Exchange',
+  protected: true,
+  adminOnly: true,
+});

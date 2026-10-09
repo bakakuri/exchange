@@ -1,4 +1,5 @@
 <section class="admin-user-page">
+  <nav class="admin-tabs" data-admin-tabs aria-label="Admin sections"></nav>
   <a class="admin-back" href="/admin" data-link>← Back to admin</a>
 
   <p class="admin-user-detail__loading" data-admin-user-loading>Loading…</p>
@@ -6,6 +7,38 @@
   <p class="form-error" id="admin-user-error" role="alert" hidden></p>
 
   <div data-admin-user-forms hidden>
+
+    <!-- ── Profile clean-up (022) ────────────────────────────────────── -->
+    <div class="admin-form-section">
+      <h2 class="admin-form-section__heading">Profile</h2>
+      <p class="admin-form-section__hint">Change or clean up what this member shows. They get a notification with your reason.</p>
+      <form class="admin-form" id="admin-profile-form" novalidate>
+        <div class="admin-form__row">
+          <label class="form-label" for="admin-profile-username">Username</label>
+          <input class="form-input" type="text" id="admin-profile-username" name="username" maxlength="30" autocapitalize="none" spellcheck="false" />
+        </div>
+        <div class="admin-form__row">
+          <label class="form-label" for="admin-profile-display-name">Display name</label>
+          <input class="form-input" type="text" id="admin-profile-display-name" name="display_name" maxlength="60" />
+        </div>
+        <div class="admin-form__row">
+          <label class="form-label" for="admin-profile-bio">Bio</label>
+          <textarea class="form-input" id="admin-profile-bio" name="bio" maxlength="500" rows="3"></textarea>
+        </div>
+        <div class="admin-form__row">
+          <label class="form-label" for="admin-profile-category">Field of work</label>
+          <select class="form-input" id="admin-profile-category" name="category"></select>
+        </div>
+        <div class="admin-photos" data-admin-photos></div>
+        <div class="admin-form__row">
+          <label class="form-label" for="admin-profile-reason">Reason</label>
+          <input class="form-input" type="text" id="admin-profile-reason" name="reason" maxlength="500" placeholder="The member sees this" required />
+        </div>
+        <button class="btn btn--sm" type="submit">Save profile</button>
+        <p class="form-error" id="admin-profile-error" role="alert" hidden></p>
+        <p class="form-success" id="admin-profile-success" role="status" hidden>Profile updated - the member was notified.</p>
+      </form>
+    </div>
 
     <!-- ── Update role / status ──────────────────────────────────────── -->
     <div class="admin-form-section">
@@ -55,6 +88,12 @@
         <p class="form-error" id="admin-credit-error" role="alert" hidden></p>
         <p class="form-success" id="admin-credit-success" role="status" hidden>Credits adjusted.</p>
       </form>
+    </div>
+
+    <!-- ── History (022) ─────────────────────────────────────────────── -->
+    <div class="admin-form-section">
+      <h2 class="admin-form-section__heading">History</h2>
+      <div data-admin-history></div>
     </div>
 
   </div>

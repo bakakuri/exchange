@@ -13,6 +13,7 @@ import { qs, createEl } from '../shared/dom.js';
 import { ApiError, errorMessage } from '../shared/errors.js';
 
 import { campaignStatusLabel } from './status.js';
+import { icon } from '../shared/icons.js';
 import { taskActionLabel } from '../shared/task-label.js';
 import { t, tn, formatNumber } from '../core/i18n.js';
 import { shortDate } from '../shared/time.js';
@@ -138,6 +139,13 @@ function renderActions(campaign, container) {
     const pauseBtn = createEl('button', { type: 'button', class: 'btn btn--ghost' }, t('Pause'));
     pauseBtn.addEventListener('click', () => runAction(() => api.campaigns.pause(campaign.id)));
     actionsEl.prepend(pauseBtn);
+  } else if (campaign.status === 'paused' && campaign.paused_by_admin) {
+    // A moderator's pause holds until an admin resumes it (022); the
+    // reason arrived as a notification.
+    actionsEl.prepend(createEl('p', { class: 'campaign-detail__held' }, [
+      icon('i-shield', { size: 16 }),
+      t('A moderator paused this campaign. Only an admin can resume it - the reason is in your notifications.'),
+    ]));
   } else if (campaign.status === 'paused') {
     const resumeBtn = createEl('button', { type: 'button', class: 'btn btn--primary' }, t('Resume'));
     resumeBtn.addEventListener('click', () => runAction(() => api.campaigns.resume(campaign.id)));

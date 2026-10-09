@@ -6,6 +6,7 @@ import { initAuth } from '../auth/auth.js';
 import { initAuthNav } from '../auth/auth-nav.js';
 import { initNavMenu } from './nav-menu.js';
 import { initNavBadges } from './nav-badges.js';
+import { initPresence } from './presence.js';
 import { initTheme } from './theme.js';
 import { initLanguage } from './language.js';
 import { initLanguageMenu } from './language-menu.js';
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await Promise.all([authReady, languageReady]);
   setRouteGuard(authGuard);
   initNavBadges();
+  initPresence();
   initRouter();
   eventBus.on('language:change', () => refreshRoute());
 });

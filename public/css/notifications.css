@@ -54,6 +54,8 @@
   margin: 2px 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+  white-space: pre-line; /* admin messages keep their line breaks */
+  overflow-wrap: anywhere;
 }
 
 .notification-item__read-btn {

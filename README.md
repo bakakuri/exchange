@@ -51,8 +51,9 @@ exchange/
                               one auth.*.js and profile.*.js per layer so far
     utils/                     errors.js (canonical error codes), logger.js, async-handler.js
   supabase/
-    migrations/               001-021: full schema, RLS, business-logic functions, views,
-                              verification upgrades (020), trust & economy rules (021)
+    migrations/               001-022: full schema, RLS, business-logic functions, views,
+                              verification upgrades (020), trust & economy rules (021),
+                              profiles, members & admin tools (022)
   scripts/
     i18n-check.js             translation coverage check (see "Languages")
     test/                     Local Postgres validation harness (see below)
@@ -1368,6 +1369,35 @@ applied as a single transaction.
 
 ---
 
+## Profiles, members and admin tools (022)
+
+`supabase/migrations/022_profiles_members_admin.sql` - **run it in the
+Supabase SQL editor before deploying this version** (after 021; one
+transaction, safe to run again; without 021 it stops with a message).
+It creates the public **`media`** Storage bucket for profile photos.
+(If the code goes live first, signing in keeps working, but the new
+pages fail until 022 is run.)
+
+| | |
+|---|---|
+| **Photos are uploaded** | Profile photo and cover come from the device: the member positions the picture in a crop dialog (drag, pinch, wheel, slider or keys; `shared/image-crop.js`), the browser draws it at 512 × 512 / 1500 × 500 as WebP (EXIF dropped) and sends the bytes to `POST /api/profile/me/avatar` / `/cover` (`DELETE` removes). The API checks the bytes (JPEG/PNG/WebP, ≤ 2 MB), stores `<user id>/<kind>-<random>.<ext>` in `media` and deletes the file it replaces - only ever files in that member's own folder. Members can no longer write `avatar_url` directly; old links to other sites were cleared (they were never shown). |
+| **Field of work** | `profiles.category`, picked on /profile: blogger, musician, business, artist, gamer, sports, education, tech, photographer, other. |
+| **Online status** | Every signed-in request (and a ping every 2 minutes while the page is open and visible) records activity in `member_presence`, at most once a minute. A member is **online** for 5 minutes after that, otherwise "last seen …". **"Show when I'm online"** on /profile (`profiles.show_online`) hides both from everyone else - including from the sort order and the "online" group. Members never read `member_presence` directly; `member_directory()` decides what each caller sees. |
+| **Members directory** | `/members` (sidebar "Members"): cards with cover, photo, online dot, field, level and counts. Filters: automatic groups - **online now, creators** (have campaigns), **doers** (have approved tasks), **new this week, top by XP** (the 50 with most XP), **admins** - and the field of work, with counts (`member_directory_counts()`), a search over names and usernames, and a sort (recently active / newest / highest level). Filters live in the address (`/members?segment=online&category=gamer`). API: `GET /api/members`, `/api/members/counts`, `/api/members/u/:username`; `POST /api/presence`. |
+| **Public profile** | `/u/:username` shows the cover, photo, field, role, presence (as allowed), bio, level, XP, rank by XP (top 50), campaigns, tasks done and the member's linked accounts. |
+| **Campaign target** | The new-campaign form no longer asks for a raw link. **Where?** lists the creator's linked accounts; networks they haven't linked are marked **Add** and can be linked right there (saved to the profile too; the profile link is filled in from the username); **Other link** takes any URL and recognises its platform. Actions done on one post (like, comment, share, repost, save, view, listen) ask for that post's link. |
+| **Admin: campaigns** | `/admin/campaigns`: every campaign, search and status filter; **pause, resume, cancel** with a reason the creator receives (`admin_campaign_action()`). A moderator's pause **holds**: the creator can't resume it (`campaigns.paused_by_admin`), only an admin can. |
+| **Admin: submissions** | `/admin/submissions`: every proof, waiting ones first; **approve / reject** any, **approve on appeal** a rejected one, **take back** the reward of an approved one. |
+| **Admin: members** | `/admin/users/:id`: cover, photo, real last activity; **edit or clean up the profile** (username, name, bio, field, remove photo / cover) with a reason the member is notified of (`admin_update_profile()`; a change that changes nothing is refused); role / status and credits as before; **history** of credits, campaigns, tasks and admin actions. |
+| **Admin: messages** | `/admin/messages`: a notification to **everyone** (every active member) or **one member** by username (`admin_send_message()`); the audience is always explicit. Sent messages are listed (from the audit log). |
+
+Local validation: `scripts/test/013_profiles_members_admin_test.sql`
+(17 checks) - photos and grants, presence and its privacy, the directory
+(groups, fields, search, sort, paging, counts, single-profile rank), the
+avatar clean-up, and the admin tools.
+
+---
+
 ## Languages (ქართული · Русский · English)
 
 The whole site - static pages, everything the scripts render, server and
@@ -1538,3 +1568,4 @@ error handler has a chance to log it.
 - [x] Languages: Georgian, Russian, English — automatic by country, switchable, saved to the account — see "Languages"
 - [x] Verification: screenshot proof, 24-hour auto-approval, creator track record, real link-click tasks — see "Verifying completed tasks (020)"
 - [x] Trust & economy: referral-farm fix, places held at submission, creator notice, account on proof, doer reputation and limits, appeals, undone-action reversal, duplicate screenshots, welcome bonus, level perks — see "Trust and economy rules (021)"
+- [x] Profiles & members: uploaded photo and cover with cropping, field of work, online status that can be hidden, members directory with groups, campaign target picker, admin campaigns / submissions / profile clean-up / messages — see "Profiles, members and admin tools (022)"

@@ -8,6 +8,7 @@
 const { AppError, ErrorCodes } = require('../utils/errors');
 const { asyncHandler } = require('../utils/async-handler');
 const authService = require('../services/auth.service');
+const presenceService = require('../services/presence.service');
 
 function extractToken(req) {
   const header = req.headers.authorization || '';
@@ -31,6 +32,8 @@ const requireAuth = asyncHandler(async (req, res, next) => {
 
   req.user = user;
   req.accessToken = token;
+  // "Online" / "last seen" (022): at most one write a minute, never fails.
+  await presenceService.touch(user.id);
   next();
 });
 
@@ -45,6 +48,7 @@ const attachUserIfPresent = asyncHandler(async (req, res, next) => {
   if (user && user.status === 'active') {
     req.user = user;
     req.accessToken = token;
+    await presenceService.touch(user.id);
   }
   next();
 });

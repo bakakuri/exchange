@@ -1,0 +1,31 @@
+<section class="members-page">
+  <div class="members-head">
+    <div class="members-head__text">
+      <h1>Members</h1>
+      <p class="members-head__intro" data-members-summary>Creators, doers and everyone in between.</p>
+    </div>
+    <label class="search-box">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search" /></svg>
+      <input type="search" placeholder="Search by name or username" aria-label="Search members" data-members-search maxlength="60" autocomplete="off" />
+    </label>
+  </div>
+
+  <div class="segment-tabs" role="group" aria-label="Groups" data-members-segments></div>
+  <div class="category-filter" role="group" aria-label="Field of work" data-members-categories></div>
+
+  <div class="members-toolbar">
+    <p class="members-toolbar__count" data-members-count aria-live="polite"></p>
+    <label class="members-toolbar__sort">
+      <span>Sort</span>
+      <select class="form-input" data-members-sort>
+        <option value="active">Recently active</option>
+        <option value="new">Newest</option>
+        <option value="level">Highest level</option>
+      </select>
+    </label>
+  </div>
+
+  <ul class="member-grid" data-members-list aria-busy="true"></ul>
+  <p class="form-error" data-members-error role="alert" hidden></p>
+  <button class="btn members-more" type="button" data-members-more hidden>Show more</button>
+</section>

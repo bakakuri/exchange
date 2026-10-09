@@ -8,8 +8,12 @@ const { requireAuth } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/admin');
 const { validate } = require('../middleware/validation');
 const { validateUuidParam } = require('../middleware/validate-uuid-param');  // Stage 16
-const { validateUpdateUser, validateCreditAdjustment, validateDecisionNote } = require('../validators/admin.validator');
+const {
+  validateUpdateUser, validateCreditAdjustment, validateDecisionNote,
+  validateAdminProfile, validateCampaignAction, validateAdminMessage,
+} = require('../validators/admin.validator');
 const { validateResolveReport } = require('../validators/reports.validator');
+const { validateReview } = require('../validators/verification.validator');
 const controller = require('../controllers/admin.controller');
 
 const router = Router();
@@ -29,6 +33,22 @@ router.get('/users', controller.listUsers);
 router.get('/users/:id', validateUuidParam('id'), controller.getUser);
 router.patch('/users/:id', validateUuidParam('id'), validate(validateUpdateUser), controller.updateUser);
 router.post('/users/:id/credits', validateUuidParam('id'), validate(validateCreditAdjustment), controller.adjustCredits);
+// Edit or clean up a profile, photos included (022).
+router.patch('/users/:id/profile', validateUuidParam('id'), validate(validateAdminProfile), controller.updateProfile);
+
+// Every campaign (022): list, pause, resume, cancel - always with a reason.
+router.get('/campaigns', controller.listCampaigns);
+router.post('/campaigns/:id/pause', validateUuidParam('id'), validate(validateCampaignAction), controller.campaignAction('pause'));
+router.post('/campaigns/:id/resume', validateUuidParam('id'), validate(validateCampaignAction), controller.campaignAction('resume'));
+router.post('/campaigns/:id/cancel', validateUuidParam('id'), validate(validateCampaignAction), controller.campaignAction('cancel'));
+
+// Every submitted proof (022): list, approve or reject.
+router.get('/completions', controller.listCompletions);
+router.post('/completions/:id/review', validateUuidParam('id'), validate(validateReview), controller.reviewCompletion);
+
+// Messages to one member or everyone (022).
+router.get('/messages', controller.listMessages);
+router.post('/messages', validate(validateAdminMessage), controller.sendMessage);
 
 // Reports (moderation)
 router.get('/reports', controller.listReports);

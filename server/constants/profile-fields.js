@@ -16,5 +16,9 @@
 // referred_by is deliberately left out - "who referred me" is already
 // derivable from GET /api/referrals/mine without exposing a second raw
 // foreign key here.
+//
+// 022 adds cover_url (the uploaded cover photo), category (field of work)
+// and show_online (whether others see "online" / "last seen").
 module.exports =
-  'id, username, display_name, avatar_url, bio, country, language, role, status, xp, level, credits, referral_code, created_at';
+  'id, username, display_name, avatar_url, cover_url, bio, category, show_online, country, language, ' +
+  'role, status, xp, level, credits, referral_code, created_at';

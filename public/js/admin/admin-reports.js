@@ -18,6 +18,7 @@ import { taskActionLabel } from '../shared/task-label.js';
 import { statusLabel } from '../submissions/status.js';
 import { renderProof } from '../submissions/proof-view.js';
 import { celebrate } from '../shared/motion.js';
+import { mountAdminTabs } from './admin-tabs.js';
 
 const PROOF_REPORTS = ['proof_appeal', 'unfollowed'];
 
@@ -208,6 +209,7 @@ async function loadReports(listEl, emptyEl, loadMoreBtn, errorEl, reset = false)
 // ── init ────────────────────────────────────────────────────────────────────
 
 export async function init() {
+  mountAdminTabs();
   const listEl = qs('[data-admin-report-list]');
   const emptyEl = qs('[data-admin-reports-empty]');
   const loadingEl = qs('[data-admin-reports-loading]');

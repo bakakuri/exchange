@@ -93,7 +93,7 @@ function renderWelcomeBonus(el, bonus) {
   el.hidden = false;
 }
 
-function renderEntries(listEl, entries, { append = false } = {}) {
+export function renderEntries(listEl, entries, { append = false } = {}) {
   if (!append) listEl.innerHTML = '';
 
   for (const entry of entries) {

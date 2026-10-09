@@ -13,10 +13,14 @@ const { AppError, ErrorCodes } = require('../utils/errors');
 
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH']);
 
-// The one binary upload: a proof screenshot. Its route parses the body
-// with express.raw(), which enforces these same types and a size limit.
+// Binary uploads: a proof screenshot and the profile photos (022). Their
+// routes parse the body with express.raw(), which enforces these same
+// types and a size limit.
+const IMAGES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const BINARY_UPLOADS = new Map([
-  ['/api/verification/proof-image', new Set(['image/jpeg', 'image/png', 'image/webp'])],
+  ['/api/verification/proof-image', IMAGES],
+  ['/api/profile/me/avatar', IMAGES],
+  ['/api/profile/me/cover', IMAGES],
 ]);
 
 // A request "has a body" when it carries one of these indicators.

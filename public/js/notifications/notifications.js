@@ -39,6 +39,7 @@ const NOTIFICATION_TONES = {
   refund: 'success',
   reward_reversed: 'warning',
   campaign_cancelled: 'warning',
+  admin_message: 'brand',
 };
 
 // Notifications that ask for something get a way to do it.
@@ -68,7 +69,10 @@ function renderNotifications(listEl, notifications, onRead, { append = false } =
       ]),
     ];
     if (n.body) children.push(createEl('p', { class: 'notification-item__body' }, serverText(n.body)));
-    const action = NOTIFICATION_ACTIONS[n.type];
+    // A moderator's note about a campaign links to that campaign (022).
+    const action = n.type === 'admin_message' && n.related_campaign_id
+      ? { href: `/campaigns/${n.related_campaign_id}`, label: () => t('See campaign') }
+      : NOTIFICATION_ACTIONS[n.type];
     if (action) {
       children.push(createEl('a', { href: action.href, 'data-link': '', class: 'notification-item__action' },
         [action.label(), icon('i-arrow-right', { size: 14 })]));

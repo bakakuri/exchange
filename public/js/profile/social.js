@@ -9,6 +9,8 @@ import { qs, createEl } from '../shared/dom.js';
 import { errorMessage } from '../shared/errors.js';
 import { SOCIAL_PLATFORMS, platformLabel } from '../shared/social-platforms.js';
 import { t } from '../core/i18n.js';
+import { platformTile } from '../shared/icons.js';
+import { shortUrl, profileUrlFor } from '../shared/platform-links.js';
 
 function renderList(listEl, socialProfiles, onRemove) {
   listEl.innerHTML = '';
@@ -25,8 +27,11 @@ function renderList(listEl, socialProfiles, onRemove) {
     listEl.append(
       createEl('li', { class: 'social-list__item' }, [
         createEl('a', { href: profile.profile_url, target: '_blank', rel: 'noopener noreferrer' }, [
-          createEl('span', { class: 'social-list__name' }, profile.display_name || profile.username),
-          createEl('span', { class: 'social-list__platform' }, platformLabel(profile.platform)),
+          platformTile(profile.platform, { size: 'sm' }),
+          createEl('span', { class: 'social-list__text' }, [
+            createEl('span', { class: 'social-list__name' }, profile.display_name || `@${profile.username.replace(/^@/, '')}`),
+            createEl('span', { class: 'social-list__platform' }, `${platformLabel(profile.platform)} · ${shortUrl(profile.profile_url)}`),
+          ]),
         ]),
         removeBtn,
       ])
@@ -54,6 +59,14 @@ export async function initSocialSection() {
       form.username.focus({ preventScroll: true });
     });
   }
+
+  // The usual profile link is filled in from the username, until the
+  // member types their own.
+  let urlTouched = false;
+  const suggestUrl = () => { if (!urlTouched) form.profile_url.value = profileUrlFor(form.platform.value, form.username.value); };
+  form.username.addEventListener('input', suggestUrl);
+  form.platform.addEventListener('change', suggestUrl);
+  form.profile_url.addEventListener('input', () => { urlTouched = form.profile_url.value.trim() !== ''; });
 
   async function load() {
     try {
@@ -85,10 +98,11 @@ export async function initSocialSection() {
     try {
       await api.social.create({
         platform: form.platform.value,
-        username: form.username.value.trim(),
+        username: form.username.value.trim().replace(/^@+/, ''),
         profile_url: form.profile_url.value.trim(),
       });
       form.reset();
+      urlTouched = false;
       form.platform.selectedIndex = 0;
       await load();
     } catch (err) {

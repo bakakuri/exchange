@@ -88,6 +88,8 @@ app.use('/api/referrals', require('./routes/referrals.routes'));          // Sta
 app.use('/api/admin', require('./routes/admin.routes'));                  // Stage 14
 app.use('/api/reports', require('./routes/reports.routes'));              // Stage 15
 app.use('/api/locale', require('./routes/locale.routes'));                // i18n
+app.use('/api/members', require('./routes/members.routes'));              // 022
+app.use('/api/presence', require('./routes/presence.routes'));            // 022
 
 // ── SPA fallback ──────────────────────────────────────────────────────────
 // Any non-API GET that isn't a static file gets the app shell, so

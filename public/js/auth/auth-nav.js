@@ -40,7 +40,7 @@ function renderUserRow(el, user) {
 
   el.append(
     createEl('a', { class: 'user-row__profile', href: '/profile', 'data-link': '' }, [
-      avatar(name),
+      avatar(name, { url: user.avatar_url }),
       createEl('span', { class: 'user-row__text' }, [
         createEl('span', { class: 'user-row__name' }, name),
         createEl('span', { class: 'user-row__handle' }, `@${user.username || ''}`),

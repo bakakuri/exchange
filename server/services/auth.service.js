@@ -34,12 +34,18 @@ function mapAuthError(error) {
 
 // The one place the Supabase auth user and our profiles row are merged
 // into the "user" object every auth endpoint returns.
+//
+// If the code is deployed before migration 022 has been run, the new
+// profile columns don't exist yet (Postgres error 42703). Signing in must
+// keep working in that window, so the columns that existed before 022 are
+// read instead.
+const PRE_022_PROFILE_FIELDS =
+  'id, username, display_name, avatar_url, bio, country, language, role, status, xp, level, credits, referral_code, created_at';
+
 async function buildUserPayload(authUser) {
-  const { data: profile, error } = await supabaseAdmin
-    .from('profiles')
-    .select(PROFILE_FIELDS)
-    .eq('id', authUser.id)
-    .single();
+  const read = (fields) => supabaseAdmin.from('profiles').select(fields).eq('id', authUser.id).single();
+  let { data: profile, error } = await read(PROFILE_FIELDS);
+  if (error?.code === '42703') ({ data: profile, error } = await read(PRE_022_PROFILE_FIELDS));
   if (error || !profile) return null;
   return { id: authUser.id, email: authUser.email, ...profile };
 }

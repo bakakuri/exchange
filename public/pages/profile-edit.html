@@ -1,47 +1,95 @@
-<section class="profile-page">
-  <h1>Your profile</h1>
+<section class="profile-page profile-edit">
+  <h1 class="visually-hidden">Your profile</h1>
 
-  <dl class="profile-stats" data-profile-stats></dl>
+  <!-- Cover, photo, name: what other members see first. -->
+  <div class="profile-hero" data-profile-hero>
+    <div class="profile-hero__cover" data-cover>
+      <div class="profile-hero__cover-actions">
+        <button type="button" class="glass-btn" data-cover-change>
+          <svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-image" /></svg>
+          <span data-cover-change-label>Add a cover</span>
+        </button>
+        <button type="button" class="glass-btn glass-btn--icon" data-cover-remove aria-label="Remove the cover" title="Remove the cover" hidden>
+          <svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trash" /></svg>
+        </button>
+      </div>
+    </div>
+    <div class="profile-hero__body">
+      <div class="profile-hero__avatar">
+        <span data-avatar-slot></span>
+        <button type="button" class="profile-hero__avatar-btn" data-avatar-change aria-label="Change your photo" title="Change your photo">
+          <svg class="icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-camera" /></svg>
+        </button>
+      </div>
+      <div class="profile-hero__who">
+        <p class="profile-hero__name" data-hero-name></p>
+        <p class="profile-hero__meta" data-hero-meta></p>
+      </div>
+      <div class="profile-hero__links">
+        <button type="button" class="btn btn--ghost btn--sm" data-avatar-remove hidden>Remove photo</button>
+        <a class="btn btn--sm" href="#" data-link id="view-profile-link">
+          <svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-eye" /></svg>
+          View public profile
+        </a>
+      </div>
+    </div>
+    <div class="profile-hero__busy" data-photo-busy hidden><span class="spinner" aria-hidden="true"></span><span>Uploading…</span></div>
+    <input type="file" accept="image/jpeg,image/png,image/webp,image/*" data-avatar-file hidden />
+    <input type="file" accept="image/jpeg,image/png,image/webp,image/*" data-cover-file hidden />
+  </div>
+  <p class="form-error" data-photo-error role="alert" hidden></p>
 
-  <form id="profile-form" class="form" novalidate>
+  <div class="stat-tiles" data-profile-stats></div>
+
+  <form id="profile-form" class="form form-card" novalidate>
+    <h2 class="form-card__title">About you</h2>
     <div class="field">
       <label for="profile-username">Username</label>
-      <input id="profile-username" name="username" type="text" minlength="3" maxlength="30" required />
+      <input id="profile-username" name="username" type="text" minlength="3" maxlength="30" autocapitalize="none" spellcheck="false" required />
     </div>
     <div class="field">
       <label for="profile-display-name">Display name</label>
       <input id="profile-display-name" name="display_name" type="text" maxlength="60" />
     </div>
     <div class="field">
-      <label for="profile-avatar-url">Avatar URL</label>
-      <input id="profile-avatar-url" name="avatar_url" type="url" placeholder="https://" />
-    </div>
-    <div class="field">
       <label for="profile-bio">Bio</label>
       <textarea id="profile-bio" name="bio" maxlength="500" rows="4"></textarea>
     </div>
-    <div class="field">
-      <label for="profile-country">Country code</label>
-      <input id="profile-country" name="country" type="text" maxlength="2" placeholder="e.g. GE" />
+    <fieldset class="field choice-field">
+      <legend>Field of work</legend>
+      <p class="form-hint">Shown on your profile and used to group members.</p>
+      <div class="choice-chips" data-category-options></div>
+    </fieldset>
+    <div class="field-row">
+      <div class="field">
+        <label for="profile-country">Country code</label>
+        <input id="profile-country" name="country" type="text" maxlength="2" placeholder="e.g. GE" autocapitalize="characters" />
+      </div>
+      <div class="field">
+        <label for="profile-language">Site language</label>
+        <select id="profile-language" name="language">
+          <option value="">Automatic (by country and phone)</option>
+          <option value="ka" lang="ka">ქართული</option>
+          <option value="ru" lang="ru">Русский</option>
+          <option value="en" lang="en">English</option>
+        </select>
+      </div>
     </div>
     <div class="field">
-      <label for="profile-language">Site language</label>
-      <select id="profile-language" name="language">
-        <option value="">Automatic (by country and phone)</option>
-        <option value="ka" lang="ka">ქართული</option>
-        <option value="ru" lang="ru">Русский</option>
-        <option value="en" lang="en">English</option>
-      </select>
+      <label class="switch">
+        <input type="checkbox" name="show_online" role="switch" />
+        <span class="switch__track" aria-hidden="true"><span class="switch__thumb"></span></span>
+        <span class="switch__label">Show when I'm online</span>
+      </label>
+      <p class="form-hint">When this is off, nobody sees "online" or "last seen" for you.</p>
     </div>
     <p class="form-error" id="profile-error" role="alert" hidden></p>
     <p class="form-success" id="profile-success" role="status" hidden>Saved.</p>
     <button type="submit" class="btn btn--primary">Save changes</button>
   </form>
 
-  <p class="auth-page__alt"><a href="#" data-link id="view-profile-link">View your public profile</a></p>
-
-  <section class="social-section" id="linked-accounts">
-    <h2>Linked accounts</h2>
+  <section class="social-section form-card" id="linked-accounts">
+    <h2 class="form-card__title">Linked accounts</h2>
     <p class="social-section__hint">Follow, like and similar tasks need the account you did them from - link it here.</p>
     <ul class="social-list" data-social-list></ul>
 
@@ -52,7 +100,7 @@
       </div>
       <div class="field">
         <label for="social-username">Username</label>
-        <input id="social-username" name="username" type="text" maxlength="100" required />
+        <input id="social-username" name="username" type="text" maxlength="100" autocapitalize="none" spellcheck="false" required />
       </div>
       <div class="field">
         <label for="social-profile-url">Profile URL</label>

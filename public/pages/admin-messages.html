@@ -1,0 +1,44 @@
+<section class="admin-page admin-messages-page">
+  <h1>Admin</h1>
+  <nav class="admin-tabs" data-admin-tabs aria-label="Admin sections"></nav>
+
+  <form class="form form-card admin-message-form" id="admin-message-form" novalidate>
+    <h2 class="form-card__title">New message</h2>
+    <fieldset class="field choice-field">
+      <legend>Send to</legend>
+      <div class="choice-chips">
+        <label class="choice-chip" for="admin-message-everyone">
+          <input type="radio" name="audience" value="everyone" id="admin-message-everyone" checked />
+          <span class="choice-chip__body"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-users-round" /></svg>Everyone</span>
+        </label>
+        <label class="choice-chip" for="admin-message-one">
+          <input type="radio" name="audience" value="one" id="admin-message-one" />
+          <span class="choice-chip__body"><svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-user" /></svg>One member</span>
+        </label>
+      </div>
+    </fieldset>
+    <div class="field" data-admin-message-user hidden>
+      <label for="admin-message-username">Username</label>
+      <input id="admin-message-username" name="username" type="text" maxlength="30" autocapitalize="none" spellcheck="false" placeholder="e.g. nino" />
+    </div>
+    <div class="field">
+      <label for="admin-message-title">Title</label>
+      <input id="admin-message-title" name="title" type="text" maxlength="120" required />
+    </div>
+    <div class="field">
+      <label for="admin-message-body">Message</label>
+      <textarea id="admin-message-body" name="body" maxlength="2000" rows="5"></textarea>
+      <p class="form-hint">Arrives as a notification. Everyone means every active member.</p>
+    </div>
+    <p class="form-error" id="admin-message-error" role="alert" hidden></p>
+    <p class="form-success" id="admin-message-success" role="status" hidden></p>
+    <button type="submit" class="btn btn--primary">
+      <svg class="icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-send" /></svg>
+      Send
+    </button>
+  </form>
+
+  <h2 class="admin-section-title">Sent</h2>
+  <ul class="admin-list" data-admin-list></ul>
+  <p class="form-error" data-admin-error role="alert" hidden></p>
+</section>

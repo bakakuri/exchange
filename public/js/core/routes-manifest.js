@@ -16,3 +16,4 @@ import '../achievements/routes.js';
 import '../referrals/routes.js';         // Stage 13
 import '../admin/routes.js';             // Stage 14
 import '../reports/routes.js';           // Stage 15
+import '../members/routes.js';           // 022

@@ -23,6 +23,19 @@ export const api = {
     me: () => request('GET', '/profile/me'),
     update: (patch) => request('PATCH', '/profile/me', { body: patch }),
     byUsername: (username) => request('GET', `/profile/${encodeURIComponent(username)}`),
+    // kind: 'avatar' | 'cover'; file: the cropped image Blob
+    uploadPhoto: (kind, file) => request('POST', `/profile/me/${kind}`, { file }),
+    removePhoto: (kind) => request('DELETE', `/profile/me/${kind}`),
+  },
+
+  members: {
+    list: (params = {}) => request('GET', `/members${query(params)}`),
+    counts: () => request('GET', '/members/counts'),
+    get: (username) => request('GET', `/members/u/${encodeURIComponent(username)}`),
+  },
+
+  presence: {
+    ping: () => request('POST', '/presence', { keepalive: true }),
   },
 
   social: {
@@ -141,8 +154,27 @@ export const api = {
       request('POST', `/admin/completions/${encodeURIComponent(completionId)}/overturn`, { body: { note } }),
     reverseReward: (completionId, note) =>
       request('POST', `/admin/completions/${encodeURIComponent(completionId)}/reverse`, { body: { note } }),
+    // 022
+    updateProfile: (id, body) => request('PATCH', `/admin/users/${encodeURIComponent(id)}/profile`, { body }),
+    campaigns: (params = {}) => request('GET', `/admin/campaigns${query(params)}`),
+    campaignAction: (id, action, reason) =>
+      request('POST', `/admin/campaigns/${encodeURIComponent(id)}/${action}`, { body: { reason } }),
+    completions: (params = {}) => request('GET', `/admin/completions${query(params)}`),
+    reviewCompletion: (id, body) => request('POST', `/admin/completions/${encodeURIComponent(id)}/review`, { body }),
+    messages: () => request('GET', '/admin/messages'),
+    sendMessage: (body) => request('POST', '/admin/messages', { body }),
   },
 };
+
+// { a: 1, b: '', c: null } -> "?a=1" (empty values are left out)
+function query(params) {
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== '') qs.set(key, String(value));
+  }
+  const text = qs.toString();
+  return text ? `?${text}` : '';
+}
 
 function verificationQuery({ before, status } = {}) {
   const qs = new URLSearchParams();

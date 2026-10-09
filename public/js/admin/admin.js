@@ -11,6 +11,9 @@ import { errorMessage } from '../shared/errors.js';
 import { t, formatNumber } from '../core/i18n.js';
 import { shortDate } from '../shared/time.js';
 import { roleLabel } from './labels.js';
+import { mountAdminTabs } from './admin-tabs.js';
+import { avatar } from '../shared/icons.js';
+import { categoryChip } from '../shared/member-categories.js';
 
 // ── stats ───────────────────────────────────────────────────────────────────
 
@@ -22,11 +25,13 @@ async function renderStats(statsEl) {
     statsEl.innerHTML = '';
 
     const tiles = [
+      { label: t('Online now'), value: stats.online_now, link: '/members?segment=online' },
       { label: t('Total users'), value: stats.total_users },
+      { label: t('New this week'), value: stats.new_this_week, link: '/members?segment=new' },
       { label: t('Total campaigns'), value: stats.total_campaigns },
-      { label: t('Active campaigns'), value: stats.active_campaigns },
+      { label: t('Active campaigns'), value: stats.active_campaigns, link: '/admin/campaigns' },
       { label: t('Total completions'), value: stats.total_completions },
-      { label: t('Pending verifications'), value: stats.pending_verifications },
+      { label: t('Pending verifications'), value: stats.pending_verifications, link: '/admin/submissions' },
       { label: t('Open reports'), value: stats.pending_reports, link: '/admin/reports' },
     ];
 
@@ -63,8 +68,10 @@ function renderUserRow(user, listEl) {
 
   const row = createEl('li', { class: `admin-user-row ${statusClass}`.trim() }, [
     createEl('a', { class: 'admin-user-row__link', href: `/admin/users/${user.id}`, 'data-link': '' }, [
+      avatar(user.display_name || user.username, { size: 'sm', url: user.avatar_url }),
       createEl('span', { class: 'admin-user-row__name' }, user.display_name || user.username || t('(no name)')),
       createEl('span', { class: 'admin-user-row__username' }, `@${user.username || '—'}`),
+      categoryChip(user.category) || '',
     ]),
     createEl('div', { class: 'admin-user-row__meta' }, [
       createEl('span', { class: `admin-user-role ${roleClass}` }, roleLabel(user.role)),
@@ -125,6 +132,7 @@ export async function init() {
   const loadMoreBtn = qs('[data-admin-load-more]');
   const errorEl = qs('#admin-list-error');
 
+  mountAdminTabs();
   if (statsEl) renderStats(statsEl);
 
   if (!listEl) return;

@@ -28,6 +28,7 @@ const crypto = require('node:crypto');
 const { getClientForUser, supabaseAdmin } = require('../config/supabase');
 const { AppError, ErrorCodes } = require('../utils/errors');
 const logger = require('../utils/logger');
+const { sniffImage } = require('../utils/images');
 
 const COMPLETION_FIELDS =
   'id, task_id, completer_id, status, reward_amount, created_at, reviewed_at, reviewed_by, ' +
@@ -70,21 +71,6 @@ function mapRpcError(error) {
 // auth.uid() itself, internally, using the JWT the access token carries.
 // It's only used here to shape the client-facing response.
 // ── screenshots ──────────────────────────────────────────────────────────
-
-// The file's own first bytes decide what it is; the declared type must agree.
-function sniffImage(buffer) {
-  if (!Buffer.isBuffer(buffer)) return null;
-  if (buffer.length > 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
-    return { ext: 'jpg', type: 'image/jpeg' };
-  }
-  if (buffer.length > 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
-    return { ext: 'png', type: 'image/png' };
-  }
-  if (buffer.length > 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
-    return { ext: 'webp', type: 'image/webp' };
-  }
-  return null;
-}
 
 // Uploads go through the API (service role) into "<user id>/<random>",
 // so a member can only ever reference screenshots in their own folder -

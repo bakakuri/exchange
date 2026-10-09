@@ -67,12 +67,34 @@ export function platformTile(platform, { size = 'md' } = {}) {
   return tile;
 }
 
-// Initials avatar (no uploads needed): "Giorgi Beridze" -> "GB".
-export function avatar(name = '', { size = 'md' } = {}) {
+// A member's picture: their uploaded photo, or their initials on the
+// brand gradient ("Giorgi Beridze" -> "GB") when there is none or it
+// fails to load. online: true adds the green "online" dot.
+//   avatar('Nino', { url, size: 'lg', online: true })
+export function avatar(name = '', { size = 'md', url = null, online = null } = {}) {
   const el = document.createElement('span');
   el.className = `avatar avatar--${size}`;
   el.setAttribute('aria-hidden', 'true');
   const letters = String(name).trim().split(/[\s._-]+/).filter(Boolean);
-  el.textContent = ((letters[0]?.[0] || '?') + (letters[1]?.[0] || '')).toUpperCase();
+  const initials = ((letters[0]?.[0] || '?') + (letters[1]?.[0] || '')).toUpperCase();
+  if (url) {
+    const img = document.createElement('img');
+    img.className = 'avatar__img';
+    img.alt = '';
+    img.decoding = 'async';
+    img.loading = 'lazy';
+    img.referrerPolicy = 'no-referrer';
+    img.addEventListener('error', () => {
+      img.remove();
+      el.classList.remove('avatar--photo');
+      el.prepend(initials);
+    });
+    img.src = url;
+    el.classList.add('avatar--photo');
+    el.append(img);
+  } else {
+    el.append(initials);
+  }
+  if (online === true) el.append(Object.assign(document.createElement('span'), { className: 'avatar__online' }));
   return el;
 }

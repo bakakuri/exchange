@@ -10,9 +10,9 @@ import { api } from '../shared/api.js';
 import { navigate } from '../core/router.js';
 import { qs } from '../shared/dom.js';
 import { errorMessage } from '../shared/errors.js';
-import { TASK_PLATFORMS } from '../shared/task-platforms.js';
 import { TASK_TYPES } from '../shared/task-types.js';
 import { t, tn } from '../core/i18n.js';
+import { createTargetPicker } from './target-picker.js';
 
 const LINK_CLICK_TASK_TYPES = ['visit', 'view', 'listen'];
 
@@ -23,8 +23,13 @@ export async function init() {
   const totalEl = qs('[data-campaign-total]');
   if (!form) return;
 
-  for (const p of TASK_PLATFORMS) form.platform.append(new Option(p.label, p.value));
   for (const type of TASK_TYPES) form.task_type.append(new Option(type.label, type.value));
+
+  // Where members go: a linked account (or one linked right here), or any
+  // other link. Post-level actions also need the post's link.
+  const picker = createTargetPicker(qs('[data-target-picker]'), { labelId: 'campaign-target-label' });
+  picker.setAction(form.task_type.value);
+  form.task_type.addEventListener('change', () => picker.setAction(form.task_type.value));
 
   try {
     // GET /api/credits/balance responds { credits } (credit.controller.js).
@@ -68,6 +73,14 @@ export async function init() {
     e.preventDefault();
     errorEl.hidden = true;
 
+    const target = picker.value();
+    if (target.error) {
+      errorEl.textContent = target.error;
+      errorEl.hidden = false;
+      target.focus?.focus();
+      return;
+    }
+
     const submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
 
@@ -75,9 +88,9 @@ export async function init() {
       const { campaign } = await api.campaigns.create({
         title: form.title.value.trim(),
         description: form.description.value.trim() || undefined,
-        platform: form.platform.value,
+        platform: target.platform,
         task_type: form.task_type.value,
-        target_url: form.target_url.value.trim(),
+        target_url: target.target_url,
         instructions: form.instructions.value.trim() || undefined,
         verification_method: form.verification_method.value,
         reward: Number(form.reward.value),

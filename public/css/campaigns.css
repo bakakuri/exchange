@@ -54,8 +54,203 @@
   font-size: var(--font-size-sm);
   font-variant-numeric: tabular-nums;
 }
-.campaign-new-page .form { max-width: 520px; }
+.campaign-new-page .form { max-width: 600px; }
 .campaign-new-page .form .btn--primary { align-self: flex-start; }
+
+/* ── New campaign: three steps, each a card ───────────────────────────── */
+
+.form-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-5);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm), var(--highlight);
+}
+.form-step__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  float: left; /* lets the legend sit inside the card's padding */
+  width: 100%;
+  margin: 0 0 var(--space-1);
+  padding: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+}
+.form-step__title + * { clear: both; }
+.form-step__num {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--gradient-brand);
+  color: var(--color-on-gradient);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  box-shadow: 0 6px 14px -6px var(--color-glow);
+}
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-4);
+}
+.field__label { color: var(--color-ink); font-size: var(--font-size-sm); font-weight: 700; }
+.campaign-new__total:empty { display: none; }
+.campaign-new__total { margin: 0; color: var(--color-ink); font-weight: 700; }
+
+/* ── Target picker: linked accounts, networks to add, any link ────────── */
+
+.picker { position: relative; display: flex; flex-direction: column; gap: 8px; }
+
+.picker__button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 12px 8px 10px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-base), transform 200ms var(--ease-spring);
+}
+.picker__button:hover { border-color: var(--color-text-muted); }
+.picker__button:focus-visible,
+.picker.is-open .picker__button {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-focus) 22%, transparent), 0 8px 22px -12px var(--color-glow);
+}
+.picker__current { display: flex; align-items: center; gap: var(--space-3); flex: 1; min-width: 0; }
+.picker__chevron { flex: none; color: var(--color-text-muted); transition: transform var(--transition-base); }
+.picker.is-open .picker__chevron { transform: rotate(180deg); }
+
+.picker__text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.picker__title {
+  overflow: hidden;
+  color: var(--color-ink);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.picker__title--muted { color: var(--color-text-muted); font-weight: 600; white-space: normal; }
+.picker__sub {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.picker__placeholder-tile {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: var(--color-tile);
+  color: var(--color-accent);
+  border: 1.5px dashed color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+
+.picker__list {
+  position: absolute;
+  z-index: 30;
+  top: 66px;
+  left: 0;
+  right: 0;
+  max-height: min(420px, 62vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-pop);
+  transform-origin: top center;
+  animation: picker-in 220ms var(--ease-spring);
+}
+.picker__list:focus { outline: none; }
+@keyframes picker-in { from { opacity: 0; transform: translateY(-6px) scale(0.97); } }
+
+.picker__group + .picker__group { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--color-border); }
+.picker__group-title {
+  padding: 8px 10px 4px;
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.picker__note { margin: 0; padding: 2px 10px 8px; color: var(--color-text-muted); font-size: var(--font-size-xs); }
+
+.picker__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding: 7px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+.picker__option.is-active { background: var(--color-hover); }
+.picker__option[aria-selected="true"] { background: var(--gradient-soft); }
+.picker__option[aria-selected="true"] .picker__title { color: var(--color-accent-strong); }
+.picker__check { flex: none; color: var(--color-accent); opacity: 0; transform: scale(0.4); transition: opacity var(--transition-fast), transform 260ms var(--ease-spring); }
+.picker__option[aria-selected="true"] .picker__check { opacity: 1; transform: none; }
+.picker__option--missing .platform-tile { filter: saturate(0.35); opacity: 0.7; transition: filter var(--transition-base), opacity var(--transition-base); }
+.picker__option--missing.is-active .platform-tile { filter: none; opacity: 1; }
+.picker__option--quiet .picker__title { color: var(--color-accent); font-weight: 700; }
+
+.picker__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+  padding: 3px 9px 3px 7px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-warning) 14%, transparent);
+  color: var(--color-warning);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+.picker__option--missing.is-active .picker__badge { background: var(--gradient-brand); color: var(--color-on-gradient); }
+
+.picker__hint { min-height: 1.2em; }
+.picker__hint--ok { color: var(--color-success); font-weight: 600; }
+.form-hint--warn { color: var(--color-warning); font-weight: 600; }
+
+.picker-extra { display: flex; flex-direction: column; gap: var(--space-3); animation: block-in 260ms var(--ease-out); }
+
+.picker-add {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1.5px dashed color-mix(in srgb, var(--aurora-1) 40%, var(--color-border-strong));
+  border-radius: var(--radius-md);
+  animation: block-in 260ms var(--ease-out);
+}
+.picker-add__title { display: flex; align-items: center; gap: var(--space-3); color: var(--color-ink); }
+.picker-add__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .picker__list, .picker-extra, .picker-add { animation: none; }
+}
 
 /* ── Campaign detail ──────────────────────────────────────────────────── */
 
@@ -90,6 +285,21 @@
   border-top: 1px solid var(--color-border);
 }
 .campaign-detail__actions > .btn { align-self: flex-start; }
+/* A moderator's pause (022): explained instead of a Resume button. */
+.campaign-detail__held {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-warning) 9%, var(--color-bg));
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+.campaign-detail__held .icon { flex: none; margin-top: 2px; color: var(--color-warning); }
 
 .campaign-detail__cancel-form {
   display: flex;
