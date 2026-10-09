@@ -473,9 +473,10 @@
 
   :root[data-auth="in"] .app-nav a { height: 44px; font-size: var(--font-size-base); }
 
+  /* Six tabs share the width by the length of their labels, so long words
+     (დავალებები, Уведомления) get room and short ones give it up. */
   :root[data-auth="in"] .tabbar {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    display: flex;
     position: fixed;
     inset: auto 0 0 0;
     z-index: 30;
@@ -491,6 +492,8 @@
   .tabbar a,
   .tabbar button {
     position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -508,20 +511,26 @@
   }
   .tabbar :is(a, button) .icon {
     box-sizing: content-box;
-    padding: 4px 14px;
+    padding: 4px 11px;
     border-radius: 14px;
     transition: transform 360ms var(--ease-spring), background-color var(--transition-fast), color var(--transition-fast);
   }
   .tabbar :is(a, button):active .icon { transform: scale(0.86); }
   .tabbar a:hover { text-decoration: none; }
   /* Labels never spill into the next tab, whatever the language. */
-  .tabbar :is(a, button) > span:not(.nav-badge) {
+  .tabbar :is(a, button) > span:not(.nav-badge):not(.tabbar__avatar) {
     max-width: calc(100% - 4px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   :lang(ka) .tabbar :is(a, button) { font-size: 0.65rem; }
+  /* The narrowest phones (320 px): a touch smaller, so six labels fit. */
+  @media (max-width: 350px) {
+    .tabbar :is(a, button) { font-size: 0.65rem; }
+    :lang(ka) .tabbar :is(a, button) { font-size: 0.59rem; }
+    .tabbar :is(a, button) .icon { padding: 4px 8px; }
+  }
   .tabbar a[aria-current="page"],
   .tabbar button[aria-expanded="true"] { color: var(--color-ink); font-weight: 700; }
   /* The current tab's icon sits on a gradient pill that springs in. */
@@ -533,6 +542,23 @@
     animation: tab-pop 480ms var(--ease-spring) both;
   }
   @keyframes tab-pop { from { transform: scale(0.6) translateY(4px); opacity: 0.4; } }
+
+  /* Profile tab: the member's photo in a ring that turns into the
+     gradient when the profile is open. */
+  .tabbar__avatar { display: flex; align-items: center; justify-content: center; height: 30px; }
+  .tabbar__photo {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 3.5px var(--color-border-strong);
+    transition: transform 360ms var(--ease-spring), box-shadow var(--transition-base);
+  }
+  .tabbar__profile:active .tabbar__photo { transform: scale(0.86); }
+  .tabbar__profile[aria-current="page"] .tabbar__photo {
+    box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--aurora-2), 0 8px 16px -6px var(--color-glow);
+    animation: tab-pop 480ms var(--ease-spring) both;
+  }
 
   :root[data-auth="in"] .app-main {
     padding-bottom: calc(var(--tabbar-height) + var(--space-8) + env(safe-area-inset-bottom));

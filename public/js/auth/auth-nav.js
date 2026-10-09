@@ -50,6 +50,23 @@ function renderUserRow(el, user) {
   );
 }
 
+// The tab bar's Profile tab shows the member's photo when they have one,
+// the profile icon otherwise. Only touched when the photo changes.
+function renderTabAvatar(user) {
+  const slot = qs('[data-tab-avatar]');
+  if (!slot) return;
+  const url = user?.avatar_url || '';
+  if (slot.dataset.url === url) return;
+  slot.dataset.url = url;
+  if (url) {
+    const img = createEl('img', { class: 'tabbar__photo', src: url, alt: '', decoding: 'async', referrerpolicy: 'no-referrer' });
+    img.addEventListener('error', () => { slot.dataset.url = ''; slot.replaceChildren(icon('i-circle-user-round', { size: 22 })); });
+    slot.replaceChildren(img);
+  } else {
+    slot.replaceChildren(icon('i-circle-user-round', { size: 22 }));
+  }
+}
+
 function render() {
   const user = store.getState().user;
   document.documentElement.setAttribute('data-auth', user ? 'in' : 'out');
@@ -59,6 +76,7 @@ function render() {
 
   const slot = qs('#auth-nav');
   if (slot) renderUserRow(slot, user);
+  renderTabAvatar(user);
 }
 
 export function initAuthNav() {
