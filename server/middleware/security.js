@@ -5,6 +5,18 @@
 // behind Vercel's edge (needed for accurate rate-limit bucketing).
 
 const helmet = require('helmet');
+const { config } = require('../config/env');
+
+// Chat files (023) are uploaded from the browser straight to Supabase
+// Storage and played from there, so the page may connect to it and play
+// media from https: (and blob: - a voice message before it is sent).
+function supabaseOrigin() {
+  try {
+    return new URL(config.supabaseUrl).origin;
+  } catch {
+    return 'https://*.supabase.co';
+  }
+}
 
 function applySecurity(app) {
   // Trust the first hop (Vercel's edge proxy / any reverse proxy).
@@ -25,7 +37,8 @@ function applySecurity(app) {
           imgSrc: ["'self'", 'data:', 'https:'],
           // Allow XHR/fetch to own origin only. No third-party API calls
           // from the browser - everything external goes through our server.
-          connectSrc: ["'self'"],
+          connectSrc: ["'self'", supabaseOrigin()],
+          mediaSrc: ["'self'", 'https:', 'blob:', 'data:'],
           objectSrc: ["'none'"],
           baseUri: ["'self'"],
           frameAncestors: ["'none'"],
@@ -59,7 +72,8 @@ function applySecurity(app) {
   });
 }
 
+// The microphone is allowed for this site only: voice messages (023).
 const PERMISSIONS_POLICY =
-  'camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self)';
+  'camera=(), microphone=(self), geolocation=(), payment=(), usb=(), fullscreen=(self)';
 
 module.exports = { applySecurity, PERMISSIONS_POLICY };

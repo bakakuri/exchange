@@ -1,0 +1,24 @@
+<section class="messages-page" data-messages>
+  <aside class="inbox" aria-label="Conversations">
+    <header class="inbox__head">
+      <h1>Messages</h1>
+      <button type="button" class="icon-button inbox__new-btn" data-new-chat aria-label="New message" title="New message" aria-expanded="false">
+        <svg class="icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-square-pen" /></svg>
+      </button>
+    </header>
+    <label class="search-box inbox__search">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search" /></svg>
+      <input type="search" placeholder="Search" aria-label="Search conversations" data-inbox-search autocomplete="off" maxlength="60" />
+    </label>
+    <div class="inbox__people" data-people hidden></div>
+    <ul class="inbox__list" data-inbox-list aria-busy="true"></ul>
+    <p class="form-error" data-inbox-error role="alert" hidden></p>
+  </aside>
+  <div class="chat" data-chat>
+    <div class="chat__empty chat__empty--start">
+      <span class="chat__empty-icon"><svg class="icon" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-message-circle" /></svg></span>
+      <strong>Your messages</strong>
+      <p>Choose a conversation, or start a new one - send text, photos, videos, files and voice messages.</p>
+    </div>
+  </div>
+</section>

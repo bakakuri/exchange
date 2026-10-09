@@ -7,6 +7,7 @@ import { initAuthNav } from '../auth/auth-nav.js';
 import { initNavMenu } from './nav-menu.js';
 import { initNavBadges } from './nav-badges.js';
 import { initPresence } from './presence.js';
+import { initMessagesPoller } from './messages-poller.js';
 import { initTheme } from './theme.js';
 import { initLanguage } from './language.js';
 import { initLanguageMenu } from './language-menu.js';
@@ -36,6 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setRouteGuard(authGuard);
   initNavBadges();
   initPresence();
+  initMessagesPoller();
   initRouter();
   eventBus.on('language:change', () => refreshRoute());
 });

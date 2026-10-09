@@ -17,6 +17,14 @@
 // Page fragments are written in English; each is translated into the
 // active language (core/i18n.js) before its module runs, and refresh()
 // re-renders the current page after a language switch.
+//
+// Page modules may also export:
+//   destroy()        - called before the next page renders (stop timers,
+//                      polls, recordings);
+//   update(params)   - called instead of a full re-render when the next
+//                      route uses the same page module (e.g. /messages ->
+//                      /messages/:id keeps the inbox on screen).
+// <html data-route="/messages/:id"> names the current route for CSS.
 
 import { t, translateDom } from './i18n.js';
 
@@ -44,6 +52,7 @@ export function registerRoute(path, {
   title = 'Exchange',
   protected: isProtected = false,
   guestOnly = false,
+  adminOnly = false,
 } = {}) {
   routes.push({
     path,
@@ -52,6 +61,7 @@ export function registerRoute(path, {
     title,
     protected: isProtected,
     guestOnly,
+    adminOnly,
     ...compilePattern(path),
   });
 }
@@ -61,6 +71,7 @@ export function setRouteGuard(fn) {
 }
 
 const root = () => document.getElementById('app-root');
+let current = null; // { route, mod } of the page on screen
 const home = () => routes.find((r) => r.path === '/');
 
 function resolve(path) {
@@ -74,7 +85,10 @@ function resolve(path) {
   return { route: home(), params: {} };
 }
 
-async function render(fullPath) {
+let renderCount = 0; // a newer navigation makes an unfinished render give up
+
+async function render(fullPath, { force = false } = {}) {
+  const ticket = ++renderCount;
   // A link may carry a query (e.g. /profile?link=instagram); routes match the path.
   const path = fullPath.split(/[?#]/)[0];
   const { route, params } = resolve(path);
@@ -87,14 +101,37 @@ async function render(fullPath) {
     }
   }
 
+  // Same page, new params: let the page move itself (no flash, no refetch).
+  if (!force && current?.mod?.update && route.module && current.route.module === route.module) {
+    current.route = route;
+    document.title = t(route.title);
+    document.documentElement.dataset.route = route.path;
+    current.mod.update(params);
+    return;
+  }
+
+  try {
+    current?.mod?.destroy?.();
+  } catch {
+    // a page that fails to clean up must not block the next one
+  }
+  current = null;
+
   const res = await fetch(route.fragment);
-  root().innerHTML = await res.text();
+  const html = await res.text();
+  if (ticket !== renderCount) return;
+  root().innerHTML = html;
   translateDom(root());
   document.title = t(route.title);
+  document.documentElement.dataset.route = route.path;
 
   if (route.module) {
     const mod = await import(route.module);
+    if (ticket !== renderCount) return;
+    current = { route, mod };
     mod.init?.(params);
+  } else {
+    current = { route, mod: null };
   }
 }
 
@@ -106,7 +143,7 @@ export function navigate(path, { replace = false } = {}) {
 
 /** Render the current path again (e.g. after the language changes). */
 export function refresh() {
-  return render(location.pathname);
+  return render(location.pathname, { force: true });
 }
 
 export function init() {

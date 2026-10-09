@@ -51,9 +51,9 @@ exchange/
                               one auth.*.js and profile.*.js per layer so far
     utils/                     errors.js (canonical error codes), logger.js, async-handler.js
   supabase/
-    migrations/               001-022: full schema, RLS, business-logic functions, views,
+    migrations/               001-023: full schema, RLS, business-logic functions, views,
                               verification upgrades (020), trust & economy rules (021),
-                              profiles, members & admin tools (022)
+                              profiles, members & admin tools (022), private messages (023)
   scripts/
     i18n-check.js             translation coverage check (see "Languages")
     test/                     Local Postgres validation harness (see below)
@@ -1398,6 +1398,42 @@ avatar clean-up, and the admin tools.
 
 ---
 
+## Private messages (023)
+
+`supabase/migrations/023_messages.sql` - **run it in the Supabase SQL
+editor before deploying this version** (after 022; one transaction, safe
+to run again; without 022 it stops with a message). It creates the
+private **`chat`** Storage bucket.
+
+| | |
+|---|---|
+| **Where** | `/messages` - sidebar "Messages" and the round button in the middle of the phone tab bar, both with the unread count (also in the tab title: "(3) Exchange"). "Message" on a member's profile (`/u/:username`) opens the conversation. Computers: inbox and chat side by side; phones: the inbox, and a chat opens full screen above the keyboard. |
+| **Who** | Any member can write to any member. **Block** (chat menu) stops writing both ways, and the blocked member's messages are no longer counted or shown as pop-ups; **Report** sends a report to the admins. Suspended members can't receive messages. |
+| **What** | Text (links clickable, emoji-only messages shown big), **photos and videos** (photos over 2048 px / 1.5 MB are scaled in the browser), **audio, documents and any file** (downloaded under their own name), **voice messages** (recorded in the browser - Opus/WebM, MP4 on Safari - with a waveform, seeking and 1× / 1.5× / 2× speed). Paste or drop files into the chat. One's own messages can be deleted for both sides (the file is removed too). |
+| **Read receipts** | ✓ sent, ✓✓ (gradient) seen by the other side, "Seen" under the last message. `conversation_members.last_read_seq` per member. |
+| **Files** | Never through the API (Vercel caps a request at 4.5 MB): `POST /api/messages/conversations/:id/uploads` returns a one-time signed upload URL in the sender's folder (`<conversation>/<user>/<random>.<ext>`), the browser uploads straight to Storage, then sends the message naming that path - `send_message()` checks the path, that the file is really there and that it isn't used twice. Files are read through signed links (6 hours). **No size limit of our own**: the bucket has none, so the project's limit applies (Supabase dashboard → Storage settings → **Global file size limit**; at most 50 MB on the free plan, up to 500 GB on Pro). |
+| **Live updates** | No websockets (Vercel functions can't hold them): one small request, `GET /api/messages/updates`, every 2.5 s while a chat is open, 10 s elsewhere, 30 s in a background tab (backs off after errors). It returns the unread count, new incoming messages and the open chat's changes since its cursor (`messages.change_seq` moves on every new and deleted message). |
+| **Pop-ups** | A new message while elsewhere on the site drops in from the top for 3 seconds with the sender, their photo and the whole message (a photo as a picture); hovering/touching pauses it, tap opens the chat, swipe up or × closes it. Not shown for the chat that is open. |
+| **Privacy** | The four tables (`conversations`, `conversation_members`, `messages`, `member_blocks`) are closed to clients (RLS on, no grants); everything goes through `security definer` functions that check `auth.uid()` is in the conversation. |
+
+API (all signed in): `GET /api/messages/conversations`, `POST /api/messages/conversations`
+(`{ user_id }` or `{ username }`), `GET /api/messages/conversations/:id?before=<seq>`,
+`POST …/:id/messages`, `POST …/:id/uploads`, `POST …/:id/read`,
+`DELETE /api/messages/messages/:id`, `GET /api/messages/updates?since&conversation&after`,
+`POST /api/messages/blocks`, `DELETE /api/messages/blocks/:userId`.
+
+Browser permissions: the microphone is asked for on the first voice
+message (`Permissions-Policy: microphone=(self)`); the CSP allows
+`connect-src` to the Supabase project (uploads) and `media-src https: blob:`.
+
+Local validation: `scripts/test/014_messages_test.sql` (13 checks) -
+conversations per pair, sending and retries, file path rules, outsiders,
+unread counts and pages, read receipts, deleting, the poll, blocks both
+ways, suspended members, grants, closed tables. Unit tests:
+`tests/unit/messages.test.js`.
+
+---
+
 ## Languages (ქართული · Русский · English)
 
 The whole site - static pages, everything the scripts render, server and
@@ -1569,3 +1605,4 @@ error handler has a chance to log it.
 - [x] Verification: screenshot proof, 24-hour auto-approval, creator track record, real link-click tasks — see "Verifying completed tasks (020)"
 - [x] Trust & economy: referral-farm fix, places held at submission, creator notice, account on proof, doer reputation and limits, appeals, undone-action reversal, duplicate screenshots, welcome bonus, level perks — see "Trust and economy rules (021)"
 - [x] Profiles & members: uploaded photo and cover with cropping, field of work, online status that can be hidden, members directory with groups, campaign target picker, admin campaigns / submissions / profile clean-up / messages — see "Profiles, members and admin tools (022)"
+- [x] Private messages: inbox and chat, photos / videos / audio / documents / any file, voice messages, read receipts, unread counts, 3-second pop-ups, block and report — see "Private messages (023)"

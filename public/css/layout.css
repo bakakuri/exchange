@@ -473,8 +473,9 @@
 
   :root[data-auth="in"] .app-nav a { height: 44px; font-size: var(--font-size-base); }
 
-  /* Six tabs share the width by the length of their labels, so long words
-     (დავალებები, Уведомления) get room and short ones give it up. */
+  /* Six labelled tabs share the width by the length of their labels, so
+     long words (დავალებები, Уведомления) get room and short ones give it
+     up; the round Messages button in the middle keeps a fixed slot. */
   :root[data-auth="in"] .tabbar {
     display: flex;
     position: fixed;
@@ -524,12 +525,22 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  :lang(ka) .tabbar :is(a, button) { font-size: 0.65rem; }
-  /* The narrowest phones (320 px): a touch smaller, so six labels fit. */
-  @media (max-width: 350px) {
-    .tabbar :is(a, button) { font-size: 0.65rem; }
-    :lang(ka) .tabbar :is(a, button) { font-size: 0.59rem; }
-    .tabbar :is(a, button) .icon { padding: 4px 8px; }
+  /* Label sizes measured so every label fits whole, in every language,
+     down to 320 px. */
+  .tabbar :is(a, button) .icon { padding: 4px 9px; }
+  :lang(ka) .tabbar :is(a, button) { font-size: 0.6rem; }
+  :lang(ru) .tabbar :is(a, button) { font-size: 0.65rem; }
+  @media (max-width: 380px) {
+    :lang(ka) .tabbar :is(a, button) { font-size: 0.5625rem; }
+    :lang(ru) .tabbar :is(a, button) { font-size: 0.6rem; }
+    .tabbar :is(a, button) .icon { padding: 4px 7px; }
+  }
+  @media (max-width: 340px) {
+    .tabbar :is(a, button) { font-size: 0.625rem; }
+    :lang(ka) .tabbar :is(a, button) { font-size: 0.52rem; }
+    :lang(ru) .tabbar :is(a, button) { font-size: 0.5625rem; }
+    .tabbar :is(a, button) .icon { padding: 4px 5px; }
+    .tabbar :is(a, button) > span:not(.nav-badge):not(.tabbar__avatar) { max-width: 100%; }
   }
   .tabbar a[aria-current="page"],
   .tabbar button[aria-expanded="true"] { color: var(--color-ink); font-weight: 700; }
@@ -559,6 +570,52 @@
     box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--aurora-2), 0 8px 16px -6px var(--color-glow);
     animation: tab-pop 480ms var(--ease-spring) both;
   }
+
+  /* Messages: a raised round gradient button in the middle of the bar,
+     with the unread count on its shoulder. */
+  .tabbar .tabbar__center { flex: 0 0 64px; overflow: visible; }
+  .tabbar__center .tabbar__orb {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin-top: -22px;
+    border-radius: 50%;
+    background: var(--gradient-brand);
+    background-size: 160% 160%;
+    color: var(--color-on-gradient);
+    box-shadow: 0 0 0 5px var(--color-canvas), 0 14px 28px -10px var(--color-glow);
+    transition: transform 360ms var(--ease-spring), box-shadow var(--transition-base);
+    animation: gradient-pan 8s ease-in-out infinite alternate;
+  }
+  .tabbar .tabbar__center .tabbar__orb .icon {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    color: inherit;
+    animation: none;
+  }
+  .tabbar__center:active .tabbar__orb { transform: scale(0.9); }
+  .tabbar__center[aria-current="page"] .tabbar__orb {
+    transform: translateY(-2px) rotate(-8deg);
+    box-shadow: 0 0 0 5px var(--color-canvas), 0 0 0 7px color-mix(in srgb, var(--aurora-2) 45%, transparent), 0 16px 30px -10px var(--color-glow);
+  }
+  .tabbar .tabbar__badge {
+    position: absolute;
+    top: -20px;
+    left: calc(50% + 12px);
+    margin: 0;
+    box-shadow: 0 0 0 2.5px var(--color-canvas);
+  }
+  @media (max-width: 380px) {
+    .tabbar .tabbar__center { flex-basis: 58px; }
+    .tabbar__center .tabbar__orb { width: 52px; height: 52px; }
+  }
+  @media (max-width: 340px) {
+    .tabbar .tabbar__center { flex-basis: 52px; }
+    .tabbar__center .tabbar__orb { width: 48px; height: 48px; margin-top: -18px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .tabbar__center .tabbar__orb { animation: none; } }
 
   :root[data-auth="in"] .app-main {
     padding-bottom: calc(var(--tabbar-height) + var(--space-8) + env(safe-area-inset-bottom));

@@ -38,6 +38,21 @@ export const api = {
     ping: () => request('POST', '/presence', { keepalive: true }),
   },
 
+  // Private messages (023). Files are uploaded by uploadFile() (messages/
+  // upload.js) to the URL that upload() hands out, then sent by name.
+  messages: {
+    conversations: (params = {}) => request('GET', `/messages/conversations${query(params)}`),
+    start: (body) => request('POST', '/messages/conversations', { body }),
+    conversation: (id, params = {}) => request('GET', `/messages/conversations/${encodeURIComponent(id)}${query(params)}`),
+    send: (id, body) => request('POST', `/messages/conversations/${encodeURIComponent(id)}/messages`, { body }),
+    upload: (id, body) => request('POST', `/messages/conversations/${encodeURIComponent(id)}/uploads`, { body }),
+    read: (id, seq) => request('POST', `/messages/conversations/${encodeURIComponent(id)}/read`, { body: { seq } }),
+    remove: (messageId) => request('DELETE', `/messages/messages/${encodeURIComponent(messageId)}`),
+    updates: (params = {}) => request('GET', `/messages/updates${query(params)}`),
+    block: (userId) => request('POST', '/messages/blocks', { body: { user_id: userId } }),
+    unblock: (userId) => request('DELETE', `/messages/blocks/${encodeURIComponent(userId)}`),
+  },
+
   social: {
     mine: () => request('GET', '/social'),
     create: (body) => request('POST', '/social', { body }),

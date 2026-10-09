@@ -4,7 +4,8 @@
 import { api } from '../shared/api.js';
 import { store } from '../core/state.js';
 import { qs, createEl } from '../shared/dom.js';
-import { ApiError } from '../shared/errors.js';
+import { ApiError, errorMessage } from '../shared/errors.js';
+import { navigate } from '../core/router.js';
 import { platformLabel } from '../shared/social-platforms.js';
 import { t, formatNumber } from '../core/i18n.js';
 import { activityLabel } from '../shared/activity-labels.js';
@@ -154,6 +155,24 @@ function render(container, profile) {
   const links = createEl('div', { class: 'profile-hero__links' });
   if (isOwn) {
     links.append(createEl('a', { class: 'btn btn--sm', href: '/profile', 'data-link': '' }, [icon('i-pencil', { size: 16 }), t('Edit your profile')]));
+  } else if (store.getState().user) {
+    // Write to them: opens (or starts) the conversation.
+    const write = createEl('button', { type: 'button', class: 'btn btn--primary btn--sm' }, [icon('i-message-circle', { size: 16 }), t('Send a message')]);
+    const error = createEl('p', { class: 'form-error', role: 'alert' });
+    error.hidden = true;
+    write.addEventListener('click', async () => {
+      write.disabled = true;
+      error.hidden = true;
+      try {
+        const { conversation_id: id } = await api.messages.start({ user_id: profile.id });
+        navigate(`/messages/${id}`);
+      } catch (err) {
+        write.disabled = false;
+        error.textContent = errorMessage(err, 'Could not start the conversation.');
+        error.hidden = false;
+      }
+    });
+    links.append(write, error);
   }
 
   container.append(createEl('div', { class: 'profile-hero profile-hero--public' }, [
